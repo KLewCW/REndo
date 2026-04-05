@@ -196,3 +196,70 @@
 #' @docType data
 #' @author Raluca Gui \email{raluca.gui@@business.uzh.ch}
 "dataMultilevelIV"
+
+#' @title Simulated Dataset for 2sCOPEnp - Continuous Endogenous Regressor without
+#'   neither Gaussian Copula nor Mean-Dependence Model Assumption.
+#' @description A dataset simulated with one continuous endogenous regressor
+#'   \code{P} and one exogenous regressor \code{X}, where neither the joint Gaussian
+#'   copula nor the mean-dependence-only assumption holds. The exogenous regressor \code{X}
+#'   follows a Student-t distribution with 3 degrees of freedom, and the conditional
+#'   distribution of \code{P} given \code{X} is a truncated standard normal with \code{X}-dependent
+#'   bounds (Section 4.3, Hu et al. 2025). The endogeneity strength is
+#'   rho = 0.5. This dataset corresponds to Case 3 of the simulation study
+#'   in Hu et al. (2025).
+#'   The true parameter values are \code{mu = 1} for the intercept,
+#'   \code{alpha = 1} for \code{P} and \code{beta = 2} for \code{X}.
+#' @name data2sCOPEnpCont
+#' @usage data("data2sCOPEnpCont")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{P}}{a numeric vector, continuous and endogenous, following
+#'   a truncated standard normal distribution with \code{X}-dependent bounds
+#'   \eqn{a = \min(0, -2X + 2)} and \eqn{b = \max(2, -2X + 2)}.}
+#' \item{\code{X}}{a numeric vector, continuous and exogenous, following
+#'   a Student-t distribution with 3 degrees of freedom.}
+#' }
+#' @docType data
+#' @references
+#' Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
+#' instrument-free two-stage nonparametric copula control functions.
+#' NBER Working Paper No. 33607.
+#' \url{http://www.nber.org/papers/w33607}
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"data2sCOPEnpCont"
+
+
+#' @title Simulated Dataset for 2sCOPEnp - Binary Endogenous Regressor
+#' @description A dataset simulated with one binary endogenous regressor
+#'   \code{P} (Bernoulli, taking values 0 or 1) and one continuous exogenous
+#'   regressor \code{X} following a Student-t distribution with 3 degrees of
+#'   freedom. The latent variables \code{(P*, X*, Xi*)} follow a trivariate
+#'   normal distribution with rho_px = 0.5 and rho_pxi = 0.5
+#'   (Equation 44, Hu et al. 2025). The binary treatment status \code{P} is
+#'   obtained via the indicator function \eqn{P = \mathbf{1}\{\Phi(P^*) > 0.5\}},
+#'   corresponding to a balanced binary treatment (approximately 50\% treated).
+#'   This dataset corresponds to Case 5 of the simulation study in Hu et al.
+#'   (2025) and demonstrates the ability of 2sCOPEnp method to handle
+#'   discrete endogenous regressors.
+#'   The true parameter values are \code{mu = 0} for the intercept,
+#'   \code{alpha = 1} for \code{P} and \code{beta = 2} for \code{X}.
+#' @name data2sCOPEnpBi
+#' @usage data("data2sCOPEnpBi")
+#' @format A data frame with 2000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{P}}{an integer vector, binary (0 or 1) and endogenous,
+#'   representing a balanced binary treatment with approximately 50\%
+#'   treated observations.}
+#' \item{\code{X}}{a numeric vector, continuous and exogenous, following
+#'   a Student-t distribution with 3 degrees of freedom.}
+#' }
+#' @docType data
+#' @references
+#' Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
+#' instrument-free two-stage nonparametric copula control functions.
+#' NBER Working Paper No. 33607.
+#' \url{http://www.nber.org/papers/w33607}
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"data2sCOPEnpBi"
