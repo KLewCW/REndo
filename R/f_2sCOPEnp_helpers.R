@@ -8,7 +8,7 @@
 #F hat_(P_k |X) nonparametrically using Kernel methods (Hu et al 2025, mentions mostly Nadaraya-Watson (NW) kernel
 #before eq. 10) Stage 1 from table 3
 #Then the normal quantile transformation is applied to get the copula correction term
-
+#' @importFrom np npcdistbw npcdist
 copula2sCOPEnp_correction <- function(data, endo.cols, exo.cols, verbose) {
   n <- nrow(data)
   res <- matrix(NA_real_, nrow = n, ncol = length(endo.cols))
