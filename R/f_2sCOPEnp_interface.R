@@ -99,7 +99,7 @@
 #' @export
 #' @importFrom Formula as.Formula
 #' @importFrom stats coef
-copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE){
+copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   cl <- match.call()
 
   #Input checks
@@ -133,16 +133,20 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE){
     all = c(names.continuous, names.discrete)
   )
 
-  if (verbose){
-    message("Fitting 2sCOPEnp model with", length(names.endo.regs$all), "endogenous regressor(s).",
-            if(length(names.discrete) > 0){
-              paste0("(", length(names.discrete), "discrete)")
-            } else {
-              ""
-            })
-            message(
-              "Note: Nonparametric bandwidth selection could take time."
-            )
+  if (verbose) {
+    message(
+      "Fitting 2sCOPEnp model with",
+      length(names.endo.regs$all),
+      "endogenous regressor(s).",
+      if (length(names.discrete) > 0) {
+        paste0("(", length(names.discrete), "discrete)")
+      } else {
+        ""
+      }
+    )
+    message(
+      "Note: Nonparametric bandwidth selection could take time."
+    )
   }
 
   fit <- copula2sCOPEnp_fit(
@@ -153,7 +157,7 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE){
   )
 
   # Bootstrapping -------------------------------------------------------------------
-  fn.fit.boots <- function(data.b){
+  fn.fit.boots <- function(data.b) {
     return(copula2sCOPEnp_fit(
       F.formula = F.formula,
       data = data.b,
