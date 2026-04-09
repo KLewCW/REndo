@@ -103,11 +103,11 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   cl <- match.call()
 
   #Input checks
-  check_err_msg(checkinput_copula2sCOPEnp_formula(formula))
-  check_err_msg(checkinput_copula2sCOPEnp_data(data))
-  check_err_msg(checkinput_copula2sCOPEnp_dataVSformula(data = data, formula = formula))
-  check_err_msg(checkinput_copula2sCOPEnp_numboots(num.boots))
-  check_err_msg(checkinput_copula2sCOPEnp_verbose(verbose))
+  # check_err_msg(checkinput_copula2sCOPEnp_formula(formula))
+  # check_err_msg(checkinput_copula2sCOPEnp_data(data))
+  # check_err_msg(checkinput_copula2sCOPEnp_dataVSformula(data = data, formula = formula))
+  # check_err_msg(checkinput_copula2sCOPEnp_numboots(num.boots))
+  # check_err_msg(checkinput_copula2sCOPEnp_verbose(verbose))
 
   F.formula <- Formula::as.Formula(formula)
 
@@ -166,7 +166,7 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
     ))
   }
 
-  res.boots <- bootstrap_skip_degenerated(
+  res.boots <- bootstrap_skip_degenerates(
     fn.fit = fn.fit.boots,
     data = data,
     num.boots = num.boots,

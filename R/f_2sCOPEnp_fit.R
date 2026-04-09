@@ -2,11 +2,11 @@
 #' @importFrom stats lm model.frame model.matrix model.response reformulate update
 #' @importFrom np npcdistbw npcdist
 #'
-copula2sCOPEnp_fit <- function(F.formula, data, names.endo.reg, verbose) {
+copula2sCOPEnp_fit <- function(F.formula, data, names.endo.regs, verbose) {
   F.formula <- Formula::as.Formula(F.formula)
 
   #All endogenous regressors (continuous and discrete)
-  endo.reg <- c(names.endo.reg$continuous, names.endo.reg$discrete) #discrete endo regressors are handled the same way
+  endo.reg <- c(names.endo.regs$continuous, names.endo.regs$discrete) #discrete endo regressors are handled the same way
   #conditional CDF smooths the discrete distribution through X
 
   F.formula.main <- formula(F.formula, rhs = 1, lhs = 1)
@@ -19,7 +19,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, names.endo.reg, verbose) {
     stop("No endogenous regressors found in the design matrix.", call. = FALSE)
   }
 
-  if (length(endo.col) < length(endo.reg)) {
+  if (length(endo.cols) < length(endo.reg)) {
     stop(
       paste0(
         "Bootstrap sample dropped at least one endogenous regressor. ",
@@ -32,7 +32,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, names.endo.reg, verbose) {
   #exo column is everything that is non-intercept and non-endo col
   #used as conditioning variable X in the nonpara CDF
 
-  exo.cols <- colnames(X.main)[!colnames(X.main) %in% c("Intercept", endo.cols)]
+  exo.cols <- colnames(X.main)[!colnames(X.main) %in% c("(Intercept)", endo.cols)]
 
   if (length(exo.cols) == 0) {
     stop(
@@ -68,5 +68,5 @@ copula2sCOPEnp_fit <- function(F.formula, data, names.endo.reg, verbose) {
 
   f.final <- update(old = f.main, new = f.pcop)
 
-  return(lm(formula = f.final, data = cbind, cop.term))
+  return(lm(formula = f.final, data = cbind(data, cop.term)))
 }
