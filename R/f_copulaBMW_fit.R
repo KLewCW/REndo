@@ -12,15 +12,12 @@ copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf){
 
   if (length(endogenous.cols)==0)
     stop("No endogenous regressors found in design matrix.")
-  if(lenght(endogenous.cols) < length(names.endo.regs))
+  if(length(endogenous.cols) < length(names.endo.regs))
     stop("Bootstrap sample dropped at least one endogenous regressor. ",
-         "This can happen when a regressor becomes constant in a resample."
-         )
+         "This can happen when a regressor becomes constant in a resample.")
 
   # Exogenous columns
-  exo.cols <- setdiff(
-    colnames(X.main)[colnames(X.main) != "(Intercept)"], endogenous.cols
-  )
+  exo.cols <- setdiff(colnames(X.main)[colnames(X.main) != "(Intercept)"], endogenous.cols)
 
   # BMW correction
   # step 1: first-stage in the original space
