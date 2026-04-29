@@ -63,15 +63,15 @@ copulaBMW_pstar <- function(e.hat, cdf){
   }
 
   #Apply qnorm from eq. 2.3, eta hat =  phi^{-1} (F hat_{e hat} (e hat))
-  eta.hat <- apply(P.star, 2, qnorm)
+  P.cop <- apply(P.star, 2, qnorm) #eta hat is P_cop
 
-  return(eta.hat)
+  return(P.cop)
 }
 
 #' @importFrom stats lm residuals
 copulaBMW_correction <- function(data, endo.cols, exo.cols, cdf){
 
-  res <- matrix(nA, nrow = nrow(data), ncol = length(endo.cols))
+  res <- matrix(NA, nrow = nrow(data), ncol = length(endo.cols))
   colnames(res) <- paste0(endo.cols, "_cop")
 
 
@@ -95,8 +95,8 @@ copulaBMW_correction <- function(data, endo.cols, exo.cols, cdf){
     }
 
     #Apply CDF now, then qnorm to residuals e hat
-    eta.hat <- copulaBMW_pstar(e.hat = e.hat, cdf = cdf)
-    res[, i] <- as.vector(eta.hat)
+    P.cop <- copulaBMW_pstar(e.hat = e.hat, cdf = cdf)
+    res[, i] <- as.vector(P.cop)
   }
 
   return(res)
