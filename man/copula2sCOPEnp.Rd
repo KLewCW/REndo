@@ -92,6 +92,42 @@ nonparametric bandwidth selection in Stage 1.
 Degenerate bootstrap samples are automatically discarded and redrawn.
 The percentage of discarded samples is reported as a warning if non-zero.
 }
+\examples{
+
+#--------------------------------------------------------------
+# example 1: Continuous endogenous regressor
+# (Hu et al. 2025, Section 4.3)
+#
+# Demonstrates 2sCOPEnp's unique advantage: it is the only method
+# that fully eliminates bias when neither the Gaussian copula nor
+# the mean-dependence assumption holds.
+# True values: mu = 1, alpha = 1 (P), beta = 2 (X).
+#--------------------------------------------------------------
+data("data2sCOPEnpCont")
+res1 <- copula2sCOPEnp(
+ y ~ P + X | continuous(P),
+  data = data2sCOPEnpCont,
+  num.boots = 100)
+
+#--------------------------------------------------------------
+# example 2: Binary endogenous regressor
+# (Hu et al. 2025, Section 4.5)
+#
+# To show 2sCOPEnp's ability to handle discrete
+# endogenous regressors. 2sCOPEnp corrects endogeneity via
+# the smooth conditional CDF.
+# True values: mu = 0, alpha = 1 (P), beta = 2 (X).
+#--------------------------------------------------------------
+data("data2sCOPEnpBi")
+res2 <- copula2sCOPEnp(
+  y ~ P + X | discrete(P),
+  data      = data2sCOPEnpBi,
+  num.boots = 100
+)
+summary(res2)
+
+
+}
 \references{
 Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
 instrument-free two-stage nonparametric copula control functions.
@@ -106,3 +142,9 @@ Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np packag
 \emph{Journal of Statistical Software}, 27(5).
 \doi{10.18637/jss.v027.i05}
 }
+\seealso{
+Other copula-based methods: 
+\code{\link{copulaCorrection}()},
+\code{\link{copulaIMA}()}
+}
+\concept{copula-based methods}
