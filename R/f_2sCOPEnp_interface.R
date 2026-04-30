@@ -96,9 +96,47 @@
 #' \emph{Journal of Statistical Software}, 27(5).
 #' \doi{10.18637/jss.v027.i05}
 #'
+#' @family copula-based methods
+#'
+#' @examples
+#'
+#' #--------------------------------------------------------------
+#' # example 1: Continuous endogenous regressor
+#' # (Hu et al. 2025, Section 4.3)
+#' #
+#' # Demonstrates 2sCOPEnp's unique advantage: it is the only method
+#' # that fully eliminates bias when neither the Gaussian copula nor
+#' # the mean-dependence assumption holds.
+#' # True values: mu = 1, alpha = 1 (P), beta = 2 (X).
+#' #--------------------------------------------------------------
+#' data("data2sCOPEnpCont")
+#' res1 <- copula2sCOPEnp(
+#'  y ~ P + X | continuous(P),
+#'   data = data2sCOPEnpCont,
+#'   num.boots = 100)
+#'
+#' #--------------------------------------------------------------
+#' # example 2: Binary endogenous regressor
+#' # (Hu et al. 2025, Section 4.5)
+#' #
+#' # To show 2sCOPEnp's ability to handle discrete
+#' # endogenous regressors. 2sCOPEnp corrects endogeneity via
+#' # the smooth conditional CDF.
+#' # True values: mu = 0, alpha = 1 (P), beta = 2 (X).
+#' #--------------------------------------------------------------
+#' data("data2sCOPEnpBi")
+#' res2 <- copula2sCOPEnp(
+#'   y ~ P + X | discrete(P),
+#'   data      = data2sCOPEnpBi,
+#'   num.boots = 100
+#' )
+#' summary(res2)
+#'
+#'
 #' @export
 #' @importFrom Formula as.Formula
-#' @importFrom stats coef
+#' @importFrom stats coef model.matrix model.frame formula
+#'
 copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   cl <- match.call()
 
@@ -153,8 +191,36 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
     F.formula = F.formula,
     data = data,
     names.endo.regs = names.endo.regs,
-    verbose = verbose
+    verbose = verbose,
+    bws = NULL
   )
+
+  #precomputing the bws once on original data for bootstrap reuse
+  #bws estimates are consistent and sampling variability has negligible effect
+  #on the bootstrap distribution of the structural coefficients
+  if (verbose) {
+    message(
+      "Pre-computing bandwidths for ",
+      length(names.endo.regs$all),
+      " endogenous regressor(s) to speed up bootstrapping..."
+    )
+  }
+
+  #trying to identify the exogenous columns just like we did in fit.
+  #to check if we have correct columns
+  F.formula.main <- formula(F.formula, rhs = 1, lhs = 1)
+  mf.original        <- model.frame(F.formula.main, data = data)
+  X.main.original    <- model.matrix(F.formula.main, data = mf.original)
+
+  endo.cols.original <- colnames(X.main.original)[colnames(X.main.original) %in% names.endo.regs$all]
+  exo.cols.original  <- colnames(X.main.original)[!colnames(X.main.original) %in% c("(Intercept)", endo.cols.original)]
+
+  bws.original <- lapply(endo.cols.original, function(p.var){
+    copula2sCOPEnp_bandwidth(
+      y.data = data[, p.var,         drop = FALSE],
+      x.data = data[, exo.cols.original, drop = FALSE]
+    )
+  })
 
   # Bootstrapping -------------------------------------------------------------------
   fn.fit.boots <- function(data.b) {
@@ -162,7 +228,8 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
       F.formula = F.formula,
       data = data.b,
       names.endo.regs = names.endo.regs,
-      verbose = FALSE
+      verbose = FALSE,
+      bws = bws.original
     ))
   }
 

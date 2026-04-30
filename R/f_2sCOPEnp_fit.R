@@ -2,7 +2,7 @@
 #' @importFrom stats lm model.frame model.matrix model.response reformulate update
 #' @importFrom np npcdistbw npcdist
 #'
-copula2sCOPEnp_fit <- function(F.formula, data, names.endo.regs, verbose) {
+copula2sCOPEnp_fit <- function(F.formula, data, names.endo.regs, verbose, bws = NULL) {
   F.formula <- Formula::as.Formula(F.formula)
 
   #All endogenous regressors (continuous and discrete)
@@ -45,15 +45,14 @@ copula2sCOPEnp_fit <- function(F.formula, data, names.endo.regs, verbose) {
     )
   }
 
-  np.data <- as.data.frame(X.main) #np functions need original data values not design matrix columns
-
   #first stage computing conditional CDF correction term nonparametrically (via helper) C_p
   #from equation 21 of Hu et al. 2025
   cop.term <- copula2sCOPEnp_correction(
-    data = np.data,
+    data = data,
     endo.cols = endo.cols,
     exo.cols = exo.cols,
-    verbose = verbose
+    verbose = verbose,
+    bws = bws #trying to make bandwidths less computationally costly
   )
 
   #second stage: augmented OLS. Adding the correction term to the structural model and estimate by OLS
