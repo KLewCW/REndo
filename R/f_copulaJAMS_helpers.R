@@ -78,3 +78,102 @@ copulaJAMS_correction_cont <- function(P.all, names.endo.regs,cdf){
   return(P.cop)
 
 }
+
+
+#Copula correction terms in case of factor or discrete exo case
+#' @ importFrom stats cov qnorm
+
+copulaJams_correction_dis <- function(data, names.endo.regs, names.exo.regs, factor.vars, cdf){
+
+  n <- nrow(data)
+  result.list <- list()
+
+  for (var in factor.vars){
+    levels.var <- levels(as.facto(data[[var]]))
+
+    for (lvl in level.var){
+
+      index <- data[[var]] == lvl
+      subdat1 <- data[index, , drop = FALSE]
+
+      #skip if too few observations or no variation in endogenous regressors
+      has.variation <- any(sapply(subdat1[, names.endo.regs, drop = FALSE],
+                                  function(col) length(unique(col)) >1))
+      if (nrow(subdat1) <= 3 || !has.variation) next # 3 is number checked by Haschka's repo line 190. #did not find paper backing this up ?
+
+
+      ##usually need at least p+1 observations to estimate a pxp cov matrix
+      # more generally, instead of '3', we could have tried the most conservative minimum of
+      # max(10, 2*p) for reliable estimation
+      #min.observation.needed <- max(10L, 2L * length(cols.use))
+      #if(nrow(subdat1) <= min.observation.needed || !has.variation){
+      # then maybe issue a warning here... saying that the factor level 'lvl' of the variable 'var'
+      # does not have enough observation for a reliable covariance estimation and we are skipping this level.
+
+
+      #now use non-factor columns only for the CDF transformation.
+      #factor vairables cannot enter the CDF transformation as they are discrete with no meaningful continuous CDF
+
+      cols.use <- setdiff(c(names.endo.regs, names.exo.regs), factor.vars)
+      subdat2 <- as.matrix(subdat1[, cols.use, drop = FALSE])
+
+      subdat2<-subdat2[, apply(subdat2,2, function(x) length(unique(x)) > 1), drop = FALSE] #keeping only columns with variation with subset
+
+      if (ncol(subdat2) ==0) next
+
+      #Using the steps from equation 21 again:
+
+      P.star <- copulaJAMS_pstar(P = subdat2, cdf = cdf)
+
+      C.sub <- apply(P.star, 2, qnorm)
+
+      #checking invertibility before continuing
+      is.issue <- tryCatch({
+        Sigma.hat <- cov(C.sub)
+        solve(Sigma.hat)
+        FALSE
+        }, error = function(e) TRUE, warning = function(w) TRUE)
+
+      if(is.issue){
+        #return zero correction terms
+        K.use <- sum(colnames(subdat2) %in% names.endo.regs)
+        P.cop <- matrix(0, nrow = nrow(subdat2), ncol = K.use)}
+      else{
+        Sigma.hat <- cov(C.sub)
+        Sigma.inv <- solve(Sigma.hat)
+
+        #project onto endo cols in this subset
+        endo.index <- which(colnames(C.sub) %in% names.endo.regs)
+        K.use <- length(endo.index)
+
+        P.cop <- C.sub %*% Sigma.inv[, endo.index, drop =FALSE]
+        P.cop <- as.matrix(P.cop)
+      }
+
+      #naming correction terms with factor level info
+      K.actual <- ncol(P.cop)
+      endo.for.names <- names.endo.regs[seq_len(K.actual)]
+      colnames(P.cop) <- paste0(endo.for.names, "_", var, "_", lvl, "_cop")
+
+      # Expanding back to a full dataset
+      # I(Z_i = z) from eq. 20. zero attributed for observations not in this level
+
+      P.cop.full <- amtrix(0, nrow = n, ncol= col(P.cop))
+      P.cop.full[idx, ] <- P.cop
+      colnames(P.cop.full) <- colnames(P.cop)
+
+      result.list[[paste(var, lvl, sep = "_")]] <- P.cop.full
+
+    }
+  }
+
+  if (length(result.list) == 0)
+    stop(
+      "No valid factor-level subsets found for correction term estimation. ",
+      "Check that factor exogenous regressors have sufficient observations ",
+      "per level (> 3) and variation in the endogenous regressors.",
+       call. = FALSE
+      )
+
+  return (do.call(cbind, result.list))
+}
