@@ -82,12 +82,9 @@
 #' Degenerate bootstrap samples are automatically discarded and redrawn.
 #' The percentage of discarded samples is reported as a warning if non-zero.
 #'
-#' @references
-#' Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
-#' instrument-free two-stage nonparametric copula control functions.
-#' NBER Working Paper No. 33607.
-#' \url{http://www.nber.org/papers/w33607}
+#' @template template_references_hu2025
 #'
+#' @references
 #' Li, Q. and Racine, J. S. (2008). Nonparametric estimation of conditional CDF and
 #' quantile functions with mixed categorical and continuous data.
 #' \emph{Journal of Business and Economic Statistics}, 26(4), 423-434

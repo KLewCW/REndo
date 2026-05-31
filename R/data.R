@@ -221,11 +221,7 @@
 #'   a Student-t distribution with 3 degrees of freedom.}
 #' }
 #' @docType data
-#' @references
-#' Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
-#' instrument-free two-stage nonparametric copula control functions.
-#' NBER Working Paper No. 33607.
-#' \url{http://www.nber.org/papers/w33607}
+#' @template template_references_hu2025
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
 "data2sCOPEnpCont"
 
@@ -256,11 +252,7 @@
 #'   a Student-t distribution with 3 degrees of freedom.}
 #' }
 #' @docType data
-#' @references
-#' Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
-#' instrument-free two-stage nonparametric copula control functions.
-#' NBER Working Paper No. 33607.
-#' \url{http://www.nber.org/papers/w33607}
+#' @template template_references_hu2025
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
 "data2sCOPEnpBi"
 
