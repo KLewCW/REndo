@@ -209,15 +209,19 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   #trying to identify the exogenous columns just like we did in fit.
   #to check if we have correct columns
   F.formula.main <- formula(F.formula, rhs = 1, lhs = 1)
-  mf.original        <- model.frame(F.formula.main, data = data)
-  X.main.original    <- model.matrix(F.formula.main, data = mf.original)
+  mf.original <- model.frame(F.formula.main, data = data)
+  X.main.original <- model.matrix(F.formula.main, data = mf.original)
 
-  endo.cols.original <- colnames(X.main.original)[colnames(X.main.original) %in% names.endo.regs$all]
-  exo.cols.original  <- colnames(X.main.original)[!colnames(X.main.original) %in% c("(Intercept)", endo.cols.original)]
+  endo.cols.original <- colnames(X.main.original)[
+    colnames(X.main.original) %in% names.endo.regs$all
+  ]
+  exo.cols.original <- colnames(X.main.original)[
+    !colnames(X.main.original) %in% c("(Intercept)", endo.cols.original)
+  ]
 
-  bws.original <- lapply(endo.cols.original, function(p.var){
+  bws.original <- lapply(endo.cols.original, function(p.var) {
     copula2sCOPEnp_bandwidth(
-      y.data = data[, p.var,         drop = FALSE],
+      y.data = data[, p.var, drop = FALSE],
       x.data = data[, exo.cols.original, drop = FALSE]
     )
   })

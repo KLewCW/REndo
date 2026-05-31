@@ -9,7 +9,7 @@
 #before eq. 10) Stage 1 from table 3
 #Then the normal quantile transformation is applied to get the copula correction term
 #' @importFrom np npcdistbw npcdist
-copula2sCOPEnp_bandwidth <- function(y.data, x.data){
+copula2sCOPEnp_bandwidth <- function(y.data, x.data) {
   h <- np::npcdistbw(
     xdat = x.data,
     ydat = y.data
@@ -48,12 +48,12 @@ copula2sCOPEnp_correction <- function(data, endo.cols, exo.cols, verbose, bws = 
 
     #selecting bandwidth (h) for conditional CDF F hat_(P_k |X) through cross validation
 
-    if (is.null(bws)){
+    if (is.null(bws)) {
       h <- copula2sCOPEnp_bandwidth(
         y.data = y.data,
         x.data = x.data
       )
-    } else{
+    } else {
       h <- bws[[k]] # reusing pre-computed bandwidths
     }
 

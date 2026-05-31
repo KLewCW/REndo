@@ -1,12 +1,12 @@
 #' @importFrom stats coef fitted residuals model.frame
 new_rendo_copula2sCOPEnp <- function(
-    call,
-    F.formula,
-    res.lm,
-    boots.params,
-    n.boots.attempted,
-    n.boots.failed,
-    names.endo.regs
+  call,
+  F.formula,
+  res.lm,
+  boots.params,
+  n.boots.attempted,
+  n.boots.failed,
+  names.endo.regs
 ) {
   return(.new_rendo_boots_degenerates_removed(
     # Stuff for rendo.boots.degenerates.removed
