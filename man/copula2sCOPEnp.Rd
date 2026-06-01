@@ -144,6 +144,7 @@ Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np packag
 }
 \seealso{
 Other copula-based methods: 
+\code{\link{copula2sCOPE}()},
 \code{\link{copulaCorrection}()},
 \code{\link{copulaIMA}()}
 }
