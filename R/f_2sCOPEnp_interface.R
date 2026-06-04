@@ -93,6 +93,8 @@
 #' \emph{Journal of Statistical Software}, 27(5).
 #' \doi{10.18637/jss.v027.i05}
 #'
+#' @eval doc_rendocopula2scopenp_return()
+#'
 #' @family copula-based methods
 #'
 #' @examples
@@ -131,9 +133,9 @@
 #'
 #'
 #' @export
-#' @importFrom Formula as.Formula
-#' @importFrom stats coef model.matrix model.frame formula
 #'
+#' @importFrom Formula as.Formula
+#' @importFrom stats coef terms formula
 copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   cl <- match.call()
 
@@ -144,91 +146,61 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   # check_err_msg(checkinput_copula2sCOPEnp_numboots(num.boots))
   # check_err_msg(checkinput_copula2sCOPEnp_verbose(verbose))
 
-  F.formula <- Formula::as.Formula(formula)
+  # checks:
+  # - endo are continuous or ordered factors
 
-  # Extracting both continuous and discrete endogenous regressor names
+  F.formula <- as.Formula(formula)
 
-  names.continuous <- formula_readout_special(
-    F.formula = F.formula,
-    name.special = "continuous",
-    from.rhs = 2,
-    params.as.chars.only = TRUE
-  )
+  labels.full <- labels(terms(F.formula, data = data, rhs = 1))
+  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+  labels.exo <- labels.full[!(labels.full %in% labels.endo)]
 
-  names.discrete <- formula_readout_special(
-    F.formula = F.formula,
-    name.special = "discrete",
-    from.rhs = 2,
-    params.as.chars.only = TRUE
-  )
-
-  names.endo.regs <- list(
-    continuous = names.continuous,
-    discrete = names.discrete,
-    all = c(names.continuous, names.discrete)
-  )
-
-  if (verbose) {
-    message(
-      "Fitting 2sCOPEnp model with",
-      length(names.endo.regs$all),
-      "endogenous regressor(s).",
-      if (length(names.discrete) > 0) {
-        paste0("(", length(names.discrete), "discrete)")
-      } else {
-        ""
-      }
-    )
-    message(
-      "Note: Nonparametric bandwidth selection could take time."
+  if (length(labels.exo) == 0) {
+    stop(
+      paste0(
+        "2sCOPEnp requires at least one exogenous regressor for the ",
+        "nonparametric conditional CDF estimation.",
+        "Please include exogenous control variables in the formula."
+      ),
+      call. = FALSE
     )
   }
 
-  fit <- copula2sCOPEnp_fit(
-    F.formula = F.formula,
-    data = data,
-    names.endo.regs = names.endo.regs,
-    verbose = verbose,
-    bws = NULL
-  )
+  if (verbose) {
+    message(
+      "Fitting 2sCOPEnp model with ",
+      length(labels.endo),
+      " endogenous regressor(s)."
+    )
+    message("Note: Nonparametric bandwidth selection could take time.")
+  }
 
   #precomputing the bws once on original data for bootstrap reuse
   #bws estimates are consistent and sampling variability has negligible effect
   #on the bootstrap distribution of the structural coefficients
-  if (verbose) {
-    message(
-      "Pre-computing bandwidths for ",
-      length(names.endo.regs$all),
-      " endogenous regressor(s) to speed up bootstrapping..."
-    )
-  }
+  bws.original <- copula2sCOPEnp_bandwidth(
+    data = data,
+    labels.exo = labels.exo,
+    labels.endo = labels.endo,
+    verbose = verbose
+  )
 
-  #trying to identify the exogenous columns just like we did in fit.
-  #to check if we have correct columns
-  F.formula.main <- formula(F.formula, rhs = 1, lhs = 1)
-  mf.original <- model.frame(F.formula.main, data = data)
-  X.main.original <- model.matrix(F.formula.main, data = mf.original)
-
-  endo.cols.original <- colnames(X.main.original)[
-    colnames(X.main.original) %in% names.endo.regs$all
-  ]
-  exo.cols.original <- colnames(X.main.original)[
-    !colnames(X.main.original) %in% c("(Intercept)", endo.cols.original)
-  ]
-
-  bws.original <- lapply(endo.cols.original, function(p.var) {
-    copula2sCOPEnp_bandwidth(
-      y.data = data[, p.var, drop = FALSE],
-      x.data = data[, exo.cols.original, drop = FALSE]
-    )
-  })
+  fit <- copula2sCOPEnp_fit(
+    F.formula = F.formula,
+    data = data,
+    labels.exo = labels.exo,
+    labels.endo = labels.endo,
+    verbose = verbose,
+    bws = bws.original
+  )
 
   # Bootstrapping -------------------------------------------------------------------
   fn.fit.boots <- function(data.b) {
     return(copula2sCOPEnp_fit(
       F.formula = F.formula,
       data = data.b,
-      names.endo.regs = names.endo.regs,
+      labels.exo = labels.exo,
+      labels.endo = labels.endo,
       verbose = FALSE,
       bws = bws.original
     ))
@@ -242,14 +214,25 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
     verbose = verbose
   )
 
-  # Return value ----------------------------------------------------------------------
+  # Structural residuals --------------------------------------------------------------
+
+  l.fitted.resid <- copula_compute_structural_fitted_residuals(
+    res.lm.aug = fit,
+    names.aux.regs = grep("_cop$", names(coef(fit)), value = TRUE)
+  )
+
+  # Return object ----------------------------------------------------------------------
+
   return(new_rendo_copula2sCOPEnp(
     call = cl,
     F.formula = F.formula,
-    res.lm = fit,
+    res.lm.augmented = fit,
+    fitted.values = l.fitted.resid$fitted.values,
+    residuals = l.fitted.resid$residuals,
     boots.params = res.boots$boots.params,
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
-    names.endo.regs = names.endo.regs$all
+    bws = bws.original,
+    names.endo.regs = labels.endo
   ))
 }

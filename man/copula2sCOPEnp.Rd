@@ -13,6 +13,22 @@ copula2sCOPEnp(formula, data, num.boots = 1000, verbose = TRUE)
 
 \item{verbose}{Show details about the running of the function.}
 }
+\value{
+An object of class \code{rendo.copula.2sCOPE.np} which is a list that contains:
+\item{\code{formula}}{The formula given to specify the fitted model.}
+\item{\code{model}}{The model.frame used for model fitting.}
+\item{\code{terms}}{The terms object used for model fitting.}
+\item{\code{coefficients}}{A named vector of all coefficients resulting from model fitting.}
+\item{\code{names.main.coefs}}{A vector specifying which coefficients are from the model. For internal usage.}
+\item{\code{fitted.values}}{Fitted values of the structural model.}
+\item{\code{residuals}}{The structural residuals.}
+\item{\code{boots.params}}{The bootstrapped coefficients.}
+\item{\code{n.boots.attempted}}{The number of bootstrap iterations that were attempted.}
+\item{\code{n.boots.failed}}{The number of bootstrap iterations resulting in a failed fit.}
+\item{\code{bws}}{The bandwidths computed on the input data: a named list with one \code{np::condbandwidth} object per endogenous regressor (named accordingly), each used to estimate the conditional CDF \eqn{\hat{F}(P_k \mid X)}.}
+\item{\code{names.endo.regs}}{The names of the endogenous regressors.}
+\item{\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}
+}
 \description{
 Fitting the two-stage nonparametric copula control function (2sCOPEnp)
 estimator of Hu et al. (2025) to address endogeneity without external
