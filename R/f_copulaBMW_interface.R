@@ -1,3 +1,40 @@
+#' Copula-based Endogeneity Correction with Asymptotic properties (BMW)
+#'
+#' @description
+#' Fits a linear model with endogenous regressors by using the nonparametric
+#' control function approach of Breitung, Meyer and Wied (2024). This method
+#' corrects endogeneity without any external instrumental variables. It is a
+#' copula-based method with asymptotic theory.
+#'
+#' @details
+#' The estimator is done in two steps:
+#' \itemsize{
+#' \item First: Each endogenous regressor \eqn{P_k} is regressed on the
+#' exogenous regressors \eqn{X} using ordinary leas squares in the original
+#' variable space to obtain residuals \eqn{\hat{e}_k = P_k - \hat{\delta}' X}.
+#' \item Second: The empirical CDF is applied to \eqn{\hat{e}_k} and the result
+#' is then transformed through \eqn{\Phi^{-1}} in order to find the correction
+#' term \eqn{\hat{\eta}_k}. This is then included as an additional regressor in
+#' augmented OLS.
+#' }
+#'
+#' The model is then:
+#' \deqn{y = \beta' X + \gamma P + \rho \hat{\eta} + \xi}
+#'
+#' where \eqn{\hat{\eta} = \Phi^{-1} (\hat{F}_{\hat{e}}(\hat{e}))}
+#' \eqn{\hat{F}_{\hat{e}}} is the empirical CDF using.
+#'
+#' This method requires at least one exogenous regressor for the first-stage
+#' regression and supports only continuous regressors.
+#'
+#' @references
+#' Breitung, J., Meyer, M., Wied, D. (2024). Asymptotic properties of endogeneity
+#' corrections using nonlinear transformations. \emph{The Econometrics Journal},
+#' 27, 362--383/ \doi{10.1093/ectj/utae002}
+#'
+#' @examples
+#'
+#'
 #'
 #' @export
 #' @importFrom stats coef
