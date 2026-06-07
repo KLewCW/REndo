@@ -196,3 +196,52 @@
 #' @docType data
 #' @author Raluca Gui \email{raluca.gui@@business.uzh.ch}
 "dataMultilevelIV"
+
+#' @title Simulated Dataset for the BMW Nonparametric Control Function Approach
+#' @description A dataset with one exogenous regressor \code{x} and one
+#'   endogenous, continuous regressor \code{P}, generated according to DGP1
+#'   of Breitung, Meyer, and Wied (2024), Section 4, with correlated regressors
+#'   (\code{delta = 1}) and endogeneity (\code{rho = 0.5}).
+#'   The dependent variable is \code{y}.
+#'   The true parameter values are: \code{beta0 = 1} (intercept),
+#'   \code{beta1 = -1} (\code{x}), and \code{gamma = 1} (\code{P}).
+#' @name dataCopBMW
+#' @usage data("dataCopBMW")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#'   \item{\code{y}}{a numeric vector representing the dependent variable.}
+#'   \item{\code{x}}{a numeric vector, Gamma(1,1) distributed and exogenous.}
+#'   \item{\code{P}}{a numeric vector, continuous and endogenous, constructed
+#'     as \code{P = x + e} where \code{e ~ Gamma(1,1)} is independent of
+#'     \code{x}.}
+#' }
+#' @docType data
+#' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
+"dataCopBMW"
+
+#' @title Simulated Dataset for the BMW Approach with Two Endogenous Regressors
+#' @description A dataset with one exogenous regressor \code{x} and two
+#'   endogenous, continuous regressors \code{P1} and \code{P2}, generated
+#'   as an extension of DGP1 to the multiple endogenous regressor case (Remark 2.1).
+#'   Both endogenous regressors are correlated with \code{x} (\code{delta1 = delta2 = 1})
+#'   and shows moderate endogeneity (\code{rho1 = rho2 = 0.5}).
+#'   The true parameter values are: \code{beta0 = 1} (intercept),
+#'   \code{beta1 = -1} (\code{x}), \code{gamma1 = 1} (\code{P1}),
+#'   and \code{gamma2 = 1} (\code{P2}).
+#' @name dataCopBMWMultiEndo
+#' @usage data("dataCopBMWMultiEndo")
+#' @format A data frame with 1000 observations on 4 variables:
+#' \describe{
+#'   \item{\code{y}}{a numeric vector representing the dependent variable.}
+#'   \item{\code{x}}{a numeric vector, Gamma(1,1) distributed and exogenous.}
+#'   \item{\code{P1}}{a numeric vector, continuous and endogenous, constructed
+#'     as \code{P1 = x + e1} where \code{e1 ~ Gamma(1,1)} is independent of
+#'     \code{x} and \code{e2}.}
+#'   \item{\code{P2}}{a numeric vector, continuous and endogenous, constructed
+#'     as \code{P2 = x + e2} where \code{e2 ~ Gamma(1,1)} is independent of
+#'     \code{x} and \code{e1}.}
+#' }
+#' @docType data
+#' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
+"dataCopBMWMultiEndo"
+
