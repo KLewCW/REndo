@@ -221,8 +221,9 @@ copula2sCOPEnp <- function(formula, data, bws=NULL, npcdistbw.args=list(), num.b
   # check_err_msg(checkinput_copula2sCOPEnp_formula(formula))
   # check_err_msg(checkinput_copula2sCOPEnp_data(data))
   # check_err_msg(checkinput_copula2sCOPEnp_dataVSformula(data = data, formula = formula))
-  # check_err_msg(checkinput_copula2sCOPEnp_numboots(num.boots))
-  # check_err_msg(checkinput_copula2sCOPEnp_verbose(verbose))
+  check_err_msg(checkinput_copula2scopenp_npcdistbwargs(npcdistbw.args))
+  check_err_msg(checkinput_copulashared_numboots(num.boots))
+  check_err_msg(checkinput_copulashared_verbose(verbose))
 
   # checks:
   # - endo are continuous or ordered factors
