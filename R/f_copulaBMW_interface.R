@@ -6,6 +6,10 @@
 #' corrects endogeneity without any external instrumental variables. It is a
 #' copula-based method with asymptotic theory.
 #'
+#' @template template_param_formuladataverbose
+#' @template template_param_cdf
+#' @template template_param_numboots
+#'
 #' @details
 #' The estimator is done in two steps:
 #' \itemsize{
@@ -27,13 +31,47 @@
 #' This method requires at least one exogenous regressor for the first-stage
 #' regression and supports only continuous regressors.
 #'
+#' @template template_text_details_bootsdegenerates
+#'
 #' @references
 #' Breitung, J., Meyer, M., Wied, D. (2024). Asymptotic properties of endogeneity
 #' corrections using nonlinear transformations. \emph{The Econometrics Journal},
 #' 27, 362--383/ \doi{10.1093/ectj/utae002}
 #'
-#' @examples
+#' @template template_param_cdf_references
 #'
+#' @examples
+#' #------------------------------------------------------------------------
+#' # Example 1: BMW DGP1 — single endogenous regressor, correlated with
+#' # exogenous regressor (Breitung, Meyer, Wied 2024, Section 4,
+#' # DGP1 with delta = 1, rho = 0.5, x ~ Gamma(1,1), e ~ Gamma(1,1))
+#' #
+#' # True Paramaters: beta0 = 1 (intercept), beta1 = -1 (x), gamma = 1 (P).
+#' #------------------------------------------------------------------------
+#' #' data("dataCopBMW")
+#' res_bmw <- copulaBMW(
+#'   y ~ x + P | continuous(P),
+#'   data      = dataCopBMW,
+#'   cdf       = "ecdf",
+#'   num.boots = 1000
+#' )
+#' summary(res_bmw)
+#'
+#' #------------------------------------------------------------------------
+#' # Example 2: BMW with 2 endogenous regressors
+#' # (Extension of DGP1 per Remark 2.1)
+#' #
+#' # True parameters: beta0 = 1 (intercept), beta1 = -1 (x),
+#' #              gamma1 = 1 (P1), gamma2 = 1 (P2).
+#' #------------------------------------------------------------------------
+#' data("dataCopBMWMultiEndo")
+#' res_bmw_multi <- copulaBMW(
+#'   y ~ x + P1 + P2 | continuous(P1) + continuous(P2),
+#'   data      = dataCopBMWMultiEndo,
+#'   cdf       = "ecdf",
+#'   num.boots = 1000
+#' )
+#' summary(res_bmw_multi)
 #'
 #'
 #' @export
