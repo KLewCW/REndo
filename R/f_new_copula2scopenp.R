@@ -7,7 +7,10 @@ doc_rendocopula2scopenp_return_list <- function() {
   ]] <- "\\item{\\code{fitted.values}}{Fitted values of the structural model.}"
 
   doc_copula2scopenp <- c(
-    bws = "\\item{\\code{bws}}{The bandwidths computed on the input data: a named list with one \\code{np::condbandwidth} object per endogenous regressor (named accordingly), each used to estimate the conditional CDF \\eqn{\\hat{F}(P_k \\mid X)}.}",
+    bws = "\\item{\\code{bws}}{A named list with one \\code{np::condbandwidth} object per endogenous
+    regressor (named accordingly), each used to estimate the conditional CDF
+    \\eqn{\\hat{F}(P_k \\mid X)}. Estimated on the input data unless bandwidths were
+    supplied via the \\code{bws} argument, in which case those are returned unchanged.}",
     names.endo.regs = "\\item{\\code{names.endo.regs}}{The names of the endogenous regressors.}",
     res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}"
   )

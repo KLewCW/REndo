@@ -15,10 +15,21 @@
 #' the exogenous control variables to smooth the discrete conditional CDF.
 #'
 #' @template template_param_formuladataverbose
+#' @param data A data.frame containing the data of all parts specified in the formula
+#' parameter. Variables must be correctly classed (\code{numeric}, \code{factor}, or
+#'  \code{ordered}) otherwise it will silently yield wrong results!
+#' @template template_param_numboots
+#' @param npcdistbw.args A named list of arguments which are passed to
+#' \code{\link[np]{npcdistbw}}. To tweak the bandwidth selection for the kernel
+#' conditional CDF. Runs with the method's defaults if not specified.
+#' See \code{\link[np]{npcdistbw}} for valid inputs.
+#' @param bws A named list of estimated \code{condbandwidth} objects (outputs of
+#' \code{np::npcdistbw()}) used in place of estimating the bandwidth from \code{data}.
+#' If supplied, bandwidth estimation is skipped entirely. See Details.
 #'
 #'
 #' @details
-#' \strong{Model}
+#' \subsection{Model}{
 #'
 #' Consider the structural regression model with \eqn{K} endogenous regressors:
 #'
@@ -30,12 +41,13 @@
 #' with the structural error \eqn{\varepsilon_i},
 #' \eqn{X_i} is a vector of exogenous regressors uncorrelated with \eqn{\varepsilon_i}, and
 #' \eqn{\mu, \alpha_k, \beta} are structural model paramters.
+#' }
 #'
-#' \strong{Methodology}
+#' \subsection{Methodology}{
 #'
 #' The estimation proceeds in 2 stages (Hu et al. 2025)
 #'
-#' \strong{Stage 1}: For each endogenous regressor \eqn{P_k}:
+#' \emph{Stage 1}: For each endogenous regressor \eqn{P_k}:
 #' \enumerate{
 #'   \item Estimate the conditional CDF \eqn{\hat{F}(P_k | X)} nonparametrically
 #'         using kernel methods (Li and Racine 2008), conditioning on all
@@ -48,39 +60,53 @@
 #'   \item Repeat for all \eqn{K} endogenous regressors.
 #' }
 #'
-#' \strong{Stage 2}: Add \eqn{\{C_{i,pk}\}, k =1, \ldots, K} to the structural model as
+#' \emph{Stage 2}: Add \eqn{\{C_{i,pk}\}, k =1, \ldots, K} to the structural model as
 #' generated regressors and estimate using OLS (Equation 20):
 #' \deqn{Y_i = \mu + \sum_{k=1}^{K} P_{i,k}\alpha_k + X_i'\beta +
 #'       \sum_{k=1}^{K} C_{i,pk}\gamma_k + \xi_i}
 #' where \eqn{\gamma_k} is the coefficient of the copula correction term \eqn{C_{i, pk}} and
 #' \eqn{\xi_i} is the new error term.
+#' }
 #'
-#' \strong{Formula interface}
+#' \subsection{Parameter \code{bws}}{
+#' If given, the bandwidth estimation is skipped for all endogenous regressors, and
+#' the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
+#' instead.
+#' They do not serve as starting point for bandwidth estimation but replace it entirely.
+#' For each endogenous term in \code{formula}, \code{bws} must contain a
+#' \code{condbandwidth} object for the conditional CDF \code{(single endo) ~ (all exo)}.
+#' \code{bws} must be a named list, with each each element named after the corresponding
+#' endogenous terms.
+#' The bandwidths must be estimated using the default \code{np::npcdistbw(xdat=,ydat=)}
+#' interface, not the formula interface because this will break downstream usage in
+#' \code{np::npcdist()}.
+#' }
+#'
+#' \subsection{Parameter \code{formula}}{
 #'
 #' The \code{formula} argument follows a two part notation separated by \code{|}.
 #' The first part specifies the structural model (e.g \code{y ~ X + P}).
-#' The second part identifies the endogenous regressors and their type using \code{continuous()}
-#' or \code{discrete()}:
+#' The second part lists the endogenous regressors:
 #'
-#' \preformatted{y ~ X + P | continuous(P)        # continuous endogenous P}
-#' \preformatted{y ~ X + D | discrete(D)          # discrete endogenous D}
-#' \preformatted{y ~ X + P + D | continuous(P) + discrete(D)  # mixed}
+#' \preformatted{y ~ X + P | P                       # endogenous P}
+#' \preformatted{y ~ X + P1 + log(P2) | P1 + log(P2) # multiple endogenous regressors}
 #'
 #' At least one exogenous regressor must be present in the model for the
 #' nonparametric conditional CDF estimation to be feasible.
+#' }
 #'
 #' If the bootstrap standard errors of the endogenous regressor coefficients are more than
 #' 6 times larger than the corresponding OLS standard errors, this may indicate near-multicollinearity
 #' between the copula correction term and the original regressors, which may suggest a potential
 #' identification issue. (Hu et al. 2025, section 3.5)
 #'
-#' \strong{Bootstrap inference}
-#'
+#' \subsection{Bootstrap inference}{
 #' Standard errors are obtained by resampling the data with replacement and
 #' re-running the full two-stage estimation on each resample, including the
 #' nonparametric bandwidth selection in Stage 1.
 #' Degenerate bootstrap samples are automatically discarded and redrawn.
 #' The percentage of discarded samples is reported as a warning if non-zero.
+#' }
 #'
 #' @template template_references_hu2025
 #'
@@ -96,8 +122,12 @@
 #' @eval doc_rendocopula2scopenp_return()
 #'
 #' @family copula-based methods
+#' @seealso \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
+#'  \code{npcdistbw.args}.
 #'
 #' @examples
+#' # # Set a random number seed because NP procedure is random
+#' # set.seed(42)
 #'
 #' #--------------------------------------------------------------
 #' # example 1: Continuous endogenous regressor
@@ -110,10 +140,10 @@
 #' #--------------------------------------------------------------
 #' data("data2sCOPEnpCont")
 #' res1 <- copula2sCOPEnp(
-#'  y ~ P + X | continuous(P),
-#'   data = data2sCOPEnpCont,
-#'   num.boots = 100)
+#'  y ~ P + X | P,
+#'   data = data2sCOPEnpCont)
 #'
+#' \donttest{
 #' #--------------------------------------------------------------
 #' # example 2: Binary endogenous regressor
 #' # (Hu et al. 2025, Section 4.5)
@@ -125,18 +155,66 @@
 #' #--------------------------------------------------------------
 #' data("data2sCOPEnpBi")
 #' res2 <- copula2sCOPEnp(
-#'   y ~ P + X | discrete(P),
-#'   data      = data2sCOPEnpBi,
-#'   num.boots = 100
+#'   y ~ P + X | P,
+#'   data = data2sCOPEnpBi
 #' )
 #' summary(res2)
+#'
+#'
+#' #--------------------------------------------------------------
+#' # How to tweak the bandwidth selection for the kernel estimate
+#' # (parameter npcdistbw.args)
+#' #
+#' # For a good one-shot fit, we adapt the parameters for the
+#' # bandwidth selection to prioritize reliability
+#' #   nmulti: Number of restarts at random points. High to
+#' #           protect from local minima.
+#' #   bwmethod: Bandwidth selection method. Cross-validation ("cv.ls")
+#' #           is already default over rule-of-thumb.
+#' #   itmax: Max iterations before failing numerical optimization.
+#' #          High to prevent silent early stop without convergence.
+#' #   ftol,tol: Do not override defaults.
+#' #
+#' #--------------------------------------------------------------
+#' res3 <- copula2sCOPEnp(
+#'  y ~ P + X | P,
+#'   npcdistbw.args = list(
+#'   nmulti = 25,
+#'   itmax = 500000
+#'   # other common params: bwmethod, bwtype,
+#'   ),
+#'   data = data2sCOPEnpCont,
+#'   num.boots = 100)
+#'
+#'
+#' #--------------------------------------------------------------
+#' # How to tweak the bandwidth selection over multiple iterations
+#' #
+#' # Internally, we are using `np::npcdistbw()` for the bandwidth
+#' # estimation which accepts a previously computed `np::condbandwidth`
+#' # object as a starting point.
+#' #
+#' # loosen-then-refine workflow
+#' # This allows us to first search broadly using a cheap method
+#' # and then further re-fine with a more comprehensive method.
+#' #
+#' # We can pass a previously estimate
+#' # If we passed it in parameter `bws`, it would replace the entire
+#' # bandwidth estimation. Instead, we can pass it as part of
+#' # `npcdistbw.args` such that it enters `np::npcdistbw(bws=)`.
+#'
+#' # Exploration (ftol, tol)
+#'
+#' #--------------------------------------------------------------
+#'
+#' }
 #'
 #'
 #' @export
 #'
 #' @importFrom Formula as.Formula
 #' @importFrom stats coef terms formula
-copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
+copula2sCOPEnp <- function(formula, data, bws=NULL, npcdistbw.args=list(), num.boots = 1000, verbose = TRUE) {
   cl <- match.call()
 
   #Input checks
@@ -151,9 +229,9 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
 
   F.formula <- as.Formula(formula)
 
-  labels.full <- labels(terms(F.formula, data = data, rhs = 1))
+  labels.main <- labels(terms(F.formula, data = data, rhs = 1))
   labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
-  labels.exo <- labels.full[!(labels.full %in% labels.endo)]
+  labels.exo <- labels.main[!(labels.main %in% labels.endo)]
 
   if (length(labels.exo) == 0) {
     stop(
@@ -178,12 +256,20 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
   #precomputing the bws once on original data for bootstrap reuse
   #bws estimates are consistent and sampling variability has negligible effect
   #on the bootstrap distribution of the structural coefficients
-  bws.original <- copula2sCOPEnp_bandwidth(
-    data = data,
-    labels.exo = labels.exo,
-    labels.endo = labels.endo,
-    verbose = verbose
-  )
+  if(is.null(bws)){
+    bws <- copula2sCOPEnp_bandwidth(
+      data = data,
+      labels.exo = labels.exo,
+      labels.endo = labels.endo,
+      npcdistbw.args = npcdistbw.args,
+      verbose = verbose
+    )
+  }
+
+  # TODO: warn if itnmax was hit or bws are at search boundaries (lower bound for
+  #   continuous, or lambda at its max). Warn here and not in copula2sCOPEnp_bandwidth
+  #   because should also check the user-given bws
+  # TODO: warn if the fit diagnostics of the bandwidths are bad?
 
   fit <- copula2sCOPEnp_fit(
     F.formula = F.formula,
@@ -191,7 +277,7 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
     labels.exo = labels.exo,
     labels.endo = labels.endo,
     verbose = verbose,
-    bws = bws.original
+    bws = bws
   )
 
   # Bootstrapping -------------------------------------------------------------------
@@ -202,7 +288,7 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
       labels.exo = labels.exo,
       labels.endo = labels.endo,
       verbose = FALSE,
-      bws = bws.original
+      bws = bws
     ))
   }
 
@@ -223,6 +309,11 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
 
   # Return object ----------------------------------------------------------------------
 
+  # TODO: return conditional dist object (ie result of npcdist())
+  # TODO: summary prints bw fitting: method, kernel type, bwtype (what if diverge for
+  # each endo because user-supplied?), scale factors & lambdas (important) of bw estimation
+  # TODO: plot: bws
+
   return(new_rendo_copula2sCOPEnp(
     call = cl,
     F.formula = F.formula,
@@ -232,7 +323,7 @@ copula2sCOPEnp <- function(formula, data, num.boots = 1000, verbose = TRUE) {
     boots.params = res.boots$boots.params,
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
-    bws = bws.original,
+    bws = bws,
     names.endo.regs = labels.endo
   ))
 }

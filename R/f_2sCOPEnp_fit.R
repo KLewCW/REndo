@@ -4,7 +4,7 @@
 copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, verbose) {
   #conditional CDF smooths the discrete distribution through X
 
-  # First stage: conditional CDF  ----------------------------------------------------
+  # First stage: conditional CDF ----------------------------------------------------
   # Computing conditional CDF correction term nonparametrically (via helper) C_p
   # from equation 21 of Hu et al. 2025
 
@@ -99,17 +99,14 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
 
 #computing the nonparametric conditional CDF correction terms
 
+# Select bandwidth (h) for conditional CDF F hat_(P_k |X) through cross validation
 #For each endogenous regressor P_k, we have to estimate the conditional CDF
 #F hat_(P_k |X) nonparametrically using Kernel methods (Hu et al 2025, mentions mostly Nadaraya-Watson (NW) kernel
 #before eq. 10) Stage 1 from table 3
 #Then the normal quantile transformation is applied to get the copula correction term
 #' @importFrom stats model.frame model.matrix
 #' @importFrom np npcdistbw npcdist
-copula2sCOPEnp_bandwidth <- function(data, labels.exo, labels.endo, verbose) {
-  # selecting bandwidth (h) for conditional CDF F hat_(P_k |X) through cross validation
-
-  #npcdistbw: supposed to handle both cts and discrete (or combination of both) X automatically through a
-  #generalised product kernel (Li and Racine 2008)
+copula2sCOPEnp_bandwidth <- function(data, npcdistbw.args, labels.exo, labels.endo, verbose) {
 
   k <- 1
 
@@ -127,17 +124,23 @@ copula2sCOPEnp_bandwidth <- function(data, labels.exo, labels.endo, verbose) {
     }
     k <- k + 1
 
-    # method needs to be able to recognize discrete data as such -> not encoded dummies but keep as factors!
+    # Use npcistw: supposed to handle both cts and discrete (or combination of both) X
+    # automatically through a generalised product kernel (Li and Racine 2008)
+
+    # Using npcdistbw:
+    # Needs to be able to recognize discrete data as such
+    # -> not pass encoded dummies but keep as factors!
     #
-    # option formula interface `npcdistbw(formula, data)`: Would be nice, but their formula interface is broken.
-    #   It does not seem to use the given `data` parameter (rather looks in the environment of formula which is also broken)
+    # Option formula interface `npcdistbw(formula, data)`: Would be nice, but their
+    #   formula interface is broken. It does not seem to use the given `data` parameter
+    #   (rather looks in the environment of formula which is also broken)
     #
     # Instead use xdat/ydat which requires to pass in model.frame() columns:
     #   - not model.matrix because need to preserve factors
     #   - not columns of `data` because transformations need to be applied
 
 
-    # (single endo) ~ (all exo)
+    # formula (single endo) ~ (all exo)
     # there is no intercept produced by model.frame() but be explicit here that the
     # exogenous data passed here is without intercept
     f.endo.exo <- reformulate(
@@ -149,12 +152,15 @@ copula2sCOPEnp_bandwidth <- function(data, labels.exo, labels.endo, verbose) {
 
     mf.p <- model.frame(f.endo.exo, data = data, na.action = na.fail)
     # or do model.frame() once outside the loop and read attr(terms(mf), "factors")
-    # to match labels to the columns in mf (variables)
+    # to match labels to the columns in mf (variables)?
 
-    return(np:::npcdistbw(
+    bw.call.args <- list(
       ydat = mf.p[, 1, drop = FALSE], # endo: response (first col)
       xdat = mf.p[, -1, drop = FALSE] # exo: all except response
-    ))
+    )
+    bw.call.args <- modifyList(bw.call.args, npcdistbw.args)
+
+    return(do.call(what=np:::npcdistbw, args = bw.call.args))
   })
 
   names(l.bws) <- labels.endo
