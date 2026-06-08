@@ -186,6 +186,27 @@ checkinputhelper_single_logical <- function(logical, param.name){
 
 }
 
+checkinputhelper_numboots <- function(num.boots){
+  err.msg <- checkinputhelper_singlepositivewholenumeric(
+    num.param = num.boots,
+    parameter.name = "num.boots",
+    min.num = 2
+  )
+
+  if(length(err.msg)>0) {
+    return(err.msg)
+  }
+
+  if(num.boots < 1000){
+    warning(
+      "It is recommended to run 1000 or more bootstraps.",
+      call. = FALSE,
+      immediate. = TRUE
+    )
+  }
+
+  return(c())
+}
 
 checkinputhelper_startparams <- function(start.params, F.formula,
                                          forbidden.names, required.names){
@@ -371,4 +392,26 @@ checkinputhelper_optimxargs <- function(optimx.args){
 
   }
   return(err.msg)
+}
+
+checkinputhelper_choice <- function(choice, allowed, param.name){
+
+  # `choice` may be the exact, full vector of allowed inputs.
+  # In `match.arg()` this will select the first element of the `choices` argument
+  # (this vector). This allows to call the user method with no argument for the param
+  # (it will use the default value of param which is the full vector)
+  if(identical(choice, allowed)){
+    return(c())
+  }
+
+  if (!is.character(choice) || length(choice) !=1){
+    return(paste0("The argument '",choice,"' must be a single character string."))
+  }
+
+  if (!(choice %in% allowed)){
+    return(paste0("Value for '",param.name,"' is invalid. The allowed values are: ", paste(allowed, collapse = ", ")))
+
+  }
+
+  return(c())
 }

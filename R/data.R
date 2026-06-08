@@ -245,3 +245,158 @@
 #' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
 "dataCopBMWMultiEndo"
 
+#' @title Simulated Dataset for 2sCOPE - Non-normal Endogenous and Exogenous Regressors
+#' @description A dataset simulated with one endogenous regressor \code{P}
+#'   and one exogenous regressor \code{X}, both non-normal and correlated
+#'   with each other (rho_px = 0.5). The endogenous regressor \code{P}
+#'   follows a Gamma(1,1) distribution and the exogenous regressor \code{X}
+#'   follows an Exp(1) distribution. The endogeneity strength is rho_pxi = 0.5.
+#'   This dataset corresponds to Case 1 of Yang et al. (2025) and
+#'   demonstrates 2sCOPE's main contribution: Consistent estimation when the
+#'   endogenous and exogenous regressors are correlated.
+#'   The true parameter values are \code{mu = 1} for the intercept,
+#'   \code{alpha = 1} for \code{P} and \code{beta = -1} for \code{X}.
+#' @name dataCopula2sCOPECase1
+#' @usage data("dataCopula2sCOPECase1")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{P}}{a numeric vector, continuous and endogenous,
+#'   Gamma(1,1) distributed and correlated with \code{X} (rho_px = 0.5).}
+#' \item{\code{X}}{a numeric vector, continuous and exogenous,
+#'   Exp(1) distributed and correlated with \code{P} (rho_px = 0.5).}
+#' }
+#' @docType data
+#' @template template_references_yang2025
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"dataCopula2sCOPECase1"
+
+#' @title Simulated Dataset for 2sCOPE - Non-normal Endogenous and Normal Exogenous Regressor
+#' @description A dataset simulated with one endogenous regressor \code{P}
+#'   (non-normal, Gamma(1,1)) and one normally distributed exogenous regressor
+#'   \code{X}, correlated with each other (rho_px = 0.5). The endogeneity
+#'   strength is rho_pxi = 0.5. This dataset corresponds to Case 2 of Yang et al. (2025)
+#'   and demonstrates that 2sCOPE remains consistent when the exogenous regressor \code{X} is
+#'   normally distributed.
+#'   The true parameter values are \code{mu = 1} for the intercept,
+#'   \code{alpha = 1} for \code{P} and \code{beta = -1} for \code{X}.
+#' @name dataCopula2sCOPECase2
+#' @usage data("dataCopula2sCOPECase2")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{P}}{a numeric vector, continuous and endogenous,
+#'   Gamma(1,1) distributed and correlated with \code{X} (rho_px = 0.5).}
+#' \item{\code{X}}{a numeric vector, continuous and exogenous,
+#'   normally distributed and correlated with \code{P} (rho_px = 0.5).}
+#' }
+#' @docType data
+#' @template template_references_yang2025
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"dataCopula2sCOPECase2"
+
+
+#' @title Simulated Dataset for 2sCOPE - Normally Distributed Endogenous and Non-normal Exogenous Regressor
+#' @description A dataset simulated with one normally distributed endogenous
+#'   regressor \code{P} and one non-normal exogenous regressor \code{X}
+#'   (Exp(1)), correlated with each other (rho_px = 0.5). The endogeneity
+#'   strength is rho_pxi = 0.5. This dataset corresponds to another type of Case 2
+#'   of Yang et al. (2025) and demonstrates a key advantage of
+#'   2sCOPE. The method is still consistently estimating, even when the endogenous regressor \code{P}
+#'   is normally distributed, because the identification comes from the non-normal
+#'   exogenous regressor \code{X}.
+#'   The true parameter values are \code{mu = 1} for the intercept,
+#'   \code{alpha = 1} for \code{P} and \code{beta = -1} for \code{X}.
+#' @name dataCopula2sCOPECase3
+#' @usage data("dataCopula2sCOPECase3")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{P}}{a numeric vector, continuous and endogenous,
+#'   normally distributed and correlated with \code{X} (rho_px = 0.5).}
+#' \item{\code{X}}{a numeric vector, continuous and exogenous,
+#'   Exp(1) distributed and correlated with \code{P} (rho_px = 0.5).}
+#' }
+#' @docType data
+#' @template template_references_yang2025
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"dataCopula2sCOPECase3"
+
+#' @title Simulated Dataset for Copula IMA - Continuous Exogenous Regressor
+#' @description A dataset simulated with one exogenous regressor \code{X} and one
+#'   endogenous continuous regressor \code{P}, and a dependent variable \code{y}.
+#'   The exogenous regressor \code{X} follows a normal distribution with mean 1
+#'   and is correlated with \code{P} (r = 0.5). The endogenous regressor \code{P}
+#'   follows a bounded continuous distribution (Phi(P*) + 0.5). The endogeneity
+#'   strength is rho = 0.5. There is no intercept in the data generating process.
+#'   The true parameter values are given as \code{alpha = 1} for \code{P} and
+#'   \code{beta = 1} for \code{X}.
+#' @template template_references_haschka2025ima
+#' @name dataCopIMAContExo
+#' @usage data("dataCopIMAContExo")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{X}}{a numeric vector, normally distributed with mean 1, exogenous
+#'   and correlated with \code{P}.}
+#' \item{\code{P}}{a numeric vector, continuous and endogenous, following a
+#'   bounded distribution Phi(P*) + 0.5 with values in (0.5, 1.5).}
+#' }
+#' @docType data
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"dataCopIMAContExo"
+
+
+#' @title Simulated Dataset for Copula IMA - Binary Exogenous Regressor
+#' @description A dataset simulated with one binary exogenous regressor \code{X}
+#'   and one endogenous continuous regressor \code{P}, and a dependent variable \code{y}.
+#'   The exogenous regressor \code{X} is a binary variable (0 or 1) derived from
+#'   a latent standard normal variable and is correlated with \code{P} (r = 0.5).
+#'   The endogenous regressor \code{P} follows a bounded continuous distribution
+#'   (Phi(P*) + 0.5). The endogeneity strength is given by rho = 0.5. This dataset
+#'   illustrates that the IMA estimator does not require the exogenous regressor
+#'   to be continuously or normally distributed. There is no intercept in the
+#'   data generating process. The true parameter values are \code{alpha = 1}
+#'   for \code{P} and \code{beta = 1} for \code{X}.
+#' @template template_references_haschka2025ima
+#' @name dataCopIMABinExo
+#' @usage data("dataCopIMABinExo")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{X}}{a numeric vector, binary (0 or 1) and exogenous,
+#'   correlated with \code{P}.}
+#' \item{\code{P}}{a numeric vector, continuous and endogenous, following a
+#'   bounded distribution Phi(P*) + 0.5 with values in (0.5, 1.5).}
+#' }
+#' @docType data
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"dataCopIMABinExo"
+
+#' @title Simulated Dataset for Copula IMA - Two Continuous Endogenous Regressors,
+#' Intercept and No Exogenous Regressor
+#' @description A dataset simulated with two endogenous continuous regressors
+#'  \code{P1} and \code{P2}, an intercept, and a dependent variable \code{y}.
+#'   No exgenous regressor. Both endogenous regressors follow a bounded continuous
+#'   distribution (Phi(P*) + 0.5) and are correlated with each other (r = 0.3),
+#'   and with the structural error (endogeneity strength rho = 0.5).
+#'   The true parameter values are \code{alpha1 = 1} for \code{P1}, \code{alpha2 = 1}
+#'   for \code{P2}, and \code{mu = 10} for the intercept.This was simulated as
+#'   an extension to the dataset 'dataCopIMAContExo'. This dataset was created to test
+#'   how well \code{copulaIMA()} works with an intercept and no exogenous regressor.
+#' @template template_references_haschka2025ima
+#' @name dataCopIMAMultiEndo
+#' @usage data("dataCopIMAMultiEndo")
+#' @format A data frame with 1000 observations on 4 variables:
+#' \describe{
+#' \item{\code{y}}{a numeric vector representing the dependent variable.}
+#' \item{\code{P1}}{a numeric vector, continuous and endogenous, following a
+#'   bounded distribution Phi(P1*) + 0.5 with values in (0.5, 1.5), correlated
+#'   with \code{P2} (r = 0.3).}
+#' \item{\code{P2}}{a numeric vector, continuous and endogenous, following a
+#'   bounded distribution Phi(P2*) + 0.5 with values in (0.5, 1.5), correlated
+#'   with \code{P1} (r = 0.3).}
+#' }
+#' @docType data
+#' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
+"dataCopIMAMultiEndo"
