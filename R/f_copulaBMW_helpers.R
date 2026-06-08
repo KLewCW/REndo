@@ -1,5 +1,5 @@
 #' @importFrom Formula as.Formula
-#' @importFrom stats lm residuals qnorm ecdf rank
+#' @importFrom stats lm residuals qnorm ecdf
 #' @importFrom copula pobs
 #' @importFrom ks kcde
 #'
