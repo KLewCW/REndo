@@ -7,7 +7,7 @@ pobs_adj <- function(x){
     x <- matrix(x, ncol= 1)
   }
   n <- nrow(x)
-  U <- apply(x, 2, rank, ties.method = "avergae") * ((n-1)/n^2) + 1 / (2*n)
+  U <- apply(x, 2, rank, ties.method = "average") * ((n-1)/n^2) + 1 / (2*n)
   return(U)
 }
 
@@ -70,7 +70,7 @@ copulaJAMS_correction_cont <- function(P.all, names.endo.regs,cdf){
   endo.index <-  which(colnames(C.all) %in% names.endo.regs) # giving the d_P copula terms (one per endo reg)
 
   #C(P_i, W_i) = (C(P_i)', C(W_i)') \hat(Sigma^{-1}_{C(P), C(W)}) (I_{dp}, 0_{dw x dp})'
-  P.cop <- C.all %*% Sigma.inv[, endo.index, drop = FALSE]
+  P.cop <- C.all %*% Sigma.inverse[, endo.index, drop = FALSE]
   P.cop <- as.matrix(P.cop)
   colnames(P.cop) <- paste0(names.endo.regs, "_cop")
 

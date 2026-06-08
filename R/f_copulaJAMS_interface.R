@@ -8,17 +8,17 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
 
   cl <- match.call()
 
-  check_err_msg(checkinput_copulaJAMS_formula(formula))
-  check_err_msg(checkinput_copulaJAMS_data(data))
-  check_err_msg(checkinput_copulaJAMS_dataVSformula(data = data, formula = formula))
-  check_err_msg(checkinput_copulaJAMS_numboots(num.boots))
-  check_err_msg(checkinput_copulaJAMS_verbose(verbose))
-  check_err_msg(checkinput_copulaJAMS_cdf(cdf))
+  # check_err_msg(checkinput_copulaJAMS_formula(formula))
+  # check_err_msg(checkinput_copulaJAMS_data(data))
+  # check_err_msg(checkinput_copulaJAMS_dataVSformula(data = data, formula = formula))
+  # check_err_msg(checkinput_copulaJAMS_numboots(num.boots))
+  # check_err_msg(checkinput_copulaJAMS_verbose(verbose))
+  # check_err_msg(checkinput_copulaJAMS_cdf(cdf))
 
   cdf <- match.arg(cdf, choices = c("adj.ecdf", "resc.ecdf", "ecdf", "kde"))
 
-  F.formula < Formula::as.Formula(formula)
-  F.main <- formula(F.formula, lhs = 1, rhs = 1)
+  F.formula <- Formula::as.Formula(formula)
+  f.main <- formula(F.formula, lhs = 1, rhs = 1)
 
   names.endo.regs <- formula_readout_special(
     F.formula = F.formula,
