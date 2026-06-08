@@ -1,5 +1,5 @@
 #' @importFrom Formula as.Formula
-#' @importFrom stats lm model.frame model.matrix formula update reformulate terms attr cor
+#' @importFrom stats lm model.frame model.matrix formula update reformulate terms cor
 #'
 #'
 copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf){

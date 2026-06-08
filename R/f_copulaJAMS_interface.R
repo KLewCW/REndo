@@ -44,6 +44,9 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
     cdf = cdf
   )
 
+
+  # Bootstrapping ----------------------------------------------------------------------
+
   fn.fit.boots <- function(data.b){
     return(
       copulaJAMS_fit(
@@ -63,5 +66,28 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
     coef.names = names(coef(fit)),
     verbose = verbose
   )
+
+
+  # Structural residuals --------------------------------------------------------------
+
+  l.fitted.resid <- copula_compute_structural_fitted_residuals(
+    res.lm.aug = fit,
+    names.aux.regs = grep("_cop$", names(coef(fit)), value = TRUE)
+  )
+
+  # Return object ----------------------------------------------------------------------
+
+  return(new_rendo_copula2sCOPE(
+    call = cl,
+    F.formula = F.formula,
+    res.lm.augmented = fit,
+    fitted.values = l.fitted.resid$fitted.values,
+    residuals = l.fitted.resid$residuals,
+    boots.params = res.boots$boots.params,
+    n.boots.attempted = res.boots$n.attempted,
+    n.boots.failed = res.boots$n.failed,
+    cdf = cdf,
+    names.endo.regs = names.endo.regs
+  ))
 
 }

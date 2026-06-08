@@ -1,8 +1,7 @@
 #' @importFrom Formula as.Formula
-#' @'importFrom stats lm residuals qnorm ecdcf cov solve
+#' @importFrom stats lm residuals qnorm ecdf cov
 #' @importFrom ks kcde
 #'
-
 pobs_adj <- function(x){
   if(!is.matrix(x)){
     x <- matrix(x, ncol= 1)
