@@ -3,9 +3,13 @@
 #' @export
 #' @importFrom stats coef model.response model.frame model.matrix
 #'
-copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "kde"),
-                       num.boots = 1000, verbose = TRUE){
-
+copulaJAMS <- function(
+  formula,
+  data,
+  cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "kde"),
+  num.boots = 1000,
+  verbose = TRUE
+) {
   cl <- match.call()
 
   # check_err_msg(checkinput_copulaJAMS_formula(formula))
@@ -28,12 +32,16 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
   )
 
   #deriving exo regressor names from RHS1 - endo
-  rhs.vars <- all.vars(formula(F.formula, rhs = 1, lhs =0))
+  rhs.vars <- all.vars(formula(F.formula, rhs = 1, lhs = 0))
   names.exo.regs <- rhs.vars[!rhs.vars %in% names.endo.regs]
 
   #fitting the original data
-  if (verbose){
-    message("Fitting JAMS copula model for", length(names.endo.regs), "continuous endogenous regressor(s).")
+  if (verbose) {
+    message(
+      "Fitting JAMS copula model for",
+      length(names.endo.regs),
+      "continuous endogenous regressor(s)."
+    )
   }
 
   fit <- copulaJAMS_fit(
@@ -44,10 +52,9 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
     cdf = cdf
   )
 
-
   # Bootstrapping ----------------------------------------------------------------------
 
-  fn.fit.boots <- function(data.b){
+  fn.fit.boots <- function(data.b) {
     return(
       copulaJAMS_fit(
         f.main = f.main,
@@ -66,7 +73,6 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
     coef.names = names(coef(fit)),
     verbose = verbose
   )
-
 
   # Structural residuals --------------------------------------------------------------
 
@@ -89,5 +95,4 @@ copulaJAMS <- function(formula, data, cdf = c("adj.ecdf", "resc.ecdf", "ecdf", "
     cdf = cdf,
     names.endo.regs = names.endo.regs
   ))
-
 }
