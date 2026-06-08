@@ -2,22 +2,28 @@
 #' @importFrom stats lm model.frame model.matrix formula update reformulate
 #'
 
-copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf){
-
-  mf <- model.frame(F.formula, data = data, rhs=1, lhs=1)
+copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf) {
+  mf <- model.frame(F.formula, data = data, rhs = 1, lhs = 1)
   f.main <- formula(mf)
 
   X.main <- model.matrix(F.formula, data = mf, rhs = 1, lhs = 1)
   endogenous.cols <- colnames(X.main)[colnames(X.main) %in% names.endo.regs]
 
-  if (length(endogenous.cols)==0)
+  if (length(endogenous.cols) == 0) {
     stop("No endogenous regressors found in design matrix.")
-  if(length(endogenous.cols) < length(names.endo.regs))
-    stop("Bootstrap sample dropped at least one endogenous regressor. ",
-         "This can happen when a regressor becomes constant in a resample.")
+  }
+  if (length(endogenous.cols) < length(names.endo.regs)) {
+    stop(
+      "Bootstrap sample dropped at least one endogenous regressor. ",
+      "This can happen when a regressor becomes constant in a resample."
+    )
+  }
 
   # Exogenous columns
-  exo.cols <- setdiff(colnames(X.main)[colnames(X.main) != "(Intercept)"], endogenous.cols)
+  exo.cols <- setdiff(
+    colnames(X.main)[colnames(X.main) != "(Intercept)"],
+    endogenous.cols
+  )
 
   # BMW correction
   # step 1: first-stage in the original space
@@ -35,11 +41,10 @@ copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf){
     response = NULL,
     intercept = TRUE
   )
-  f.final<- update(old = f.main, new = f.pcop)
+  f.final <- update(old = f.main, new = f.pcop)
 
   return(lm(
     formula = f.final,
     data = cbind(data, cop.terms)
   ))
-
 }

@@ -77,12 +77,12 @@
 #' @export
 #' @importFrom stats coef
 copulaBMW <- function(
-    formula,
-    data,
-    cdf = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"),
-    num.boots = 1000,
-    verbose = TRUE){
-
+  formula,
+  data,
+  cdf = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"),
+  num.boots = 1000,
+  verbose = TRUE
+) {
   cl <- match.call()
 
   # check_err_msg(checkinput_copulaBMW_formula(formula))
@@ -105,16 +105,21 @@ copulaBMW <- function(
   rhs1.vars <- all.vars(formula(F.formula, rhs = 1, lhs = 0))
   exo.vars <- rhs1.vars[!rhs1.vars %in% names.endo.regs]
 
-  if(length(exo.vars) == 0){
-    stop("No exogenous regressors were found. BMW method requires at least one",
-         "exogeous regressor for the first-stage regression of each endogenous regressor ",
-         "P on X.", call. = FALSE) #equation 2.2 & assumption A4
+  if (length(exo.vars) == 0) {
+    stop(
+      "No exogenous regressors were found. BMW method requires at least one",
+      "exogeous regressor for the first-stage regression of each endogenous regressor ",
+      "P on X.",
+      call. = FALSE
+    ) #equation 2.2 & assumption A4
   }
 
-  if(verbose){
-    message("Fitting BMW copula model with",
-            length(names.endo.regs),
-            "endogenous regressors.")
+  if (verbose) {
+    message(
+      "Fitting BMW copula model with",
+      length(names.endo.regs),
+      "endogenous regressors."
+    )
   }
 
   fit <- copulaBMW_fit(
@@ -124,21 +129,24 @@ copulaBMW <- function(
     cdf = cdf
   )
 
-
   # Bootstrapping ----------------------------------------------------------------------
 
-  fn.fit.boots <- function(data.b){
-    return(copulaBMW_fit(F.formula = F.formula, data = data.b, names.endo.regs =names.endo.regs, cdf = cdf))
+  fn.fit.boots <- function(data.b) {
+    return(copulaBMW_fit(
+      F.formula = F.formula,
+      data = data.b,
+      names.endo.regs = names.endo.regs,
+      cdf = cdf
+    ))
   }
 
   res.boots <- bootstrap_skip_degenerates(
-    fn.fit     = fn.fit.boots,
-    data       = data,
-    num.boots  = num.boots,
+    fn.fit = fn.fit.boots,
+    data = data,
+    num.boots = num.boots,
     coef.names = names(coef(fit)),
-    verbose    = verbose
+    verbose = verbose
   )
-
 
   # Structural residuals --------------------------------------------------------------
 
