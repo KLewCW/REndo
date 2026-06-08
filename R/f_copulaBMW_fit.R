@@ -4,10 +4,10 @@
 
 copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf){
 
-  mf <- model.frame(F.formula, data = data)
+  mf <- model.frame(F.formula, data = data, rhs=1, lhs=1)
   f.main <- formula(mf)
 
-  X.main <- model.matrix(F.formula, data = mf)
+  X.main <- model.matrix(F.formula, data = mf, rhs = 1, lhs = 1)
   endogenous.cols <- colnames(X.main)[colnames(X.main) %in% names.endo.regs]
 
   if (length(endogenous.cols)==0)

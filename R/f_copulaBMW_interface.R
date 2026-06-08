@@ -85,12 +85,12 @@ copulaBMW <- function(
 
   cl <- match.call()
 
-  check_err_msg(checkinput_copulaBMW_formula(formula))
-  check_err_msg(checkinput_copulaBMW_data(data))
-  check_err_msg(checkinput_copulaBMW_dataVSformula(data = data, formula = formula))
-  check_err_msg(checkinput_copulaBMW_numboots(num.boots))
-  check_err_msg(checkinput_copulaBMW_verbose(verbose))
-  check_err_msg(checkinput_copulaBMW_cdf(cdf))
+  # check_err_msg(checkinput_copulaBMW_formula(formula))
+  # check_err_msg(checkinput_copulaBMW_data(data))
+  # check_err_msg(checkinput_copulaBMW_dataVSformula(data = data, formula = formula))
+  # check_err_msg(checkinput_copulaBMW_numboots(num.boots))
+  # check_err_msg(checkinput_copulaBMW_verbose(verbose))
+  # check_err_msg(checkinput_copulaBMW_cdf(cdf))
 
   cdf <- match.arg(cdf, choices = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"))
 
@@ -124,8 +124,11 @@ copulaBMW <- function(
     cdf = cdf
   )
 
+
+  # Bootstrapping ----------------------------------------------------------------------
+
   fn.fit.boots <- function(data.b){
-    return(copulaBMW_fit(F.formula = F.formula, data = data.b, cdf = cdf))
+    return(copulaBMW_fit(F.formula = F.formula, data = data.b, names.endo.regs =names.endo.regs, cdf = cdf))
   }
 
   res.boots <- bootstrap_skip_degenerates(
@@ -136,14 +139,26 @@ copulaBMW <- function(
     verbose    = verbose
   )
 
+
+  # Structural residuals --------------------------------------------------------------
+
+  l.fitted.resid <- copula_compute_structural_fitted_residuals(
+    res.lm.aug = fit,
+    names.aux.regs = grep("_cop$", names(coef(fit)), value = TRUE)
+  )
+
+  # Return object ----------------------------------------------------------------------
+
   return(new_rendo_copulaBMW(
-    call              = cl,
-    F.formula         = F.formula,
-    res.lm            = fit,
-    boots.params      = res.boots$boots.params,
+    call = cl,
+    F.formula = F.formula,
+    res.lm.augmented = fit,
+    fitted.values = l.fitted.resid$fitted.values,
+    residuals = l.fitted.resid$residuals,
+    boots.params = res.boots$boots.params,
     n.boots.attempted = res.boots$n.attempted,
-    n.boots.failed    = res.boots$n.failed,
-    cdf               = cdf,
-    names.endo.regs   = names.endo.regs
+    n.boots.failed = res.boots$n.failed,
+    cdf = cdf,
+    names.endo.regs = names.endo.regs
   ))
 }
