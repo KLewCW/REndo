@@ -33,6 +33,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
       intercept = FALSE
     )
 
+    # specify endo as DV to know where to read from
     mf.p <- model.frame(formula = f.endo.exo, data = data, na.action = na.fail)
 
     # TODO: Check if bw were fit with formula or 2 data inputs as user might specify differently?

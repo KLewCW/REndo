@@ -112,7 +112,7 @@ If given, the bandwidth estimation is skipped for all endogenous regressors, and
 the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
 instead.
 They do not serve as starting point for bandwidth estimation but replace it entirely.
-For each endogenous term in \code{formula}, \code{bws} must contain a
+For each endogenous term, \code{bws} must contain a
 \code{condbandwidth} object for the conditional CDF \code{(single endo) ~ (all exo)}.
 \code{bws} must be a named list, with each each element named after the corresponding
 endogenous terms.
@@ -132,6 +132,9 @@ The second part lists the endogenous regressors:
 
 At least one exogenous regressor must be present in the model for the
 nonparametric conditional CDF estimation to be feasible.
+
+The formula may contain no interaction term (\code{A:B}) because these
+wont be expanded for estimating the kernel conditional CDF.
 }
 
 If the bootstrap standard errors of the endogenous regressor coefficients are more than

@@ -73,7 +73,7 @@
 #' the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
 #' instead.
 #' They do not serve as starting point for bandwidth estimation but replace it entirely.
-#' For each endogenous term in \code{formula}, \code{bws} must contain a
+#' For each endogenous term, \code{bws} must contain a
 #' \code{condbandwidth} object for the conditional CDF \code{(single endo) ~ (all exo)}.
 #' \code{bws} must be a named list, with each each element named after the corresponding
 #' endogenous terms.
@@ -93,6 +93,9 @@
 #'
 #' At least one exogenous regressor must be present in the model for the
 #' nonparametric conditional CDF estimation to be feasible.
+#'
+#' The formula may contain no interaction term (\code{A:B}) because these
+#' wont be expanded for estimating the kernel conditional CDF.
 #' }
 #'
 #' If the bootstrap standard errors of the endogenous regressor coefficients are more than
@@ -218,32 +221,16 @@ copula2sCOPEnp <- function(formula, data, bws=NULL, npcdistbw.args=list(), num.b
   cl <- match.call()
 
   #Input checks
-  # check_err_msg(checkinput_copula2sCOPEnp_formula(formula))
-  # check_err_msg(checkinput_copula2sCOPEnp_data(data))
-  # check_err_msg(checkinput_copula2sCOPEnp_dataVSformula(data = data, formula = formula))
+  check_err_msg(checkinput_copulashared_data_basics(data))
+  check_err_msg(checkinput_copula2scopenp_formula_data(formula=formula, data=data))
   check_err_msg(checkinput_copula2scopenp_npcdistbwargs(npcdistbw.args))
   check_err_msg(checkinput_copulashared_numboots(num.boots))
   check_err_msg(checkinput_copulashared_verbose(verbose))
 
-  # checks:
-  # - endo are continuous or ordered factors
-
   F.formula <- as.Formula(formula)
-
   labels.main <- labels(terms(F.formula, data = data, rhs = 1))
   labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
   labels.exo <- labels.main[!(labels.main %in% labels.endo)]
-
-  if (length(labels.exo) == 0) {
-    stop(
-      paste0(
-        "2sCOPEnp requires at least one exogenous regressor for the ",
-        "nonparametric conditional CDF estimation.",
-        "Please include exogenous control variables in the formula."
-      ),
-      call. = FALSE
-    )
-  }
 
   if (verbose) {
     message(
