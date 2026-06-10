@@ -103,13 +103,12 @@
 #'
 #' @details
 #' Note that the bandwidth is fit on the full \code{data} and then re-used across
-#' bootstrap samples. This ....
-#'
-#' ........ KIMBERLY: statistics .........
-#' bws estimates are consistent and sampling variability has negligible effect
-#' on the bootstrap distribution of the structural coefficients
-#' ........ KIMBERLY: statistics .........
-#'
+#' bootstrap samples. This would substantially lower the computation time by avoiding
+#' repeated cross-validation for the selection of the bandwidth for each bootstrap sample.
+#' By fixing the bandwidth, the impact on inference for large samples is expected to be
+#' low because the conditional CDF estimator enters the procedure as an auxiliary
+#' nonparametric component. The resulting bootstrap distribution should be interpreted
+#' as conditional on the estimated bandwidths.
 #'
 #' If the bootstrap standard errors of the endogenous regressor coefficients are more than
 #' 6 times larger than the corresponding OLS standard errors, this may indicate near-multicollinearity
@@ -149,7 +148,7 @@
 #' data("data2sCOPEnpCont")
 #' res1 <- copula2sCOPEnp(
 #'  y ~ P + X | P,
-#'   data = data2sCOPEnpCont)
+#'   data = dataCopula2sCOPEnpCont)
 #'
 #' \donttest{
 #' #--------------------------------------------------------------
@@ -164,9 +163,26 @@
 #' data("data2sCOPEnpBi")
 #' res2 <- copula2sCOPEnp(
 #'   y ~ P + X | P,
-#'   data = data2sCOPEnpBi
+#'   data = dataCopula2sCOPEnpBi
 #' )
 #' summary(res2)
+#'
+#' #--------------------------------------------------------------
+#' # Example 3: Multiple endogenous and exogenous regressors
+#'
+#' # To show the extension of 2sCOPEnp with multiple regressors
+#'
+#' # True values: mu = 1, alpha1 = 1 (P1), alpha2 = 1 (P2),
+#' #              beta1 = 2 (X1), beta2 = -1 (X2).
+#' #--------------------------------------------------------------
+#'
+#' data("dataCopula2sCOPEnpMulti")
+#' res3 <- copula2sCOPEnp(
+#'   y ~ P1 + P2 + X1 + X2 | P1 + P2,
+#'   data = dataCopula2sCOPEnpMulti
+#' )
+#' summary(res3)
+#'
 #'
 #'
 #' #--------------------------------------------------------------
@@ -184,7 +200,7 @@
 #' #   ftol,tol: Do not override defaults.
 #' #
 #' #--------------------------------------------------------------
-#' res3 <- copula2sCOPEnp(
+#' res4 <- copula2sCOPEnp(
 #'  y ~ P + X | P,
 #'   npcdistbw.args = list(
 #'   nmulti = 25,
