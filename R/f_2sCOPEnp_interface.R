@@ -323,7 +323,7 @@ copula2sCOPEnp <- function(
 
   l.fitted.resid <- copula_compute_structural_fitted_residuals(
     res.lm.aug = fit$res.augmented,
-    names.aux.regs = grep("_cop$", names(coef(fit)), value = TRUE)
+    names.aux.regs = grep("_cop$", names(coef(fit$res.augmented)), value = TRUE)
   )
 
   # Return object ----------------------------------------------------------------------
