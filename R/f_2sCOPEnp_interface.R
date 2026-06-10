@@ -29,7 +29,8 @@
 #'
 #'
 #' @details
-#' \subsection{Model}{
+#'
+#' ## Model
 #'
 #' Consider the structural regression model with \eqn{K} endogenous regressors:
 #'
@@ -41,9 +42,9 @@
 #' with the structural error \eqn{\varepsilon_i},
 #' \eqn{X_i} is a vector of exogenous regressors uncorrelated with \eqn{\varepsilon_i}, and
 #' \eqn{\mu, \alpha_k, \beta} are structural model paramters.
-#' }
 #'
-#' \subsection{Methodology}{
+#'
+#' ## Methodology
 #'
 #' The estimation proceeds in 2 stages (Hu et al. 2025)
 #'
@@ -66,9 +67,10 @@
 #'       \sum_{k=1}^{K} C_{i,pk}\gamma_k + \xi_i}
 #' where \eqn{\gamma_k} is the coefficient of the copula correction term \eqn{C_{i, pk}} and
 #' \eqn{\xi_i} is the new error term.
-#' }
 #'
-#' \subsection{Parameter \code{bws}}{
+#'
+#' ## Parameter \code{bws}
+#'
 #' If given, the bandwidth estimation is skipped for all endogenous regressors, and
 #' the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
 #' instead.
@@ -80,9 +82,8 @@
 #' The bandwidths must be estimated using the default \code{np::npcdistbw(xdat=,ydat=)}
 #' interface, not the formula interface because this will break downstream usage in
 #' \code{np::npcdist()}.
-#' }
 #'
-#' \subsection{Parameter \code{formula}}{
+#' ## Parameter \code{formula}
 #'
 #' The \code{formula} argument follows a two part notation separated by \code{|}.
 #' The first part specifies the structural model (e.g \code{y ~ X + P}).
@@ -96,20 +97,24 @@
 #'
 #' The formula may contain no interaction term (\code{A:B}) because these
 #' wont be expanded for estimating the kernel conditional CDF.
-#' }
+#'
+#' ## Boostrap inference
+#' @template template_text_details_bootsdegenerates
+#'
+#' @details
+#' Note that the bandwidth is fit on the full \code{data} and then re-used across
+#' bootstrap samples. This ....
+#'
+#' ........ KIMBERLY: statistics .........
+#' bws estimates are consistent and sampling variability has negligible effect
+#' on the bootstrap distribution of the structural coefficients
+#' ........ KIMBERLY: statistics .........
+#'
 #'
 #' If the bootstrap standard errors of the endogenous regressor coefficients are more than
 #' 6 times larger than the corresponding OLS standard errors, this may indicate near-multicollinearity
 #' between the copula correction term and the original regressors, which may suggest a potential
 #' identification issue. (Hu et al. 2025, section 3.5)
-#'
-#' \subsection{Bootstrap inference}{
-#' Standard errors are obtained by resampling the data with replacement and
-#' re-running the full two-stage estimation on each resample, including the
-#' nonparametric bandwidth selection in Stage 1.
-#' Degenerate bootstrap samples are automatically discarded and redrawn.
-#' The percentage of discarded samples is reported as a warning if non-zero.
-#' }
 #'
 #' @template template_references_hu2025
 #'
@@ -136,7 +141,7 @@
 #' # example 1: Continuous endogenous regressor
 #' # (Hu et al. 2025, Section 4.3)
 #' #
-#' # Demonstrates 2sCOPEnp's unique advantage: it is the only method
+#' # Demonstrates 2sCOPEnp's unique advantage: It is the only method
 #' # that fully eliminates bias when neither the Gaussian copula nor
 #' # the mean-dependence assumption holds.
 #' # True values: mu = 1, alpha = 1 (P), beta = 2 (X).
@@ -212,7 +217,7 @@
 #'
 #' }
 #'
-#'
+#' @md
 #' @export
 #'
 #' @importFrom Formula as.Formula
@@ -308,7 +313,6 @@ copula2sCOPEnp <- function(
   # Return object ----------------------------------------------------------------------
   # TODO: summary prints bw fitting: method, kernel type, bwtype (what if diverge for
   # each endo because user-supplied?), scale factors & lambdas (important) of bw estimation
-  # TODO: plot: bws
 
   return(new_rendo_copula2sCOPEnp(
     call = cl,

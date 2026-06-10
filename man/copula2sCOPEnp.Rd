@@ -18,7 +18,7 @@ copula2sCOPEnp(
 
 \item{data}{A data.frame containing the data of all parts specified in the formula
 parameter. Variables must be correctly classed (\code{numeric}, \code{factor}, or
- \code{ordered}) otherwise it will silently yield wrong results!}
+\code{ordered}) otherwise it will silently yield wrong results!}
 
 \item{bws}{A named list of estimated \code{condbandwidth} objects (outputs of
 \code{np::npcdistbw()}) used in place of estimating the bandwidth from \code{data}.
@@ -91,15 +91,15 @@ The estimation proceeds in 2 stages (Hu et al. 2025)
 
 \emph{Stage 1}: For each endogenous regressor \eqn{P_k}:
 \enumerate{
-  \item Estimate the conditional CDF \eqn{\hat{F}(P_k | X)} nonparametrically
-        using kernel methods (Li and Racine 2008), conditioning on all
-        exogenous regressors \eqn{X}. A generalised product kernel handles
-        mixed continuous and discrete \eqn{X} automatically (Hayfield and Racine 2008).
-  \item Compute the copula correction term
-        \eqn{C_{i,pk} = \Phi^{-1}(\hat{F}(P_{i,k} | X_i))}
-        (Equation 21, Hu et al. 2025) where \eqn{\Phi^{-1}} is the
-        standard normal quantile function.
-  \item Repeat for all \eqn{K} endogenous regressors.
+\item Estimate the conditional CDF \eqn{\hat{F}(P_k | X)} nonparametrically
+using kernel methods (Li and Racine 2008), conditioning on all
+exogenous regressors \eqn{X}. A generalised product kernel handles
+mixed continuous and discrete \eqn{X} automatically (Hayfield and Racine 2008).
+\item Compute the copula correction term
+\eqn{C_{i,pk} = \Phi^{-1}(\hat{F}(P_{i,k} | X_i))}
+(Equation 21, Hu et al. 2025) where \eqn{\Phi^{-1}} is the
+standard normal quantile function.
+\item Repeat for all \eqn{K} endogenous regressors.
 }
 
 \emph{Stage 2}: Add \eqn{\{C_{i,pk}\}, k =1, \ldots, K} to the structural model as
@@ -111,6 +111,7 @@ where \eqn{\gamma_k} is the coefficient of the copula correction term \eqn{C_{i,
 }
 
 \subsection{Parameter \code{bws}}{
+
 If given, the bandwidth estimation is skipped for all endogenous regressors, and
 the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
 instead.
@@ -140,18 +141,28 @@ The formula may contain no interaction term (\code{A:B}) because these
 wont be expanded for estimating the kernel conditional CDF.
 }
 
+\subsection{Boostrap inference}{
+}
+
+Bootstrap inference is performed by resampling the data with replacement.
+Degenerate bootstrap samples (e.g. singular design matrices or failed
+model estimation) are discarded and resampled until the requested number
+of valid bootstrap replications is obtained. The percentage of discarded
+samples is reported as a warning. Confidence intervals are computed
+using only successful bootstrap replications.
+
+Note that the bandwidth is fit on the full \code{data} and then re-used across
+bootstrap samples. This ....
+
+........ KIMBERLY: statistics .........
+bws estimates are consistent and sampling variability has negligible effect
+on the bootstrap distribution of the structural coefficients
+........ KIMBERLY: statistics .........
+
 If the bootstrap standard errors of the endogenous regressor coefficients are more than
 6 times larger than the corresponding OLS standard errors, this may indicate near-multicollinearity
 between the copula correction term and the original regressors, which may suggest a potential
 identification issue. (Hu et al. 2025, section 3.5)
-
-\subsection{Bootstrap inference}{
-Standard errors are obtained by resampling the data with replacement and
-re-running the full two-stage estimation on each resample, including the
-nonparametric bandwidth selection in Stage 1.
-Degenerate bootstrap samples are automatically discarded and redrawn.
-The percentage of discarded samples is reported as a warning if non-zero.
-}
 }
 \examples{
 # # Set a random number seed because NP procedure is random
@@ -161,7 +172,7 @@ The percentage of discarded samples is reported as a warning if non-zero.
 # example 1: Continuous endogenous regressor
 # (Hu et al. 2025, Section 4.3)
 #
-# Demonstrates 2sCOPEnp's unique advantage: it is the only method
+# Demonstrates 2sCOPEnp's unique advantage: It is the only method
 # that fully eliminates bias when neither the Gaussian copula nor
 # the mean-dependence assumption holds.
 # True values: mu = 1, alpha = 1 (P), beta = 2 (X).
@@ -237,7 +248,6 @@ res3 <- copula2sCOPEnp(
 
 }
 
-
 }
 \references{
 Hu, X., Qian, Y., and Xie, H. (2025). Correcting endogeneity via
@@ -255,7 +265,7 @@ Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np packag
 }
 \seealso{
 \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
- \code{npcdistbw.args}.
+\code{npcdistbw.args}.
 
 Other copula-based methods: 
 \code{\link{copula2sCOPE}()},
