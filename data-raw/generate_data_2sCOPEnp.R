@@ -132,7 +132,7 @@ Sigma <- matrix(c(1, 0.4, 0.5, 0, 0.5,
                   0.5, 0.5, 0, 0, 1),
                 nrow = 5, ncol= 5, byrow = TRUE)
 
-latent <- MASS::mvnorm(n = n, mu = rep(0,5), Sigma = Sigma)
+latent <- MASS::mvrnorm(n = n, mu = rep(0,5), Sigma = Sigma)
 P1star <- latent[,1]
 P2star <- latent[,2]
 X1star <- latent[,3]

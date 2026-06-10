@@ -145,7 +145,7 @@
 #' # the mean-dependence assumption holds.
 #' # True values: mu = 1, alpha = 1 (P), beta = 2 (X).
 #' #--------------------------------------------------------------
-#' data("data2sCOPEnpCont")
+#' data("dataCopula2sCOPEnpCont")
 #' res1 <- copula2sCOPEnp(
 #'  y ~ P + X | P,
 #'   data = dataCopula2sCOPEnpCont)
@@ -160,7 +160,7 @@
 #' # the smooth conditional CDF.
 #' # True values: mu = 0, alpha = 1 (P), beta = 2 (X).
 #' #--------------------------------------------------------------
-#' data("data2sCOPEnpBi")
+#' data("dataCopula2sCOPEnpBi")
 #' res2 <- copula2sCOPEnp(
 #'   y ~ P + X | P,
 #'   data = dataCopula2sCOPEnpBi
@@ -207,7 +207,7 @@
 #'   itmax = 500000
 #'   # other common params: bwmethod, bwtype,
 #'   ),
-#'   data = data2sCOPEnpCont,
+#'   data = dataCopula2sCOPEnpCont,
 #'   num.boots = 100)
 #'
 #'

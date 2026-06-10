@@ -210,8 +210,8 @@
 #'   in Hu et al. (2025).
 #'   The true parameter values are \code{mu = 1} for the intercept,
 #'   \code{alpha = 1} for \code{P} and \code{beta = 2} for \code{X}.
-#' @name data2sCOPEnpCont
-#' @usage data("data2sCOPEnpCont")
+#' @name dataCopula2sCOPEnpCont
+#' @usage data("dataCopula2sCOPEnpCont")
 #' @format A data frame with 1000 observations on 3 variables:
 #' \describe{
 #' \item{\code{y}}{a numeric vector representing the dependent variable.}
@@ -224,7 +224,7 @@
 #' @docType data
 #' @template template_references_hu2025
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
-"data2sCOPEnpCont"
+"dataCopula2sCOPEnpCont"
 
 
 #' @title Simulated Dataset for 2sCOPEnp - Binary Endogenous Regressor
@@ -241,8 +241,8 @@
 #'   discrete endogenous regressors.
 #'   The true parameter values are \code{mu = 0} for the intercept,
 #'   \code{alpha = 1} for \code{P} and \code{beta = 2} for \code{X}.
-#' @name data2sCOPEnpBi
-#' @usage data("data2sCOPEnpBi")
+#' @name dataCopula2sCOPEnpBi
+#' @usage data("dataCopula2sCOPEnpBi")
 #' @format A data frame with 2000 observations on 3 variables:
 #' \describe{
 #' \item{\code{y}}{a numeric vector representing the dependent variable.}
@@ -255,7 +255,7 @@
 #' @docType data
 #' @template template_references_hu2025
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
-"data2sCOPEnpBi"
+"dataCopula2sCOPEnpBi"
 
 #' @title Simulated Dataset for 2sCOPE - Non-normal Endogenous and Exogenous Regressors
 #' @description A dataset simulated with one endogenous regressor \code{P}
