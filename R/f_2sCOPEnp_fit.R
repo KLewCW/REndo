@@ -83,17 +83,20 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   # Adding the correction term to the structural model and estimate by OLS
   # using equation 20: Y = mu + sum_{k=1} ^ {K} ( P_{i,k} * alpha_k + beta' X_i + sum_{k=1}^{K} C_{i,pk} * gamma_k + epsilon_i
 
-  colnames(cop.term) <- make.names(colnames(cop.term))
+
   f.pcop <- reformulate(
-    termlabels = c(".", colnames(cop.term)),
+    # wrap in backticks to protect from non-syntactic names.
+    # Internal terms() will remove them from the label if not necessary
+    termlabels = c(".", paste0("`", colnames(cop.term), "`")),
     response = NULL,
     intercept = TRUE
   )
 
-  f.main <- formula(F.formula, lhs = 1, rhs = 1)
+  # update requires dot-expanded formula (may not contain a dot `.` in `old`)
+  f.main <- terms(F.formula, data = data, lhs = 1, rhs = 1)
   f.final <- update(old = f.main, new = f.pcop)
 
-  # TODO: Does cbind() work if non-continuous variables?
+  # TODO: Does cbind() work if non-continuous variables? - Yes because will always dispatch to cbind.data.frame() if it contains any data.frame
   return(lm(formula = f.final, data = cbind(data, cop.term)))
 }
 
