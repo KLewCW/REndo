@@ -52,6 +52,9 @@ An object of class \code{rendo.copula.2sCOPE.np} which is a list that contains:
     supplied via the \code{bws} argument, in which case those are returned unchanged.}
 \item{\code{names.endo.regs}}{The names of the endogenous regressors.}
 \item{\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}
+\item{\code{condists}}{A named list with one \code{np::condistribution}
+    object per endogenous regressor (named accordingly).
+    Each item is the output of \code{np::npcdist()}: An estimate of the conditional CDF \eqn{\hat{F}(P_k \mid X)}.}
 }
 \description{
 Fitting the two-stage nonparametric copula control function (2sCOPEnp)

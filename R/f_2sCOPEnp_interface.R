@@ -279,34 +279,33 @@ copula2sCOPEnp <- function(
 
   # Bootstrapping -------------------------------------------------------------------
   fn.fit.boots <- function(data.b) {
-    return(copula2sCOPEnp_fit(
+    fit.b <- copula2sCOPEnp_fit(
       F.formula = F.formula,
       data = data.b,
       labels.exo = labels.exo,
       labels.endo = labels.endo,
       verbose = FALSE,
       bws = bws
-    ))
+    )
+    return(fit.b$res.augmented)
   }
 
   res.boots <- bootstrap_skip_degenerates(
     fn.fit = fn.fit.boots,
     data = data,
     num.boots = num.boots,
-    coef.names = names(coef(fit)),
+    coef.names = names(coef(fit$res.augmented)),
     verbose = verbose
   )
 
   # Structural residuals --------------------------------------------------------------
 
   l.fitted.resid <- copula_compute_structural_fitted_residuals(
-    res.lm.aug = fit,
+    res.lm.aug = fit$res.augmented,
     names.aux.regs = grep("_cop$", names(coef(fit)), value = TRUE)
   )
 
   # Return object ----------------------------------------------------------------------
-
-  # TODO: return conditional dist object (ie result of npcdist())
   # TODO: summary prints bw fitting: method, kernel type, bwtype (what if diverge for
   # each endo because user-supplied?), scale factors & lambdas (important) of bw estimation
   # TODO: plot: bws
@@ -314,13 +313,14 @@ copula2sCOPEnp <- function(
   return(new_rendo_copula2sCOPEnp(
     call = cl,
     F.formula = F.formula,
-    res.lm.augmented = fit,
+    res.lm.augmented = fit$res.augmented,
     fitted.values = l.fitted.resid$fitted.values,
     residuals = l.fitted.resid$residuals,
     boots.params = res.boots$boots.params,
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
+    names.endo.regs = labels.endo,
     bws = bws,
-    names.endo.regs = labels.endo
+    condists = fit$condists
   ))
 }

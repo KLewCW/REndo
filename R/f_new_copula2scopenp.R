@@ -12,7 +12,10 @@ doc_rendocopula2scopenp_return_list <- function() {
     \\eqn{\\hat{F}(P_k \\mid X)}. Estimated on the input data unless bandwidths were
     supplied via the \\code{bws} argument, in which case those are returned unchanged.}",
     names.endo.regs = "\\item{\\code{names.endo.regs}}{The names of the endogenous regressors.}",
-    res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}"
+    res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}",
+    condists = "\\item{\\code{condists}}{A named list with one \\code{np::condistribution}
+    object per endogenous regressor (named accordingly).
+    Each item is the output of \\code{np::npcdist()}: An estimate of the conditional CDF \\eqn{\\hat{F}(P_k \\mid X)}.}"
   )
 
   return(c(doc_boots, doc_copula2scopenp))
@@ -38,7 +41,8 @@ new_rendo_copula2sCOPEnp <- function(
     n.boots.attempted,
     n.boots.failed,
     names.endo.regs,
-    bws
+    bws,
+    condists
 ) {
   return(.new_rendo_boots_degenerates_removed(
     # Stuff for rendo.boots.degenerates.removed class
@@ -57,6 +61,7 @@ new_rendo_copula2sCOPEnp <- function(
     subclass = "rendo.copula.2sCOPE.np",
     res.lm.augmented = res.lm.augmented,
     names.endo.regs = names.endo.regs,
-    bws = bws
+    bws = bws,
+    condists = condists
   ))
 }

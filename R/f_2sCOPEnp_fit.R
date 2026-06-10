@@ -10,6 +10,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
 
   cop.term <- matrix(NA_real_, nrow = nrow(data), ncol = length(labels.endo))
   colnames(cop.term) <- paste0(labels.endo, "_cop")
+  condists <- list()
 
   for (k in seq_along(labels.endo)) {
     p.var <- labels.endo[k]
@@ -72,10 +73,12 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
       tydat = tydat
     )
 
-    conditional.cdf <- cdf.fit$condist
+    # store for return
+    condists[[p.var]] <- cdf.fit
 
     # applying normal quantile transformation:  C_{i,pk} = phi^{-1} (F hat_ (P_k | X))
     # table 3 stage 1 and equation 21 from Hu et al. 2025
+    conditional.cdf <- cdf.fit$condist
     cop.term[, k] <- qnorm(conditional.cdf)
   }
 
@@ -96,8 +99,15 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   f.main <- terms(F.formula, data = data, lhs = 1, rhs = 1)
   f.final <- update(old = f.main, new = f.pcop)
 
+  res.augmented <- lm(formula = f.final, data = cbind(data, cop.term))
+
   # TODO: Does cbind() work if non-continuous variables? - Yes because will always dispatch to cbind.data.frame() if it contains any data.frame
-  return(lm(formula = f.final, data = cbind(data, cop.term)))
+  return(list(
+    res.augmented = res.augmented,
+    condists = condists,
+    # because cop.term is only numeric, model.matrix() used by lm() preserves the column names as-is
+    names.aux.coef = colnames(cop.term)
+    ))
 }
 
 
