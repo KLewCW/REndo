@@ -217,12 +217,19 @@
 #'
 #' @importFrom Formula as.Formula
 #' @importFrom stats coef terms formula
-copula2sCOPEnp <- function(formula, data, bws=NULL, npcdistbw.args=list(), num.boots = 1000, verbose = TRUE) {
+copula2sCOPEnp <- function(
+  formula,
+  data,
+  bws = NULL,
+  npcdistbw.args = list(),
+  num.boots = 1000,
+  verbose = TRUE
+) {
   cl <- match.call()
 
   #Input checks
   check_err_msg(checkinput_copulashared_data_basics(data))
-  check_err_msg(checkinput_copula2scopenp_formula_data(formula=formula, data=data))
+  check_err_msg(checkinput_copula2scopenp_formula_data(formula = formula, data = data))
   check_err_msg(checkinput_copula2scopenp_npcdistbwargs(npcdistbw.args))
   check_err_msg(checkinput_copulashared_numboots(num.boots))
   check_err_msg(checkinput_copulashared_verbose(verbose))
@@ -231,6 +238,8 @@ copula2sCOPEnp <- function(formula, data, bws=NULL, npcdistbw.args=list(), num.b
   labels.main <- labels(terms(F.formula, data = data, rhs = 1))
   labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
   labels.exo <- labels.main[!(labels.main %in% labels.endo)]
+
+  check_err_msg(checkinput_copula2scopenp_bws(bws = bws, labels.endo = labels.endo))
 
   if (verbose) {
     message(
@@ -241,10 +250,10 @@ copula2sCOPEnp <- function(formula, data, bws=NULL, npcdistbw.args=list(), num.b
     message("Note: Nonparametric bandwidth selection could take time.")
   }
 
-  #precomputing the bws once on original data for bootstrap reuse
-  #bws estimates are consistent and sampling variability has negligible effect
-  #on the bootstrap distribution of the structural coefficients
-  if(is.null(bws)){
+  # precomputing the bws once on original data for bootstrap reuse
+  # bws estimates are consistent and sampling variability has negligible effect
+  # on the bootstrap distribution of the structural coefficients
+  if (is.null(bws)) {
     bws <- copula2sCOPEnp_bandwidth(
       data = data,
       labels.exo = labels.exo,

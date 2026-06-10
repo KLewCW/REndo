@@ -145,3 +145,40 @@ checkinput_copula2scopenp_npcdistbwargs <- function(npcdistbw.args) {
 
   return(err.msg)
 }
+
+checkinput_copula2scopenp_bws <- function(bws, labels.endo) {
+  # NULL is default value
+  if(is.null(bws)){
+    return(c())
+  }
+
+  err.msg <- c()
+
+  if (!is(bws, "list")) {
+    return("Parameter 'bws' must be a list.")
+  }
+
+  if (is.null(names(bws)) || any(names(bws) == "")) {
+    return("Parameter 'bws' must be a named list.")
+  }
+
+  if (anyDuplicated(names(bws))) {
+    return("Parameter 'bws' may not contain duplicate names.")
+  }
+
+  if (!setequal(names(bws), labels.endo)) {
+    return(paste0("Parameter 'bws' must be named after the endogenous variables: ",
+                  toString(labels.endo),"."))
+  }
+
+  for (name in names(bws)) {
+    if (!is(bws[[name]], "condbandwidth")) {
+      err.msg <- c(err.msg,
+                   paste0("Element '", name, "' of parameter 'bws' must be of class 'condbandwidth', usually the output of 'np::npcdistbw(xdat=<all exo>, ydat=<single endo>)'."))
+    }
+  }
+
+  # check that fit with xday/ydat and not formula interface?
+
+  return(err.msg)
+}
