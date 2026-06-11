@@ -130,7 +130,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
 #Then the normal quantile transformation is applied to get the copula correction term
 #' @importFrom stats model.frame model.matrix
 #' @importFrom np npcdistbw npcdist
-copula2sCOPEnp_bandwidth <- function(data, npcdistbw.args, labels.exo, labels.endo, verbose) {
+copula2sCOPEnp_bandwidth <- function(data, bws, npcdistbw.args, labels.exo, labels.endo, verbose) {
 
   k <- 1
 
@@ -180,6 +180,13 @@ copula2sCOPEnp_bandwidth <- function(data, npcdistbw.args, labels.exo, labels.en
       ydat = mf.p[, 1, drop = FALSE], # endo: response (first col)
       xdat = mf.p[, -1, drop = FALSE] # exo: all except response
     )
+
+    # Add existing bandwidth object to call args, if user passed `bws`.
+    # Dont set to NULL because docu doesnt explicitly specify this as not-specified.
+    # Rather leave entirely unset.
+    if(!is.null(bws)){
+      bw.call.args[["bws"]] <- bws[[p.var]]
+    }
     bw.call.args <- modifyList(bw.call.args, npcdistbw.args)
 
     return(do.call(what=np:::npcdistbw, args = bw.call.args))

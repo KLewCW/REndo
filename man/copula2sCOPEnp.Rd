@@ -7,8 +7,8 @@
 copula2sCOPEnp(
   formula,
   data,
-  bws = NULL,
   npcdistbw.args = list(),
+  bws = NULL,
   num.boots = 1000,
   verbose = TRUE
 )
@@ -20,14 +20,14 @@ copula2sCOPEnp(
 parameter. Variables must be correctly classed (\code{numeric}, \code{factor}, or
 \code{ordered}) otherwise it will silently yield wrong results!}
 
-\item{bws}{A named list of estimated \code{condbandwidth} objects (outputs of
-\code{np::npcdistbw()}) used in place of estimating the bandwidth from \code{data}.
-If supplied, bandwidth estimation is skipped entirely. See Details.}
-
 \item{npcdistbw.args}{A named list of arguments which are passed to
 \code{\link[np]{npcdistbw}}. To tweak the bandwidth selection for the kernel
 conditional CDF. Runs with the method's defaults if not specified.
 See \code{\link[np]{npcdistbw}} for valid inputs.}
+
+\item{bws}{A named list of estimated \code{condbandwidth} objects (outputs of
+\code{np::npcdistbw()}) used as starting points for estimating the bandwidth
+from \code{data}. See Details.}
 
 \item{num.boots}{Positive integer giving the number of bootstrap replications
 used for standard error estimation. A minimum of 1000 is recommended.}
@@ -48,8 +48,7 @@ An object of class \code{rendo.copula.2sCOPE.np} which is a list that contains:
 \item{\code{n.boots.failed}}{The number of bootstrap iterations resulting in a failed fit.}
 \item{\code{bws}}{A named list with one \code{np::condbandwidth} object per endogenous
     regressor (named accordingly), each used to estimate the conditional CDF
-    \eqn{\hat{F}(P_k \mid X)}. Estimated on the input data unless bandwidths were
-    supplied via the \code{bws} argument, in which case those are returned unchanged.}
+    \eqn{\hat{F}(P_k \mid X)}.}
 \item{\code{names.endo.regs}}{The names of the endogenous regressors.}
 \item{\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}
 \item{\code{condists}}{A named list with one \code{np::condistribution}
@@ -124,10 +123,11 @@ data-driven and distribution-free.
 
 \subsection{Parameter \code{bws}}{
 
-If given, the bandwidth estimation is skipped for all endogenous regressors, and
-the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
-instead.
-They do not serve as starting point for bandwidth estimation but replace it entirely.
+If given, the items in \code{bws} will serve as the starting points for the bandwidth
+estimation of the respective endogenous regressor, by passing them into
+\code{np::npcdistbw(bws=bws[[p]])}. This allows to iteratively refine the bandwidth
+search by passing the result of a previous fit. See examples.
+
 For each endogenous term, \code{bws} must contain a
 \code{condbandwidth} object for the conditional CDF \code{(single endo) ~ (all exo)}.
 \code{bws} must be a named list, with each each element named after the corresponding
@@ -181,7 +181,7 @@ which may suggest a potential identification issue. (Hu et al. 2025, section 3.5
 # set.seed(42)
 
 #--------------------------------------------------------------
-# example 1: Continuous endogenous regressor
+# Example 1: Continuous endogenous regressor
 # (Hu et al. 2025, Section 4.3)
 #
 # Demonstrates 2sCOPEnp's unique advantage: It is the only method
@@ -196,7 +196,7 @@ res1 <- copula2sCOPEnp(
 
 \donttest{
 #--------------------------------------------------------------
-# example 2: Binary endogenous regressor
+# Example 2: Binary endogenous regressor
 # (Hu et al. 2025, Section 4.5)
 #
 # To show 2sCOPEnp's ability to handle discrete
@@ -254,22 +254,52 @@ res4 <- copula2sCOPEnp(
 
 
 #--------------------------------------------------------------
-# How to tweak the bandwidth selection over multiple iterations
+# Tweak the bandwidth selection over multiple iterations
 #
-# Internally, we are using `np::npcdistbw()` for the bandwidth
-# estimation which accepts a previously computed `np::condbandwidth`
-# object as a starting point.
-#
-# loosen-then-refine workflow
 # This allows us to first search broadly using a cheap method
 # and then further re-fine with a more comprehensive method.
-#
-# We can pass a previously estimate
-# If we passed it in parameter `bws`, it would replace the entire
-# bandwidth estimation. Instead, we can pass it as part of
-# `npcdistbw.args` such that it enters `np::npcdistbw(bws=)`.
 
-# Exploration (ftol, tol)
+
+# First: Explore (search loosely)
+res.loosely <- copula2sCOPEnp(
+ y ~ X + P | P,
+ npcdistbw.args = list(
+   # alternative: Directly calculate 'rule-of-thumb’ bandwidth.
+   # Performs no search (other params irrelevant)
+   # bwmethod = "normal-reference",
+
+   # depending on data:
+   #  Get close quickly (low 'nmulti')
+   #  Avoid local minimas (high 'nmulti')
+   # np::npcdistbw() still recommends multiple restarts
+   # for exploratory search
+   nmulti = 3,
+
+   # accept convergence faster
+   ftol=.01,
+   tol=.01
+ ),
+ data = dataCopula2sCOPEnpCont,
+ num.boots = 2
+)
+
+# Inspect diagnostics....
+
+# Final: Refine
+# Pass bandwidths from previous run as starting points
+res.final <- copula2sCOPEnp(
+ y ~ X + P | P,
+ # pass bandwidth from previous fit
+ bws = res.loosely$bws,
+ npcdistbw.args = list(
+   # leave default bwmethod (cross-validation)
+   # leave default convergence tolerances
+
+   # low as starting close to optimum
+   nmulti = 2
+ ),
+ data = dataCopula2sCOPEnpCont
+)
 
 #--------------------------------------------------------------
 

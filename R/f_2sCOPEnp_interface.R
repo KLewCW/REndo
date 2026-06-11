@@ -24,8 +24,8 @@
 #' conditional CDF. Runs with the method's defaults if not specified.
 #' See \code{\link[np]{npcdistbw}} for valid inputs.
 #' @param bws A named list of estimated \code{condbandwidth} objects (outputs of
-#' \code{np::npcdistbw()}) used in place of estimating the bandwidth from \code{data}.
-#' If supplied, bandwidth estimation is skipped entirely. See Details.
+#' \code{np::npcdistbw()}) used as starting points for estimating the bandwidth
+#' from \code{data}. See Details.
 #'
 #'
 #' @details
@@ -82,10 +82,11 @@
 #'
 #' ## Parameter \code{bws}
 #'
-#' If given, the bandwidth estimation is skipped for all endogenous regressors, and
-#' the bandwidths objects in \code{bws} are passed directly to \code{np::npcdist}
-#' instead.
-#' They do not serve as starting point for bandwidth estimation but replace it entirely.
+#' If given, the items in \code{bws} will serve as the starting points for the bandwidth
+#' estimation of the respective endogenous regressor, by passing them into
+#' \code{np::npcdistbw(bws=bws[[p]])}. This allows to iteratively refine the bandwidth
+#' search by passing the result of a previous fit. See examples.
+#'
 #' For each endogenous term, \code{bws} must contain a
 #' \code{condbandwidth} object for the conditional CDF \code{(single endo) ~ (all exo)}.
 #' \code{bws} must be a named list, with each each element named after the corresponding
@@ -153,7 +154,7 @@
 #' # set.seed(42)
 #'
 #' #--------------------------------------------------------------
-#' # example 1: Continuous endogenous regressor
+#' # Example 1: Continuous endogenous regressor
 #' # (Hu et al. 2025, Section 4.3)
 #' #
 #' # Demonstrates 2sCOPEnp's unique advantage: It is the only method
@@ -168,7 +169,7 @@
 #'
 #' \donttest{
 #' #--------------------------------------------------------------
-#' # example 2: Binary endogenous regressor
+#' # Example 2: Binary endogenous regressor
 #' # (Hu et al. 2025, Section 4.5)
 #' #
 #' # To show 2sCOPEnp's ability to handle discrete
@@ -226,22 +227,52 @@
 #'
 #'
 #' #--------------------------------------------------------------
-#' # How to tweak the bandwidth selection over multiple iterations
+#' # Tweak the bandwidth selection over multiple iterations
 #' #
-#' # Internally, we are using `np::npcdistbw()` for the bandwidth
-#' # estimation which accepts a previously computed `np::condbandwidth`
-#' # object as a starting point.
-#' #
-#' # loosen-then-refine workflow
 #' # This allows us to first search broadly using a cheap method
 #' # and then further re-fine with a more comprehensive method.
-#' #
-#' # We can pass a previously estimate
-#' # If we passed it in parameter `bws`, it would replace the entire
-#' # bandwidth estimation. Instead, we can pass it as part of
-#' # `npcdistbw.args` such that it enters `np::npcdistbw(bws=)`.
 #'
-#' # Exploration (ftol, tol)
+#'
+#' # First: Explore (search loosely)
+#' res.loosely <- copula2sCOPEnp(
+#'  y ~ X + P | P,
+#'  npcdistbw.args = list(
+#'    # alternative: Directly calculate 'rule-of-thumb’ bandwidth.
+#'    # Performs no search (other params irrelevant)
+#'    # bwmethod = "normal-reference",
+#'
+#'    # depending on data:
+#'    #  Get close quickly (low 'nmulti')
+#'    #  Avoid local minimas (high 'nmulti')
+#'    # np::npcdistbw() still recommends multiple restarts
+#'    # for exploratory search
+#'    nmulti = 3,
+#'
+#'    # accept convergence faster
+#'    ftol=.01,
+#'    tol=.01
+#'  ),
+#'  data = dataCopula2sCOPEnpCont,
+#'  num.boots = 2
+#' )
+#'
+#' # Inspect diagnostics....
+#'
+#' # Final: Refine
+#' # Pass bandwidths from previous run as starting points
+#' res.final <- copula2sCOPEnp(
+#'  y ~ X + P | P,
+#'  # pass bandwidth from previous fit
+#'  bws = res.loosely$bws,
+#'  npcdistbw.args = list(
+#'    # leave default bwmethod (cross-validation)
+#'    # leave default convergence tolerances
+#'
+#'    # low as starting close to optimum
+#'    nmulti = 2
+#'  ),
+#'  data = dataCopula2sCOPEnpCont
+#' )
 #'
 #' #--------------------------------------------------------------
 #'
@@ -255,8 +286,8 @@
 copula2sCOPEnp <- function(
   formula,
   data,
-  bws = NULL,
   npcdistbw.args = list(),
+  bws = NULL,
   num.boots = 1000,
   verbose = TRUE
 ) {
@@ -287,15 +318,14 @@ copula2sCOPEnp <- function(
   # precomputing the bws once on original data for bootstrap reuse
   # bws estimates are consistent and sampling variability has negligible effect
   # on the bootstrap distribution of the structural coefficients
-  if (is.null(bws)) {
-    bws <- copula2sCOPEnp_bandwidth(
-      data = data,
-      labels.exo = labels.exo,
-      labels.endo = labels.endo,
-      npcdistbw.args = npcdistbw.args,
-      verbose = verbose
-    )
-  }
+  bws <- copula2sCOPEnp_bandwidth(
+    data = data,
+    labels.exo = labels.exo,
+    labels.endo = labels.endo,
+    bws = bws,
+    npcdistbw.args = npcdistbw.args,
+    verbose = verbose
+  )
 
   # TODO: warn if itnmax was hit or bws are at search boundaries (lower bound for
   #   continuous, or lambda at its max). Warn here and not in copula2sCOPEnp_bandwidth
