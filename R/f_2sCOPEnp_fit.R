@@ -87,10 +87,19 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   # using equation 20: Y = mu + sum_{k=1} ^ {K} ( P_{i,k} * alpha_k + beta' X_i + sum_{k=1}^{K} C_{i,pk} * gamma_k + epsilon_i
 
 
+  # Get labels separately because needed to read-out coefs(lm)
+  # wrap in backticks to protect from non-syntactic names.
+  # Internal terms() in reformulate() will remove them from the label if not necessary
+  # message("cop.term: ", toString(colnames(cop.term)))
+  # print(head(cop.term))
+  labels.pcop <- labels(terms(reformulate(
+    termlabels = paste0("`", colnames(cop.term), "`"),
+    response = NULL
+  )))
+
+  # message("labels.pcop: ", toString(labels.pcop))
   f.pcop <- reformulate(
-    # wrap in backticks to protect from non-syntactic names.
-    # Internal terms() will remove them from the label if not necessary
-    termlabels = c(".", paste0("`", colnames(cop.term), "`")),
+    termlabels = c(".", labels.pcop),
     response = NULL,
     intercept = TRUE
   )
@@ -98,15 +107,16 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   # update requires dot-expanded formula (may not contain a dot `.` in `old`)
   f.main <- terms(F.formula, data = data, lhs = 1, rhs = 1)
   f.final <- update(old = f.main, new = f.pcop)
-
   res.augmented <- lm(formula = f.final, data = cbind(data, cop.term))
 
   # TODO: Does cbind() work if non-continuous variables? - Yes because will always dispatch to cbind.data.frame() if it contains any data.frame
   return(list(
     res.augmented = res.augmented,
     condists = condists,
-    # because cop.term is only numeric, model.matrix() used by lm() preserves the column names as-is
-    names.aux.coef = colnames(cop.term)
+    # because cop.term is only numeric, coef() (actually model.matrix() used in lm())
+    # preserves the terms as they are in the formula. For f.pcop these may be backticked
+    # or not, depending if necessary. Therefore read labels from terms().
+    names.aux.coef = labels.pcop
     ))
 }
 
@@ -136,7 +146,8 @@ copula2sCOPEnp_bandwidth <- function(data, npcdistbw.args, labels.exo, labels.en
         ") ..."
       )
     }
-    k <- k + 1
+    # double arrow because manipulating `k` higher up in the call stack
+    k <<- k + 1
 
     # Use npcistw: supposed to handle both cts and discrete (or combination of both) X
     # automatically through a generalised product kernel (Li and Racine 2008)
@@ -162,11 +173,8 @@ copula2sCOPEnp_bandwidth <- function(data, npcdistbw.args, labels.exo, labels.en
       response = p.var,
       intercept = FALSE
     )
-    print(f.endo.exo)
 
     mf.p <- model.frame(f.endo.exo, data = data, na.action = na.fail)
-    # or do model.frame() once outside the loop and read attr(terms(mf), "factors")
-    # to match labels to the columns in mf (variables)?
 
     bw.call.args <- list(
       ydat = mf.p[, 1, drop = FALSE], # endo: response (first col)

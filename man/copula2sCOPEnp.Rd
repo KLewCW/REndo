@@ -110,6 +110,18 @@ where \eqn{\gamma_k} is the coefficient of the copula correction term \eqn{C_{i,
 \eqn{\xi_i} is the new error term.
 }
 
+\subsection{Bandwidth Selection}{
+
+The accuracy of the copula correction terms depend on the quality of the nonparametric
+conditional CDF estimate, which depends on the choice of the bandwidth. If a bandwidth is
+too small, this could lead to overfitting of the conditional CDF. Likewise, if it is too large,
+this could result in oversmoothing and introducing bias, leading to underfitting (Hu et al. 2025).
+However, no closed-form rule-of-thumb bandwidth exists for conditional CDF estimator because these rules
+assume a known marginal distribution, yet this is an assumption that the 2sCOPEnp method relaxes. The default
+bandwidth is therefore selected through least-squares cross-validation (Li and Racine 2013) which is
+data-driven and distribution-free.
+}
+
 \subsection{Parameter \code{bws}}{
 
 If given, the bandwidth estimation is skipped for all endogenous regressors, and
@@ -159,10 +171,10 @@ low because the conditional CDF estimator enters the procedure as an auxiliary
 nonparametric component. The resulting bootstrap distribution should be interpreted
 as conditional on the estimated bandwidths.
 
-If the bootstrap standard errors of the endogenous regressor coefficients are more than
-6 times larger than the corresponding OLS standard errors, this may indicate near-multicollinearity
-between the copula correction term and the original regressors, which may suggest a potential
-identification issue. (Hu et al. 2025, section 3.5)
+If the bootstrap standard errors of the endogenous regressor coefficients are more
+than 6 times larger than the corresponding OLS standard errors, this may indicate
+near-multicollinearity between the copula correction term and the original regressors,
+which may suggest a potential identification issue. (Hu et al. 2025, section 3.5)
 }
 \examples{
 # # Set a random number seed because NP procedure is random
@@ -226,7 +238,7 @@ summary(res3)
 #   nmulti: Number of restarts at random points. High to
 #           protect from local minima.
 #   bwmethod: Bandwidth selection method. Cross-validation ("cv.ls")
-#           is already default over rule-of-thumb.
+#           is already default over rule-of-thumb ("normal-reference").
 #   itmax: Max iterations before failing numerical optimization.
 #          High to prevent silent early stop without convergence.
 #   ftol,tol: Do not override defaults.
@@ -234,13 +246,11 @@ summary(res3)
 #--------------------------------------------------------------
 res4 <- copula2sCOPEnp(
  y ~ P + X | P,
-  npcdistbw.args = list(
+ npcdistbw.args = list(
   nmulti = 25,
-  itmax = 500000
-  # other common params: bwmethod, bwtype,
-  ),
-  data = dataCopula2sCOPEnpCont,
-  num.boots = 100)
+  itmax = 50000
+ ),
+ data = dataCopula2sCOPEnpCont)
 
 
 #--------------------------------------------------------------
@@ -275,6 +285,11 @@ NBER Working Paper No. 33607.
 Li, Q. and Racine, J. S. (2008). Nonparametric estimation of conditional CDF and
 quantile functions with mixed categorical and continuous data.
 \emph{Journal of Business and Economic Statistics}, 26(4), 423-434
+
+Li, Q., Lin, J. and Racine, J. S. (2013).  Optimal Bandwidth Selection
+for Nonparametric Conditional Distribution and Quantile Functions.
+\emph{Journal of Business and Economic Statistics}, 31(1), 57-65
+\doi{10.1080/07350015.2012.738955}
 
 Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np package.
 \emph{Journal of Statistical Software}, 27(5).

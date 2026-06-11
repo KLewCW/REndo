@@ -121,10 +121,10 @@
 #' nonparametric component. The resulting bootstrap distribution should be interpreted
 #' as conditional on the estimated bandwidths.
 #'
-#' If the bootstrap standard errors of the endogenous regressor coefficients are more than
-#' 6 times larger than the corresponding OLS standard errors, this may indicate near-multicollinearity
-#' between the copula correction term and the original regressors, which may suggest a potential
-#' identification issue. (Hu et al. 2025, section 3.5)
+#' If the bootstrap standard errors of the endogenous regressor coefficients are more
+#' than 6 times larger than the corresponding OLS standard errors, this may indicate
+#' near-multicollinearity between the copula correction term and the original regressors,
+#' which may suggest a potential identification issue. (Hu et al. 2025, section 3.5)
 #'
 #' @template template_references_hu2025
 #'
@@ -210,7 +210,7 @@
 #' #   nmulti: Number of restarts at random points. High to
 #' #           protect from local minima.
 #' #   bwmethod: Bandwidth selection method. Cross-validation ("cv.ls")
-#' #           is already default over rule-of-thumb.
+#' #           is already default over rule-of-thumb ("normal-reference").
 #' #   itmax: Max iterations before failing numerical optimization.
 #' #          High to prevent silent early stop without convergence.
 #' #   ftol,tol: Do not override defaults.
@@ -218,13 +218,11 @@
 #' #--------------------------------------------------------------
 #' res4 <- copula2sCOPEnp(
 #'  y ~ P + X | P,
-#'   npcdistbw.args = list(
+#'  npcdistbw.args = list(
 #'   nmulti = 25,
-#'   itmax = 500000
-#'   # other common params: bwmethod, bwtype,
-#'   ),
-#'   data = dataCopula2sCOPEnpCont,
-#'   num.boots = 100)
+#'   itmax = 50000
+#'  ),
+#'  data = dataCopula2sCOPEnpCont)
 #'
 #'
 #' #--------------------------------------------------------------
@@ -284,7 +282,6 @@ copula2sCOPEnp <- function(
       length(labels.endo),
       " endogenous regressor(s)."
     )
-    message("Note: Nonparametric bandwidth selection could take time.")
   }
 
   # precomputing the bws once on original data for bootstrap reuse
@@ -315,6 +312,7 @@ copula2sCOPEnp <- function(
   )
 
   # Bootstrapping -------------------------------------------------------------------
+
   fn.fit.boots <- function(data.b) {
     fit.b <- copula2sCOPEnp_fit(
       F.formula = F.formula,
@@ -339,7 +337,7 @@ copula2sCOPEnp <- function(
 
   l.fitted.resid <- copula_compute_structural_fitted_residuals(
     res.lm.aug = fit$res.augmented,
-    names.aux.regs = grep("_cop$", names(coef(fit$res.augmented)), value = TRUE)
+    names.aux.regs = fit$names
   )
 
   # Return object ----------------------------------------------------------------------
