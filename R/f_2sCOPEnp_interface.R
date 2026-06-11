@@ -68,6 +68,17 @@
 #' where \eqn{\gamma_k} is the coefficient of the copula correction term \eqn{C_{i, pk}} and
 #' \eqn{\xi_i} is the new error term.
 #'
+#' ## Bandwidth Selection
+#'
+#' The accuracy of the copula correction terms depend on the quality of the nonparametric
+#' conditional CDF estimate, which depends on the choice of the bandwidth. If a bandwidth is
+#' too small, this could lead to overfitting of the conditional CDF. Likewise, if it is too large,
+#' this could result in oversmoothing and introducing bias, leading to underfitting (Hu et al. 2025).
+#' However, no closed-form rule-of-thumb bandwidth exists for conditional CDF estimator because these rules
+#' assume a known marginal distribution, yet this is an assumption that the 2sCOPEnp method relaxes. The default
+#' bandwidth is therefore selected through least-squares cross-validation (Li and Racine 2013) which is
+#' data-driven and distribution-free.
+#'
 #'
 #' ## Parameter \code{bws}
 #'
@@ -121,6 +132,11 @@
 #' Li, Q. and Racine, J. S. (2008). Nonparametric estimation of conditional CDF and
 #' quantile functions with mixed categorical and continuous data.
 #' \emph{Journal of Business and Economic Statistics}, 26(4), 423-434
+#'
+#' Li, Q., Lin, J. and Racine, J. S. (2013).  Optimal Bandwidth Selection
+#' for Nonparametric Conditional Distribution and Quantile Functions.
+#' \emph{Journal of Business and Economic Statistics}, 31(1), 57-65
+#' \doi{10.1080/07350015.2012.738955}
 #'
 #' Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np package.
 #' \emph{Journal of Statistical Software}, 27(5).
