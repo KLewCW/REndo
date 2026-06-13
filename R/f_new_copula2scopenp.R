@@ -39,7 +39,11 @@ new_rendo_copula2sCOPEnp <- function(
     boots.params,
     n.boots.attempted,
     n.boots.failed,
+    labels.endo,
+    labels.exo,
+    labels.pcop,
     names.endo.regs,
+    first.stage.frames,
     bws,
     condists
 ) {
@@ -60,6 +64,10 @@ new_rendo_copula2sCOPEnp <- function(
     subclass = "rendo.copula.2sCOPE.np",
     res.lm.augmented = res.lm.augmented,
     names.endo.regs = names.endo.regs,
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
+    labels.pcop = labels.pcop,
+    first.stage.frames = first.stage.frames,
     bws = bws,
     condists = condists
   ))

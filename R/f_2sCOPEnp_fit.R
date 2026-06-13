@@ -11,6 +11,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   cop.term <- matrix(NA_real_, nrow = nrow(data), ncol = length(labels.endo))
   colnames(cop.term) <- paste0(labels.endo, "_cop")
   condists <- list()
+  mfs <- list()
 
   for (k in seq_along(labels.endo)) {
     p.var <- labels.endo[k]
@@ -30,12 +31,12 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
     # exo column is everything that is non-intercept and non-endo col
     f.endo.exo <- reformulate(
       response = p.var,
-      termlabels = labels.exo,
-      intercept = FALSE
+      termlabels = labels.exo
     )
 
     # specify endo as DV to know where to read from
     mf.p <- model.frame(formula = f.endo.exo, data = data, na.action = na.fail)
+    mfs[[p.var]] <- mf.p
 
     # TODO: Check if bw were fit with formula or 2 data inputs as user might specify differently?
 
@@ -113,10 +114,11 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   return(list(
     res.augmented = res.augmented,
     condists = condists,
+    mfs = mfs,
     # because cop.term is only numeric, coef() (actually model.matrix() used in lm())
     # preserves the terms as they are in the formula. For f.pcop these may be backticked
     # or not, depending if necessary. Therefore read labels from terms().
-    names.aux.coef = labels.pcop
+    labels.pcop = labels.pcop
     ))
 }
 

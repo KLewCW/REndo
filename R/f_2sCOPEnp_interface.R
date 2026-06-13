@@ -367,7 +367,7 @@ copula2sCOPEnp <- function(
 
   l.fitted.resid <- copula_compute_structural_fitted_residuals(
     res.lm.aug = fit$res.augmented,
-    names.aux.regs = fit$names
+    names.aux.regs = fit$labels.pcop
   )
 
   # Return object ----------------------------------------------------------------------
@@ -384,6 +384,10 @@ copula2sCOPEnp <- function(
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
     names.endo.regs = labels.endo,
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
+    labels.pcop = fit$labels.pcop,
+    first.stage.frames = fit$mfs,
     bws = bws,
     condists = fit$condists
   ))
