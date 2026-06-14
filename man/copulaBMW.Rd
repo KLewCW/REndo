@@ -82,6 +82,25 @@ regressors and estimate using ordinary least squares. Obtain:
 This method requires at least one exogenous regressor for the first-stage
 regression and supports only continuous regressors.
 
+\strong{Note on the \code{cdf = "ecdf"}}
+The \code{"ecdf"} option in \code{copulaBMW} implements the theoretical
+recommendation of Breitung et al. (2024), Equation (2.3):
+\deqn{\hat{F}(\hat{e}_i) = \frac{\text{rank}(\hat{e}_i)}{n+1}}
+This differs from the other "ecdf" cdf options of the other copula methods in
+REndo (See copulaIMA, 2sCOPE) which use the standard empirical CDF with
+\eqn{10^{-7}} boundary replacement, giving \eqn{\Phi^{-1}(10^{-7}) = \pm 5.2}
+for the boundary observations. With \code{rank/(n+1)}, the maximum value is
+\eqn{\Phi^{-1}(n/(n+1))}, which is considerably smaller in small
+samples (e.g., \eqn{\pm 2.8} for \eqn{n=400}).
+
+Consequently, point estimates vary significantly when the sample size is small
+(e.g., n < 1000) because the boundary observations exert high leverage in the
+augmented OLS regression. Breitung et al. (2024) explain this finite-sample
+bias through their tail decay condition (Assumption A5).
+
+It is recommended to use \code{cdf = "adj.ecdf"} for the best finite-sample performance
+(Liengaard et al. 2024).
+
 \strong{Important assumptions}
 The method requires the following assumptions (Assumption A, Breitung et al. 2024):
 \enumerate{
@@ -152,6 +171,12 @@ summary(res_bmw_multi)
 Breitung, J., Meyer, M., Wied, D. (2024). Asymptotic properties of endogeneity
 corrections using nonlinear transformations. \emph{The Econometrics Journal},
 27, 362--383/ \doi{10.1093/ectj/utae002}
+
+Liengaard, B. D., Becker, J.-M., Bennedsen, M., Heiler, P., Taylor, L. N.,
+Ringle, C. M. (2024). Dealing with regression models' endogeneity by means of
+an adjusted estimator for the Gaussian copula approach.
+\emph{Journal of the Academy of Marketing Science}, 53, 279--299
+\doi{10.1007/s11747-024-01055-4}
 
 Becker, JM., Proksch, D., & Ringle, C.M. Revisiting Gaussian
 copulas to handle endogenous regressors. \emph{Journal of the Academy of
