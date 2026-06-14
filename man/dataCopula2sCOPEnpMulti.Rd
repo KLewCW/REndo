@@ -35,7 +35,7 @@ Note: the finite sample recovery of \code{P1} has higher variance than \code{P2}
 tails of the \code{X1} ~ t(3) distribution. This makes the nonparametric conditional CDF estimation harder for
 \code{P1}.
 The true parameter values are: \code{mu =1}, \code{alpha1 =1} (\code{P1}), \code{alpha2 = 1}(\code{P2}), \code{beta1 =2}
-(\code{x1}) and \code {beta2 = -1} (\code {X2})
+(\code{x1}) and \code{beta2 = -1} (\code{X2})
 }
 \author{
 Kimberly Lew \email{kimberlylew12@gmail.com}
