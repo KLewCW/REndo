@@ -307,6 +307,8 @@ copula2sCOPEnp <- function(
 
   check_err_msg(checkinput_copula2scopenp_bws(bws = bws, labels.endo = labels.endo))
 
+
+
   if (verbose) {
     message(
       "Fitting 2sCOPEnp model with ",
@@ -391,4 +393,13 @@ copula2sCOPEnp <- function(
     bws = bws,
     condists = fit$condists
   ))
+}
+
+extract_from_frame <- function(mf, labels) {
+  facs <- attr(terms(mf), "factors")
+  missing <- setdiff(labels, colnames(facs))
+  stopifnot(length(missing) == 0)
+  # get term lables position in the mf
+  row.idx <- which(rowSums(facs[, labels, drop = FALSE] != 0) > 0)
+  mf[row.idx]
 }
