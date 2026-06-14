@@ -5,7 +5,7 @@
 \alias{dataCopBMWMultiEndo}
 \title{Simulated Dataset for the BMW Approach with Two Endogenous Regressors}
 \format{
-A data frame with 1000 observations on 4 variables:
+A data frame with 5000 observations on 4 variables:
 \describe{
   \item{\code{y}}{a numeric vector representing the dependent variable.}
   \item{\code{x}}{a numeric vector, Gamma(1,1) distributed and exogenous.}
@@ -26,9 +26,9 @@ A dataset with one exogenous regressor \code{x} and two
   as an extension of DGP1 to the multiple endogenous regressor case (Remark 2.1).
   Both endogenous regressors are correlated with \code{x} (\code{delta1 = delta2 = 1})
   and shows moderate endogeneity (\code{rho1 = rho2 = 0.5}).
-  The true parameter values are: \code{beta0 = 1} (intercept),
-  \code{beta1 = -1} (\code{x}), \code{gamma1 = 1} (\code{P1}),
-  and \code{gamma2 = 1} (\code{P2}).
+  The true parameter values are: \code{mu = 1} (intercept),
+  \code{beta = -1} (\code{x}), \code{alpha1 = 1} (\code{P1}),
+  and \code{alpha2 = 1} (\code{P2}).
 }
 \author{
 Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@gmail.com}

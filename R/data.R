@@ -203,8 +203,8 @@
 #'   of Breitung, Meyer, and Wied (2024), Section 4, with correlated regressors
 #'   (\code{delta = 1}) and endogeneity (\code{rho = 0.5}).
 #'   The dependent variable is \code{y}.
-#'   The true parameter values are: \code{beta0 = 1} (intercept),
-#'   \code{beta1 = -1} (\code{x}), and \code{gamma = 1} (\code{P}).
+#'   The true parameter values are: \code{mu = 1} (intercept),
+#'   \code{beta = -1} (\code{x}), and \code{alpha = 1} (\code{P}).
 #' @name dataCopBMW
 #' @usage data("dataCopBMW")
 #' @format A data frame with 1000 observations on 3 variables:
@@ -225,12 +225,12 @@
 #'   as an extension of DGP1 to the multiple endogenous regressor case (Remark 2.1).
 #'   Both endogenous regressors are correlated with \code{x} (\code{delta1 = delta2 = 1})
 #'   and shows moderate endogeneity (\code{rho1 = rho2 = 0.5}).
-#'   The true parameter values are: \code{beta0 = 1} (intercept),
-#'   \code{beta1 = -1} (\code{x}), \code{gamma1 = 1} (\code{P1}),
-#'   and \code{gamma2 = 1} (\code{P2}).
+#'   The true parameter values are: \code{mu = 1} (intercept),
+#'   \code{beta = -1} (\code{x}), \code{alpha1 = 1} (\code{P1}),
+#'   and \code{alpha2 = 1} (\code{P2}).
 #' @name dataCopBMWMultiEndo
 #' @usage data("dataCopBMWMultiEndo")
-#' @format A data frame with 1000 observations on 4 variables:
+#' @format A data frame with 5000 observations on 4 variables:
 #' \describe{
 #'   \item{\code{y}}{a numeric vector representing the dependent variable.}
 #'   \item{\code{x}}{a numeric vector, Gamma(1,1) distributed and exogenous.}

@@ -20,10 +20,12 @@ copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf) {
   }
 
   # Exogenous columns
-  exo.cols <- setdiff(
-    colnames(X.main)[colnames(X.main) != "(Intercept)"],
-    endogenous.cols
-  )
+  #exo.cols <- setdiff(
+    #colnames(X.main)[colnames(X.main) != "(Intercept)"],
+    ##endogenous.cols
+  #)
+  rhs1.vars <- all.vars(formula(F.formula, rhs = 1, lhs = 0))
+  exo.cols  <- rhs1.vars[!rhs1.vars %in% endogenous.cols]
 
   # BMW correction
   # step 1: first-stage in the original space

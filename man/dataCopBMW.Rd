@@ -23,8 +23,8 @@ A dataset with one exogenous regressor \code{x} and one
   of Breitung, Meyer, and Wied (2024), Section 4, with correlated regressors
   (\code{delta = 1}) and endogeneity (\code{rho = 0.5}).
   The dependent variable is \code{y}.
-  The true parameter values are: \code{beta0 = 1} (intercept),
-  \code{beta1 = -1} (\code{x}), and \code{gamma = 1} (\code{P}).
+  The true parameter values are: \code{mu = 1} (intercept),
+  \code{beta = -1} (\code{x}), and \code{alpha = 1} (\code{P}).
 }
 \author{
 Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@gmail.com}
