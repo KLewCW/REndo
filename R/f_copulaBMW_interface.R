@@ -67,7 +67,7 @@
 #' bias through their tail decay condition (Assumption A5).
 #'
 #' It is recommended to use \code{cdf = "adj.ecdf"} for the best finite-sample performance
-#' (Liengaard et al. 2024).
+#' (Liengaard et al. 2025).
 #'
 #' \strong{Important assumptions}
 #' The method requires the following assumptions (Assumption A, Breitung et al. 2024):
@@ -96,12 +96,6 @@
 #' Breitung, J., Meyer, M., Wied, D. (2024). Asymptotic properties of endogeneity
 #' corrections using nonlinear transformations. \emph{The Econometrics Journal},
 #' 27, 362--383/ \doi{10.1093/ectj/utae002}
-#'
-#' Liengaard, B. D., Becker, J.-M., Bennedsen, M., Heiler, P., Taylor, L. N.,
-#' Ringle, C. M. (2024). Dealing with regression models' endogeneity by means of
-#' an adjusted estimator for the Gaussian copula approach.
-#' \emph{Journal of the Academy of Marketing Science}, 53, 279--299
-#' \doi{10.1007/s11747-024-01055-4}
 #'
 #' @template template_param_cdf_references
 #'
