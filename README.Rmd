@@ -43,7 +43,9 @@ REndo implements the following instrument-free methods:
 
 (6) two-stage copula endogeneity correction (Yang et al. 2025)
 
-(7) multilevel GMM (Kim and Frees 2007)
+(7) Nonparametric control function with asymptotic theory (Breitung     et al. 2024)
+
+(8) multilevel GMM (Kim and Frees 2007)
 
 
 ## The new version - REndo 2.0.0 ##
@@ -109,6 +111,14 @@ copula2sCOPE(y ~ X + P | continuous(P), data, num.boots, cdf)
 ```
 
 Here **y** is the response variable, **X + P**  represents the model to be estimated; the second part identifies the endogenous regressors via **continuous()**. The second argument is the name of the dataset. **num.boots** sets the number of bootstrap replications used to compute standard errors (default 1000). The argument **cdf** specifies the estimator used to transform regressors to normal scores (options are **"ecdf"**, **"adj.ecdf"**, **"resc.ecdf"**, and **"kde"**) and is applied to all regressors. For each endogenous normal score, a regression on the exogenous normal scores is estimated with an intercept, and the residuals is the correction terms in an augmented OLS. When no exogenous regressors are present the method reduces to Park and Gupta (2012). This method can be used for multiple endogenous regressors. 
+
+### **Nonparametric Control Function (BMW method)** 
+
+```
+copulaBMW(y ~ X + P | continuous(P), data, cdf, num.boots)
+```
+
+Here **y** is the response variable, **X+P** represents the model to be estimated; the second part identifies the endogenous regressors via **continuous()**. The second argument is the name of the dataset. **num.boots** sets the number of bootstrap replications used to compute standard errors (default 1000). The argument **cdf** specifies the estimator used to transform regressors to normal scores (options are **"ecdf"**, **"adj.ecdf"**, **"resc.ecdf"**, and **"kde"**) and is applied to all regressors. The method regresses each endogenous regressor $P_k$ on the exogenous regressors $X$ directly in the **original space**, then applies the CDF to the first-stage residuals. The method does not require a Gaussian copula assumption on the distribution of the structural error and the endogenous regressor error. The method only assumes $f(e) \sim N(0,1)$. It also allows conditional heteroskedasticity of the structural error. The BMW estimator is a copula-based method in REndo with formal asymptotic theory. BMW comes with mathematical proofs that the estimates are consistent (converge to true values as $n \to \infty$), asymptotically normally distributed, and that bootstrap standard errors are valid.
 
 ### **Multilevel GMM**
 
