@@ -35,15 +35,15 @@ print.summary.rendo.copula.2sCOPE.np <- function(
   ruler <- strrep("-", max.width)
 
   # is the same in all endo blocks?
-  metadata_key <- function(block) {
+  metadata_all_same <- function(block) {
     return(paste(
       block$pmethod,
       block$ptype,
-      block$pcxkertype,
+      # block$pcxkertype,
       sep = " "
     ))
   }
-  all.same <- length(unique(vapply(blocks, metadata_key, character(1)))) == 1
+  all.same <- length(unique(vapply(blocks, metadata_all_same, character(1)))) == 1
 
   # shared section header (only when metadata is unifor
   if (all.same) {
@@ -52,13 +52,15 @@ print.summary.rendo.copula.2sCOPE.np <- function(
     cat("First-stage bandwidth selection\n")
     cat("  Method: ", first$pmethod, "\n", sep = "")
     cat("  Bandwidth type: ", first$ptype, "\n", sep = "")
-    cat("  Continuous Kernel type: ", first$pcxkertype, "\n", sep = "")
+    # Skip kernel type because other wise also have to print for ordered & unordered
+    # cat("  Continuous Kernel type: ", first$pcxkertype, "\n", sep = "")
   }
 
   # per-endo blocks
   for (b in blocks) {
     cat(ruler, "\n", sep = "")
     copula2sCOPEnp_print_condbw(block = b, print.meta = !all.same, digits = digits, ...)
+    cat("\n")
   }
 
   return(invisible(x))
@@ -113,7 +115,7 @@ copula2sCOPEnp_summary_condbw <- function(object, endo.label) {
     method = bw$method,
     pmethod = bw$pmethod,
     ptype = bw$ptype,
-    pcxkertype = bw$pcxkertype, # TODO: remove? Or keep also for ordered + factors?
+    # pcxkertype = bw$pcxkertype,
     bandwidths = bandwidths
   )
 
@@ -140,20 +142,20 @@ copula2sCOPEnp_print_condbw <- function(
   cat(
     "Bandwidths for estimating F(",
     block$endo,
-    " | exogenous regressors)\n",
+    " | <all exo vars>)\n",
     sep = ""
   )
 
   if (print.meta) {
     cat("Method: ", block$pmethod, "\n", sep = "")
     cat("Bandwidth type: ", block$ptype, "\n", sep = "")
-    cat("Continuous Kernel type: ", block$pcxkertype, "\n", sep = "")
+    # cat("Continuous Kernel type: ", block$pcxkertype, "\n", sep = "")
   }
 
   # fval.history (if done cv) --------------------------------------------
   if (!is.null(block$fval)) {
     cat("\n")
-    cat("fval across ", block$fval$nmulti, " restarts:\n", sep = "")
+    cat("Objective function at minimum (fval) across ", block$fval$nmulti, " restarts:\n", sep = "")
     cat(
       "  range = [",
       format(x = block$fval$range[1], digits = digits),
