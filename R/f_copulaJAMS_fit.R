@@ -31,7 +31,10 @@ copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
   # if the factor Z is present, then it requires stratified correction per level (see equation 20 and 21)
   # if there is no factor Z, variance-covariance correction (eq. 17 to 19)
 
-  factor.vars <- names(which(sapply(data[names.exo.regs], is.factor)))
+  factor.vars <- if (length(names.exo.regs) == 0){character(0)
+    } else {
+      names(which(sapply(data[names.exo.regs], is.factor)))
+      }
 
   if (length(factor.vars) == 0) {
     #case no Z
@@ -43,7 +46,7 @@ copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
   } else {
     #case where Z is present
 
-    cop.terms <- copulaJams_correction_dis(
+    cop.terms <- copulaJAMS_correction_dis(
       data = data,
       names.endo.regs = endogenous.cols,
       names.exo.regs = names.exo.regs,
@@ -53,7 +56,7 @@ copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
   }
 
   f.main <- formula(mf)
-  has.intercept <- attr(terms(f.main), "intercept") == 1. #equation 19 & 20
+  has.intercept <- attr(terms(f.main), "intercept") == 1 #equation 19 & 20
 
   f.pcop <- reformulate(
     termlabels = c(".", colnames(cop.terms)),

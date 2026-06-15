@@ -34,7 +34,7 @@ copulaJAMS_pstar <- function(P, cdf) {
       u
     })
     P.star <- as.matrix(P.star)
-    colnames(p.star) <- colnames(P)
+    colnames(P.star) <- colnames(P)
   }
 
   return(P.star)
@@ -76,7 +76,7 @@ copulaJAMS_correction_cont <- function(P.all, names.endo.regs, cdf) {
 #Copula correction terms in case of factor or discrete exo case
 #' @ importFrom stats cov qnorm
 
-copulaJams_correction_dis <- function(
+copulaJAMS_correction_dis <- function(
   data,
   names.endo.regs,
   names.exo.regs,
@@ -87,9 +87,9 @@ copulaJams_correction_dis <- function(
   result.list <- list()
 
   for (var in factor.vars) {
-    levels.var <- levels(as.facto(data[[var]]))
+    levels.var <- levels(as.factor(data[[var]]))
 
-    for (lvl in level.var) {
+    for (lvl in levels.var) {
       index <- data[[var]] == lvl
       subdat1 <- data[index, , drop = FALSE]
 
@@ -166,8 +166,8 @@ copulaJams_correction_dis <- function(
       # Expanding back to a full dataset
       # I(Z_i = z) from eq. 20. zero attributed for observations not in this level
 
-      P.cop.full <- amtrix(0, nrow = n, ncol = col(P.cop))
-      P.cop.full[idx, ] <- P.cop
+      P.cop.full <- matrix(0, nrow = n, ncol = ncol(P.cop))
+      P.cop.full[index, ] <- P.cop
       colnames(P.cop.full) <- colnames(P.cop)
 
       result.list[[paste(var, lvl, sep = "_")]] <- P.cop.full

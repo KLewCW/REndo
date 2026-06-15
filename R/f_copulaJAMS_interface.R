@@ -83,7 +83,7 @@ copulaJAMS <- function(
 
   # Return object ----------------------------------------------------------------------
 
-  return(new_rendo_copula2sCOPE(
+  return(new_rendo_copulaJAMS(
     call = cl,
     F.formula = F.formula,
     res.lm.augmented = fit,
