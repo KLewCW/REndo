@@ -82,14 +82,35 @@ copula2sCOPEnp_summary_condbw <- function(object, endo.label) {
     ))
   }
 
+  # Content in np::condistbw
+  # - x$bandwidth: bandwidth (continuous) + lambda (discrete)
+  # - x$sumNum: scale factor (continuous) + lambda max (discrete)
+  #
+  # Mapping: Source by type
+  # Continuous variables
+  #   - raw bandwidth: x$bandwidth
+  #   - scale factor: x$sumNum
+  #   - lambda: <NA>
+  #   - lambda max: <NA>
+  #
+  # Discrete variables:
+  #   - raw bandwidth: <NA>
+  #   - scale factor: <NA>
+  #   - lambda: x$bandwidth
+  #   - lambda max: x$sumNum
+  #
+
   # Dep var: Endo (first row)
   dv <- data.frame(
     name = bw$ynames,
     role = "endo (dep var)",
     type = type_label(is.continuous = bw$iycon, is.unordered = bw$iyuno),
-    scale = ifelse(bw$iycon, bw$sfactor$y, NA_real_),
-    raw = ifelse(bw$iycon, bw$ybw, NA_real_),
-    lambda = ifelse(bw$iycon, NA_real_, bw$ybw),
+    # continuous
+    scale = ifelse(bw$iycon, bw$sumNum$y, NA_real_),
+    raw = ifelse(bw$iycon, bw$bandwidth$y, NA_real_),
+    # discrete
+    lambda = ifelse(bw$iycon, NA_real_, bw$bandwidth$y),
+    lambda.max = ifelse(bw$iycon, NA_real_, bw$sumNum$y),
     stringsAsFactors = FALSE
   )
 
@@ -98,9 +119,12 @@ copula2sCOPEnp_summary_condbw <- function(object, endo.label) {
     name = bw$xnames,
     role = "exo (exp var)",
     type = type_label(is.continuous = bw$ixcon, is.unordered = bw$ixuno),
-    scale = ifelse(bw$ixcon, bw$sfactor$x, NA_real_),
-    raw = ifelse(bw$ixcon, bw$xbw, NA_real_),
-    lambda = ifelse(bw$ixcon, NA_real_, bw$xbw),
+    # continuous
+    scale = ifelse(bw$ixcon, bw$sumNum$x, NA_real_),
+    raw = ifelse(bw$ixcon, bw$bandwidth$x, NA_real_),
+    # discrete
+    lambda = ifelse(bw$ixcon, NA_real_, bw$bandwidth$x),
+    lambda.max = ifelse(bw$ixcon, NA_real_, bw$sumNum$x),
     stringsAsFactors = FALSE
   )
 
@@ -175,7 +199,7 @@ copula2sCOPEnp_print_condbw <- function(
     return(ifelse(is.na(z), "-", format(x = z, digits = digits)))
   }
 
-  col.names <- c("Role", "Type", "Scaled bw", "Raw bw", "Lambda")
+  col.names <- c("Role", "Type", "Scale factor", "Bandwidth", "Lambda", "Lambda Max")
   tab <- matrix(
     data = "",
     nrow = nrow(bw),
@@ -185,9 +209,10 @@ copula2sCOPEnp_print_condbw <- function(
 
   tab[, "Role"] <- bw$role
   tab[, "Type"] <- bw$type
-  tab[, "Scaled bw"] <- fmt(bw$scale)
-  tab[, "Raw bw"] <- fmt(bw$raw)
+  tab[, "Scale factor"] <- fmt(bw$scale)
+  tab[, "Bandwidth"] <- fmt(bw$raw)
   tab[, "Lambda"] <- fmt(bw$lambda)
+  tab[, "Lambda Max"] <- fmt(bw$lambda.max)
 
   print(tab, quote = FALSE, right = FALSE, print.gap = 2)
 
