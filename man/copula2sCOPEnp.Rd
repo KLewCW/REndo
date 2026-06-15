@@ -7,7 +7,7 @@
 copula2sCOPEnp(
   formula,
   data,
-  npcdistbw.args = list(),
+  npcdistbw.args = list(bwmethod = "cv.ls"),
   bws = NULL,
   num.boots = 1000,
   verbose = TRUE
@@ -119,6 +119,11 @@ However, no closed-form rule-of-thumb bandwidth exists for conditional CDF estim
 assume a known marginal distribution, yet this is an assumption that the 2sCOPEnp method relaxes. The default
 bandwidth is therefore selected through least-squares cross-validation (Li and Racine 2013) which is
 data-driven and distribution-free.
+
+The bandwidth is estimated using \link[np:npcdistbw]{\code{np::npcdistbw()}} with its
+default settings. To customize this, you may pass your own arguments via
+\code{npcdistbw.args}. Together with the \code{bws} parameter, this can be used to
+iteratively refine the bandwidth. See examples.
 }
 
 \subsection{Parameter \code{bws}}{

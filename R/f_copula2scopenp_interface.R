@@ -79,6 +79,10 @@
 #' bandwidth is therefore selected through least-squares cross-validation (Li and Racine 2013) which is
 #' data-driven and distribution-free.
 #'
+#' The bandwidth is estimated using \link[np:npcdistbw]{\code{np::npcdistbw()}} with its
+#' default settings. To customize this, you may pass your own arguments via
+#' \code{npcdistbw.args}. Together with the \code{bws} parameter, this can be used to
+#' iteratively refine the bandwidth. See examples.
 #'
 #' ## Parameter \code{bws}
 #'
@@ -286,7 +290,10 @@
 copula2sCOPEnp <- function(
   formula,
   data,
-  npcdistbw.args = list(),
+  npcdistbw.args = list(
+    #to communicate to the user that bw estimation uses CV by default
+    bwmethod='cv.ls'
+  ),
   bws = NULL,
   num.boots = 1000,
   verbose = TRUE
