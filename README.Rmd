@@ -43,6 +43,8 @@ REndo implements the following instrument-free methods:
 
 (6) two-stage copula endogeneity correction (Yang et al. 2025)
 
+( ) Adjusted Gaussian Copula Estimator (Liengaard et al. 2025)
+
 (7) multilevel GMM (Kim and Frees 2007)
 
 
@@ -109,6 +111,13 @@ copula2sCOPE(y ~ X + P | continuous(P), data, num.boots, cdf)
 ```
 
 Here **y** is the response variable, **X + P**  represents the model to be estimated; the second part identifies the endogenous regressors via **continuous()**. The second argument is the name of the dataset. **num.boots** sets the number of bootstrap replications used to compute standard errors (default 1000). The argument **cdf** specifies the estimator used to transform regressors to normal scores (options are **"ecdf"**, **"adj.ecdf"**, **"resc.ecdf"**, and **"kde"**) and is applied to all regressors. For each endogenous normal score, a regression on the exogenous normal scores is estimated with an intercept, and the residuals is the correction terms in an augmented OLS. When no exogenous regressors are present the method reduces to Park and Gupta (2012). This method can be used for multiple endogenous regressors. 
+
+### **Adjusted Gaussian Copula Estimator**
+```
+copulaJAMS(y ~ W + Z + P + P:W | continuous(P), data, cdf = "adj.ecdf", num.boots)
+```
+Here **y** is the response variable, the first part of the formula represents the structural model and may include interaction terms and transformations. The second part identifies the continuous endogenous regressors via **continuous()**. The argument **cdf** specifies the CDF estimator (options are **"adj.ecdf"**, **"resc.ecdf"**, **"ecdf"**, and **"kde"**,  default **"adj.ecdf"** is recommended). The JAMS method handles **discrete exogenous regressors Z** by stratifying the data by **Z** level and estimating copula correction
+terms separately within each group. This allows the endogeneity structure to vary across groups of the discrete variable. Discrete exogenous regressors must be stored as 'factor' in the data to activate the stratification.
 
 ### **Multilevel GMM**
 
