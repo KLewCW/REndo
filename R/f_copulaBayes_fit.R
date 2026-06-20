@@ -61,6 +61,20 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
     list()
   }
 
+  #initial normal scores from the starting lambda
+  xi.z <- matrix(NA_real_, N,K)
+  for (k in seq_len(K))
+    xi.z[,k] <- copulaBayesConverter(lambdaz.list[[k]], mgz.list[[k]]) #converting lambda to xi
+
+  xi.x <- if(L > 0 ){
+    m <- matrix(NA_real_, N, L)
+    for (l in seq_len(L))
+      m[, l] <- copulaBayesConverter(lambdax.list[[l]], mgx.list[[l]])
+    m
+  } else{
+    matrix(numeric(0), N, 0)
+  }
+
 
 
 }
