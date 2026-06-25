@@ -4,31 +4,58 @@
 #' @importFrom invgamma dinvgamma
 
 #building margin structure for one variable
-#auxiliary functions
-#This is called once per regressor before the MCMC loop:
 
+#First step: building per-unique-value margin structure for 1 regressor variable
+#This is called once per regressor before the MCMC loop:
+#This implements the categorial variable structure assumed in section 3 of Haschka 2025
+# page 522, 'assume that vs exhibit categorical distribution, i.e., v_varpi ~ Cat (m_{varpi}, lambda_{varpi})
 copulaBayesMargin <- function(v){
   uv <- sort(unique(v)) #sorted unique values (UV)
-  grp <- match(v, uv) #per observation index into UV
+  grp <- match(v, uv) # integer index per observation into UV
   m <- length(uv) #number of UV
-  cnt <- tabulate(grp, nbins = m) #count per value
+  cnt <- tabulate(grp, nbins = m) #count of observations per value
   list(uv = uv, grp = grp, m = m, cnt = cnt)
 
 }
 
-#now the Dirichlet mass vector lambda is converted to a normal score (xi)
-# this uses midpoint CDF rescaled to keep values in (0,1)
+
+#converting a Dirichlet probability mass vector (lambda) to a normal score (xi) for
+#one regressor. The nonparametric CDF step from section 3 is being implemented.
+# The steps are:
+# 1)  corresponding margins in the copula functions are obtained by taking cumulative sums of
+# lambda_{varpi} of ascending ordered varpi, i.e., u_{varpi, j} = summation_{j=1}^{m_{varpi}} lambda_{varpi, j}
+# 2) elements in copula are now xi_{varpi,i} = psi^{-1} (u_{varpi,i} (lambda_{varpi}))
+# with u_{varpi, i}(lambda_varpi) assigning cumulative probability masses similar to a cdf
+#this uses midpoint CDF rescaled to keep values in (0,1)
 #The qnorm is then applied
 copulaBayesConverter <- function(lambda, mg){ #lambda is the probability masses over
-  #unique values (sum to 1)
+  #unique values (sum to 1) (from eq. 9)
   #mg is the margin structure from copulaBayesMargin
 
-  Fmid <- (cumsum(lambda) - lambda/2) * (mg$m/ (mg$m + 0.01))
+  Fmid <- (cumsum(lambda) - lambda/2) * (mg$m/ (mg$m + 0.01)) #rescaling by m/(m + 0.01 to keep values strictly inside (0,1))
   qnorm (Fmid[mg$grp])
 
 }
 
-# Gibbs update for Dirichlet masses (from Appendix B algorithm page 5)
+# Gibbs update for Dirichlet masses (from Appendix B algorithm page 5) Eq. 9 (Haschka 2025)
+#Drawing new probability masses lambda from the full conditional. The Gibbs step
+#updates the nonparametric marginal distribution of one regressor
+
+
+#The full conditional derivation is from W6, W7 and W9 (from appendix)
+#lambda_varpi | omega_varpi = lambda_1 ,..., lambda_{m_varpi} ~ Dir(m_varpi, omega_varpi)
+
+#Algorithm from appendix B (from Ng et al. 2011):
+# 1) drawing K + L + 1 dimensional vector of multivariate normal variates v ~ N(0, sigma)
+# generating dependent normal margins according to the copula representation
+# 2) Applying univariate probability integral transform for the first K + L elements
+# in v s.t. psi(v) element [0, 1]^{K + L}. To notw that ordering of model components
+# for Sigma is z, then x, then e.
+
+# 3) samples from W7 are then given by plugging elements of psi(v) into quantile functions
+# of the univariate Dir(m_varpi, omega_{varpi} + v_{varpi}) distribution.
+# converting u to Gamma(1,1) through quantile transform
+
 copulaBayesDrawLambda <- function(u.channel, mg){
   #convert probability integral transform uniforms to Gamma(1,1) through quantile transform
   g.obs <- qgamma(u.channel, shape = 1, rate = 1)
@@ -41,13 +68,18 @@ copulaBayesDrawLambda <- function(u.channel, mg){
 
   G.prior <- rgamma(mg$m, shape = 1, rate = 1)
 
-  G <- G.prior + G.data #posterior : Dir(m; 1 + n_1,..., 1 +n_m)
+  G <- G.prior + G.data #posterior : Gamma (1 + n_j, 1) per cell and normalising gives Dir(m; 1 + n_1,..., 1 +n_m)
 
   G/sum(G)
 }
 
 # Score vectors from Appendix C (W11)
 # This should return N vector of per observation scores for the IWLS proposal
+#eta_i = alpha + x'_i beta + z'_i delta is the linear predictor.
+
+
+#As per W11, score for eta_i :
+
 
 #inverse of correlation matrix phi invPhi
 # A = invPhi - I_{dim}
