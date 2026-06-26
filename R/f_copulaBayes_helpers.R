@@ -1,5 +1,5 @@
 #' @importFrom stats qnorm pnorm qgamma rgamma dnorm
-#' @importFrom mvtnorm rmnorm
+#' @importFrom mvtnorm rmvnorm
 #' @importFrom LaplacesDemon rdirichlet
 #' @importFrom invgamma dinvgamma
 
@@ -90,7 +90,7 @@ copulaBayesDrawLambda <- function(u.channel, mg){
 #sigma^2 is the current error variance
 #dimension(dim) = K+L+1
 
-copulaBayesScoreEta <- function(invPhi, A, xi.z, xi.x, e, sigma2, dim){
+copulaBayesScoreEta <- function(A, xi.z, xi.x, e, sigma2, dim){
 
   xi.e <- e/sqrt(sigma2) #standardised error (last element of the full xi vector)
 
@@ -115,7 +115,7 @@ copulaBayesScoreEta <- function(invPhi, A, xi.z, xi.x, e, sigma2, dim){
 #From W12, delta (log L_i)/ delta (log sigma^2) has element [dim, dim] = 0.5 * (cross_i * xi.e_i + invPhi33 * xi.e_i ^2) - 0.5
 #where cross_i = sum_{k} A [ dim, k] * xi.z[i,k] + sum_{l} A [dim, K + l] * xi.x[i,l] is the off-diagonal contribution
 
-copulaBayesScorelogsigma2 <- function(A, invPhi33, xi.z, xi.z, e, sigma2){
+copulaBayesScorelogsigma2 <- function(A, invPhi33, xi.z, xi.x, e, sigma2){
   #invPhi33 represents (Xi^{-1})_{33}
 
   dim <- ncol(xi.z) + ncol(xi.x) + 1
@@ -123,7 +123,7 @@ copulaBayesScorelogsigma2 <- function(A, invPhi33, xi.z, xi.z, e, sigma2){
   xi.e <- e/sqrt(sigma2)
 
   #off diagonal cross terms in row dim of A
-  xi.regs <- cbing(xi.z, xi.x) #works for L=0 because xi.x has 0 columns
+  xi.regs <- cbind(xi.z, xi.x) #works for L=0 because xi.x has 0 columns
   cross <- as.vector(xi.regs %*% A[dim, seq_len(ncol(xi.regs))])
 
 
@@ -131,7 +131,7 @@ copulaBayesScorelogsigma2 <- function(A, invPhi33, xi.z, xi.z, e, sigma2){
   #score derivative
   #from eq.7 in Haschka 2025, variance of Structural Error with common hyperparameters a = b = 0.001
   #where sigma^2~ inverse Gamma prior to the error variance (IG) (a,b)
-  Score <- sum(0.5 * (cross * xi.e + invPhi33 * xi.e^2) - 0.5) - 0.001 + 0.01/sigma^2 #sum over obs of W12 + IG prior derivative
+  Score <- sum(0.5 * (cross * xi.e + invPhi33 * xi.e^2) - 0.5) - 0.001 + 0.001/sigma2 #sum over obs of W12 + IG prior derivative
 
 
   #approximate hessian (element [dim, dim] from W14) + IG prior curvature
@@ -147,7 +147,7 @@ copulaBayesScorelogsigma2 <- function(A, invPhi33, xi.z, xi.z, e, sigma2){
 #numerator/denorminator in the MH step.
 
 
-copulaBayeslogpost <- function( alpha, delta, beta, sigma2, Phi, xi.z, xi.x, sa, sb.delta, sb.beta, y, x, z){
+copulaBayeslogpost <- function( alpha, delta, beta, sigma2, Phi, xi.z, xi.x, sa, sb.delta, sb.beta, y, z, x){
 
   dim <- ncol(xi.z) + ncol(xi.x) + 1
 
@@ -174,9 +174,20 @@ copulaBayeslogpost <- function( alpha, delta, beta, sigma2, Phi, xi.z, xi.x, sa,
   # gamma | phi^2 ~ N(0, phi^2)
   log.a <- dnorm(alpha, mean =0, sd = sqrt(sa), log = TRUE)
   log.d<- sum(dnorm(delta, mean = 0, sd = sqrt(sb.delta), log = TRUE))
-  log.b <- if (L >0) sum(dnorm(beta, mean = 0, sd = sqrt(sb.beta), log = TRUE)) else 0
+  log.b <-sum(dnorm(beta, mean = 0, sd = sqrt(sb.beta), log = TRUE))
 
   log.c + log.e + log.s + log.a + log.d + log.b
 }
 
+#Extracting upper triangle of correlation matrix for chain storage
+copulaBayesMatrixtoVector <- function(Phi){
+  Phi[upper.tri(Phi)]
+}
 
+#Reconstructing symmetic correlation matric from upper triangle vector
+copulaBayesVectortoMatrix <- function(vec, d){
+  Phi <- diag(d)
+  Phi[upper.tri(Phi)] <- vec
+  Phi[lower.tri(Phi)] <- t(Phi)[lower.tri(Phi)]
+  Phi
+}
