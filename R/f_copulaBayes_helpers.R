@@ -78,118 +78,100 @@ copulaBayesDrawLambda <- function(u.channel, mg){
 #eta_i = alpha + x'_i beta + z'_i delta is the linear predictor.
 
 
-#As per W11, score for eta_i :
-
+#As per W11, score for eta_i [ 0 ... 0 1 /sigma]' (Sigma^{-1} - I ) [ xi_{x,i}, xi_{z,i}, e_i/sigma] + e_i/sigma^2
+#where [0 ... 0 1/sigma]' takes out the last row of (Sigma^{-1} -I) scaled by 1/sigma.
+#this will be represented by A[dim, .]/sigma
 
 #inverse of correlation matrix phi invPhi
 # A = invPhi - I_{dim}
 # xi.z = N x K matrix of normal scores for endogenous regressors
 # xi.x = N x L matrix of normal scores for exogenous regressors
-# e_i = y_i - eta_i, where eta_i = alpha + x'_i beta + z'_i delta (here we will
-#write it as e a N vector )
+# e_i = y_i - eta_i, where eta_i = alpha + x'_i beta + z'_i delta (It is a N-vector)
 #sigma^2 is the current error variance
 #dimension(dim) = K+L+1
 
 copulaBayesScoreEta <- function(invPhi, A, xi.z, xi.x, e, sigma2, dim){
-  N <- length(e)
-  K <- ncol(xi.z)
-  L <- if(is.matrix(xi.x)){
-    ncol(xi.x)
-  } else{
-    0
-  }
 
-  xi.e <- e/sqrt(sigma2)
+  xi.e <- e/sqrt(sigma2) #standardised error (last element of the full xi vector)
 
   # let t3_i be the dim-th row of A dotted with the full xi vector
+  # t3_i = A[dim, ]' %*% xi_i
+  #This represents the copula part of the score (the last element from W11)
+  xi.all<- cbind(xi.z, xi.x, xi.e)
+  t3 <- as.vector(xi.all %*% A[dim, ])
 
-  t3 <- rep(0,N)
+  #full score =  1/(sigma) * t3 + e /sigma^2 (element dim from W11)
 
-  for (k in seq_len(K))
-    t3 <- t3 + A[dim, k] * xi.z[,k]
+  (1/sqrt(sigma2)) * t3 + e / sigma2
 
-  if(L >0)
-    for (l in seq_len(L))
-      t3 <- t3 + A[dim, K + l] * xi.x[, l]
-  t3 <- t3 + A[dim, dim] * xi.e
-
-  #score is then (1/sigma) * t3 + e/sigma^2
-
-  (1 / sqrt(sigma2)) * t3 + e / sigma2 #W11
 }
 
 #score and approximate Hessian for log(sigma^2) (Appendix C W12 to W14)
 
+#The function returns score (first derivative) and f2 (second derivative) of
+#log L with respect to log(sigma^2) summed over observations. This is needed to build the Laplace proposal
+#for log(sigma^2)
+
+#From W12, delta (log L_i)/ delta (log sigma^2) has element [dim, dim] = 0.5 * (cross_i * xi.e_i + invPhi33 * xi.e_i ^2) - 0.5
+#where cross_i = sum_{k} A [ dim, k] * xi.z[i,k] + sum_{l} A [dim, K + l] * xi.x[i,l] is the off-diagonal contribution
+
 copulaBayesScorelogsigma2 <- function(A, invPhi33, xi.z, xi.z, e, sigma2){
   #invPhi33 represents (Xi^{-1})_{33}
 
-  N <- length(e)
-  K <- ncol(xi.z)
-  L <- if(is.matrix(xi.x)){
-    ncol(xi.x)
-  } else{
-    0
-  }
-
-  dim <- K + L + 1
+  dim <- ncol(xi.z) + ncol(xi.x) + 1
 
   xi.e <- e/sqrt(sigma2)
 
-  #off iagonal cross terms in row dim of A
-  cross <- rep(0,N)
-  for (k  in seq_len(K))
-    cross <- cross + A[dim, k] * xi.z[,k]
-  if(L > 0 )
-    for (l in seq_len(L))
-      cross <- cross + A[dim, K + l] * xi.x[, l]
+  #off diagonal cross terms in row dim of A
+  xi.regs <- cbing(xi.z, xi.x) #works for L=0 because xi.x has 0 columns
+  cross <- as.vector(xi.regs %*% A[dim, seq_len(ncol(xi.regs))])
+
 
   #score = ( delta (log L ) ) / (delta (log sigma^2)) summed over observations (W12)
   #score derivative
-  Score <- sum(0.5 * (cross * xi.e + invPhi33 * xi.e^2) - 0.5) - 0.001 + 0.01/sigma^2
+  #from eq.7 in Haschka 2025, variance of Structural Error with common hyperparameters a = b = 0.001
+  #where sigma^2~ inverse Gamma prior to the error variance (IG) (a,b)
+  Score <- sum(0.5 * (cross * xi.e + invPhi33 * xi.e^2) - 0.5) - 0.001 + 0.01/sigma^2 #sum over obs of W12 + IG prior derivative
 
 
-  #approximate hessian (W14). Second derivative (negative near the mode; P = -1/f2 below)
+  #approximate hessian (element [dim, dim] from W14) + IG prior curvature
 
   f2 <- sum (-0.25 * cross * xi.e - 0.5 * invPhi33 * xi.e^2) - 0.001/sigma2
 
   list(Score = Score, f2 = f2 )
 }
 
-#Log posterior: equation 4 + prior
-# sa, sb.delta and sb.beta are hyperprior variances
+#Log posterior: equation 4 + priors from equation 5 to 9
+
+#Evaluating log (p (theta | y, z, x)) up to a normalising constant. This is the acceptance ratio
+#numerator/denorminator in the MH step.
+
 
 copulaBayeslogpost <- function( alpha, delta, beta, sigma2, Phi, xi.z, xi.x, sa, sb.delta, sb.beta, y, x, z){
 
-  K <- ncol(z)
-  L <- if(is.matrix(x) && ncol(x) >0){
-    ncol(x)
-  } else{
-    0
-  }
+  dim <- ncol(xi.z) + ncol(xi.x) + 1
 
-  dim <- K + L + 1
+  #structural residuals
+  e <- y - alpha - z %*% delta - x %*% beta
+  xi.e <- pmin(pmax(e/sqrt(sigma2), -8), 8)
 
-  e <- y - alpha - z %*% delta - if ( L >0 ) x %*% beta else 0
-  xi.e <- e/sqrt(sigma2)
-  xi.e <- pmin(pmax(xi.e, -8), 8)
-
-  xi.mat <- cbind(xi.z, if (L>0) xi.x else NULL, xi.e)
-  xi.mat <- pmin(pmax(xi.mat, -8), 8)
+  #stacking all normal scores  (Appendix B ordering convention)
+  xi.mat <- pmin(pmax(cbind(xi.z, xi.x, xi.e), -8), 8)
 
   # Gaussian copula log density (eq.3)
-
+  # equation: = -0.5 * log|Phi| - 0.5 * sum_i xi_i' (Phi^{-1} -I) xi_i
   A <- solve(Phi) - diag(dim)
   log.c <- -0.5 * log(det (Phi)) - 0.5 * sum(apply(xi.mat, 1, function(xi) as.numeric(t(xi) %*% A %*% xi)))
 
 
-  #normal structural error density
+  #normal structural error log density
   log.e <- sum(dnorm(e, mean =0, sd = sqrt(sigma2), log =TRUE))
 
   #Inverse gamma (0.001, 0.001) prior on sigma2 from eq.7
-
   log.s <- invgamma::dinvgamma(sigma2, shape = 0.001, rate = 0.001, log = TRUE)
 
   # 'horseshoe' type shrinkage mentioned in eq. 5 and 6 prior on regression coefficients
+  # gamma | phi^2 ~ N(0, phi^2)
   log.a <- dnorm(alpha, mean =0, sd = sqrt(sa), log = TRUE)
   log.d<- sum(dnorm(delta, mean = 0, sd = sqrt(sb.delta), log = TRUE))
   log.b <- if (L >0) sum(dnorm(beta, mean = 0, sd = sqrt(sb.beta), log = TRUE)) else 0
