@@ -1,0 +1,192 @@
+#' Bayesian Gaussian Copula Endogeneity Correction
+#'
+#' @description
+#' Fits the Bayesian in a one-step Gaussian copula endogeneity correction.
+#' The method treats the marginal distributions of all regressors, the full copula
+#' correlation matrix, and the regression coefficients as random variables and
+#' samples them jointly via Markov chain Monte Carlo (MCMC). This avoids the use
+#' of plug-in estimates for CDFs and correlations, enabling precise finite-sample
+#' inference without reliance on asymptotic arguments or bootstrap procedures.
+#'
+#' @template template_param_formuladataverbose
+#'
+#' @details
+#' \strong{Model}{
+#'
+#' Consider the following linear regression model
+#' \deqn{Y_i = \alpha + X_i' \beta + Z_i' \delta + \varepsilon_i}
+#'
+#' where
+#' \eqn{Z_i} is a \eqn{(K \times 1)} vector of continuous
+#' endogenous regressors correlated with \eqn{\varepsilon_i}
+#' \eqn{X_i} is an \eqn{(L \times 1)} vector of exogenous regressors
+#' uncorrelated with \eqn{\varepsilon_i}
+#' \eqn{\varepsilon_i \sim N(0, \sigma^2)}.
+#' }
+#'
+#' \strong{Methodology}{
+#'
+#' The method jointly samples all unknowns in one step via MCMC
+#' (from Appendix D online, see algorithm 1). Each iteration would go through the
+#' following steps:
+#'
+#' \enumerate{
+#'   \item {Regression coefficients} \eqn{(\alpha, \beta, \delta)} with
+#'        'horseshoe'-type hierarchical shrinkage priors. They are updated by
+#'         Metropolis-Hastings (MH) algorithm with an iteratively weighted least
+#'         squares (IWLS) proposal (Appendix C, W11 and W13). The working weight
+#'         \eqn{M_I = 2/\sigma^2} per observation (W13) gives proposal covariance
+#'         \eqn{\Sigma_{\text{prop}} = (\sigma^2/2)(X'X)^{-1}}.
+#'   \item {Error variance} \eqn{\sigma^2 \sim \text{IG}(0.001, 0.001)} (inverse Gamma, Haschka eq. 7).
+#'         They are updated by Metropolis-Hastings with a Laplace (second-order
+#'         Taylor) proposal for \eqn{\log \sigma^2} (Appendix C, W12/W14).
+#'   \item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka eq. 8).
+#'         This is updated by Gibbs sampling via the inverse Wishart full conditional (Appendix A, W5):
+#'         \eqn{W | \cdot \sim W^{-1}(\sum_i \xi_i \xi_i' + I,\, N + K + L + 1)}.
+#'         Converted to a correlation matrix \eqn{\Sigma} via Cholesky factorisation.
+#'         Correlations between exogenous regressors and the structural error are
+#'         set to zero, enforcing exogeneity of \eqn{X}.
+#'   \item {Marginal distributions} of all regressors modelled nonparametrically via
+#'         Dirichlet probability masses \eqn{\lambda_\varpi \sim \text{Dir}(1,\ldots,1)} (from Haschka 2025 eq. 9).
+#'         This is updated by Gibbs sampling (Appendix B, W7):
+#'         \eqn{\lambda_\varpi | v_\varpi \sim \text{Dir}(m_\varpi, \,1 + n_1,\ldots, 1 + n_{m_\varpi})}.
+#'         The marginal CDF is never fixed but re-estimated at every iteration.
+#' }
+#' }
+#'
+#'
+#' @template template_references_parkgupta2012
+#'
+#' @export
+#' @importFrom stats coef model.frame model.matrix model.response
+#'   formula sd quantile
+#' @importFrom Formula as.Formula
+copulaBayes <- function(
+    formula,
+    data,
+    # num.iterations = 102000,that was default in the paper but it could take long to compute
+    burnin         = 2000,
+    thin           = 100,
+    verbose        = TRUE
+) {
+  cl <- match.call()
+
+
+  #check_err_msg(checkinput_copulashared_formula(formula))
+  #check_err_msg(checkinput_copulashared_data(data))
+  #check_err_msg(checkinput_copulashared_dataVSformula(data = data, formula = formula))
+  #check_err_msg(checkinput_copulashared_verbose(verbose))
+
+  if (!is.numeric(num.iterations) || length(num.iterations) != 1 || num.iterations < 1 || num.iterations != round(num.iterations))
+    stop("num.iterations must be a single positive integer.", call. = FALSE)
+
+  if (!is.numeric(burnin) || length(burnin) != 1 || burnin < 0 || burnin >= num.iterations)
+    stop("burnin must be a single non-negative integer less than ","num.iterations.", call. = FALSE)
+
+  if (!is.numeric(thin) || length(thin) != 1 || thin < 1 || thin != round(thin))
+    stop("thin must be a single positive integer.", call. = FALSE)
+
+  F.formula <- Formula::as.Formula(formula)
+
+  names.endo.regs <- formula_readout_special(
+    F.formula            = F.formula,
+    name.special         = "continuous",
+    from.rhs             = 2,
+    params.as.chars.only = TRUE
+  )
+
+  if (length(names.endo.regs) == 0)
+    stop(
+      "No endogenous regressors found. Declare at least one using ",
+      "continuous() in the second part of the formula, ",
+      "e.g. y ~ X + Z | continuous(Z).",
+      call. = FALSE
+    )
+
+  f.main <- formula(F.formula, lhs = 1, rhs = 1)
+  mf     <- model.frame(f.main, data = data)
+  y      <- model.response(mf)
+
+  X.main <- model.matrix(f.main, data = mf)
+  X.main <- X.main[, colnames(X.main) != "(Intercept)", drop = FALSE]
+
+  is.endo <- colnames(X.main) %in% names.endo.regs
+  z       <- X.main[, is.endo,  drop = FALSE]   # N x K endogenous
+  x       <- X.main[, !is.endo, drop = FALSE]   # N x L exogenous (N x 0 if L=0)
+
+  if (ncol(z) < length(names.endo.regs))
+    stop(
+      "Could not match all declared endogenous regressors in the ",
+      "design matrix. Check that continuous() arguments match ",
+      "variable names exactly as they appear in the structural model.",
+      call. = FALSE
+    )
+
+  # MCMC
+  if (verbose)
+    message(
+      "Fitting Bayesian copula model for ", ncol(z), " endogenous and ",
+      ncol(x), " exogenous regressor(s).\n", "Running ", num.iterations,
+      " MCMC iterations ", "(burnin = ", burnin, ", thin = ", thin, ")."
+    )
+
+  chain.full <- copulaBayesMCMC(
+    y              = y,
+    z              = z,
+    x              = x,
+    num.iterations = num.iterations,
+    verbose        = verbose
+  )
+
+  # Burn-in and thinning
+  idx.keep     <- seq(burnin + 2, num.iterations + 1, by = thin)
+  chain        <- chain.full[idx.keep, , drop = FALSE]
+
+  col.alpha    <- attr(chain.full, "col.alpha")
+  col.delta    <- attr(chain.full, "col.delta")
+  col.beta     <- attr(chain.full, "col.beta")
+  col.sigma2   <- attr(chain.full, "col.sigma2")
+  K            <- attr(chain.full, "K")
+  L            <- attr(chain.full, "L")
+
+  coef.names   <- c( "(Intercept)", paste0(colnames(z), "_endo"), if (L > 0) paste0(colnames(x), "_exo") else character(0),
+    "sigma2"
+  )
+  structure.cols  <- c(col.alpha, col.delta, col.beta, col.sigma2)
+
+  chain.structure <- chain[, structure.cols, drop = FALSE]
+  colnames(chain.struct) <- coef.names
+
+  # Posterior summaries
+  post.mean <- colMeans(chain.struct)
+  post.sd   <- apply(chain.struct, 2, sd)
+  post.lo   <- apply(chain.struct, 2, quantile, probs = 0.025)
+  post.hi   <- apply(chain.struct, 2, quantile, probs = 0.975)
+
+  # Structural fitted values and residuals
+  alpha.pm      <- post.mean["(Intercept)"]
+  delta.pm      <- post.mean[paste0(colnames(z), "_endo")]
+  beta.pm       <- if (L > 0) post.mean[paste0(colnames(x), "_exo")] else numeric(0)
+
+  fitted.values <- as.vector(alpha.pm + z %*% delta.pm + x %*% beta.pm)
+  residuals     <- y - fitted.values
+
+
+  return(new_rendo_copula_bayes(
+    call            = cl,
+    F.formula       = F.formula,
+    chain           = chain,
+    chain.struct    = chain.struct,
+    post.mean       = post.mean,
+    post.sd         = post.sd,
+    post.lo         = post.lo,
+    post.hi         = post.hi,
+    fitted.values   = fitted.values,
+    residuals       = residuals,
+    names.endo.regs = names.endo.regs,
+    n.iterations    = num.iterations,
+    burnin          = burnin,
+    thin            = thin,
+    n.draws         = nrow(chain)
+  ))
+}
