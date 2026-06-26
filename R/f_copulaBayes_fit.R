@@ -1,4 +1,4 @@
-#' @importFrom stats lm residuals var runif rnorm
+#' @importFrom stats lm residuals var runif rnorm dnorm
 #' @importFrom mvtnorm rmvnorm dmvnorm
 #' @importFrom LaplacesDemon rinvwishart rdirichlet
 #' @importFrom invgamma rinvgamma
