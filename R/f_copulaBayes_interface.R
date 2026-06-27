@@ -57,6 +57,37 @@
 #'
 #' @template template_references_parkgupta2012
 #'
+#' @references
+#' Hashcka, R. E (2025) Bayesian Inference for Joint Estimation Models Using Copulas
+#' to Handle Endogenous Regressors.
+#' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534
+#' \doi{10.1111/obes.70023}
+#'
+#' @example
+#' # Example: Bayesian Gaussian copula endogeneity correction
+#' # based on Section 4.1, eq. (12) to (16)
+#' # N = 1000
+#' # True parameters are: alpha=2, beta=6 (x), delta=-4 (z), sigma^2 =5
+#' # z ~ lognormal(0,1): non-normal, required for identification as per section 2
+#' # x ~ N(0,1) for exogenous regressor, correlated with z (rho_xz=0.3)
+#' # Endogeneity strength is rho_ze = 0.7
+#' # There is only one endogenous regressor(z_i) and one exogenous regressor (x_i) correlated
+#' #with each other
+#' #------------------------------------------------------------------------
+#' data("dataCopBayes")
+#' res_bayes <- copulaBayes(
+#'   y ~ x + z | continuous(z),
+#'   data           = dataCopBayes,
+#'   num.iterations = 102000,
+#'   burnin         = 2000,
+#'   thin           = 100,
+#'   verbose        = TRUE
+#' )
+#' summary(res_bayes)
+#' plot(res_bayes)
+#'
+#'
+#'
 #' @export
 #' @importFrom stats coef model.frame model.matrix model.response
 #'   formula sd quantile
