@@ -150,6 +150,7 @@
 #' @eval doc_rendocopula2scopenp_return()
 #'
 #' @family copula-based methods
+#' @seealso \code{\link[summary.rendo.]{summary.rendo.copula.2sCOPE.np}}
 #' @seealso \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
 #'  \code{npcdistbw.args}.
 #'
@@ -380,8 +381,6 @@ copula2sCOPEnp <- function(
   )
 
   # Return object ----------------------------------------------------------------------
-  # TODO: summary prints bw fitting: method, kernel type, bwtype (what if diverge for
-  # each endo because user-supplied?), scale factors & lambdas (important) of bw estimation
 
   return(new_rendo_copula2sCOPEnp(
     call = cl,
