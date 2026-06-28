@@ -1,33 +1,11 @@
 # dont skip on cran: These are important tests! (and fast)
 set.seed(42)
 
-
-# Expect helpers --------------------------------------------------------------------
-# Expect error messages returned
-expect_errmsg <- function(fn, base.args = list(), cases, regexp) {
-  if (length(regexp) == 1) {
-    regexp <- rep(regexp, length(cases))
-  }
-  for (i in seq_along(cases)) {
-    nm <- names(cases)[i]
-    args <- c(base.args, cases[[i]])
-    res <- do.call(what = fn, args = args)
-    expect_true(length(res) > 0, label = nm)
-    expect_match(paste(res, collapse = " "), regexp[i], info = nm)
-  }
-}
-
-# Expect no error message returned
-expect_empty <- function(fn, base.args = list(), cases) {
-  for (nm in names(cases)) {
-    expect_null(do.call(what = fn, args = c(base.args, cases[[nm]])))
-  }
-}
 # checkinput_copulashared_data_basics ---------------------------------------
 test_that("_data_basics rejects invalid data", {
   df <- fixture_copula_df()
 
-  expect_errmsg(
+  check_errmsg(
     checkinput_copulashared_data_basics,
     cases = list(
       "not a df" = list(data = list(1, 2)),
@@ -53,7 +31,7 @@ test_that("data_basics accepts valid data", {
 
 # checkinput_copulashared_formula_basics --------------------------------------------
 test_that("_formula_basics rejects invalid formulas", {
-  expect_errmsg(
+  check_errmsg(
     fn = checkinput_copulashared_formula_basics,
     cases = list(
       "not a formula" = list(formula = "y ~ x | z"),
@@ -80,11 +58,11 @@ test_that("_formula_basics accepts valid formulas incl all kinds of edge cases",
     "inline function" = list(formula = y ~ I(x^2) | z),
     "multi term" = list(formula = y ~ x1 + x2 | z1 + z2)
   )
-  expect_empty(fn = checkinput_copulashared_formula_basics, cases = cases)
+  check_errmsg_empty(fn = checkinput_copulashared_formula_basics, cases = cases)
 })
 # checkinput_copulashared_vars_in_data -------------------------------------------
 test_that("_vars_in_data reports missing variables", {
-  expect_errmsg(
+  check_errmsg(
     fn = checkinput_copulashared_vars_in_data,
     base.args = list(data = fixture_copula_df()),
     cases = list(
@@ -103,7 +81,7 @@ test_that("_vars_in_data reports missing variables", {
 })
 test_that("_vars_in_data works with valid, non-syntactic, dot", {
   df <- fixture_copula_df()
-  expect_empty(
+  check_errmsg_empty(
     fn = checkinput_copulashared_vars_in_data,
     base.args = list(data = df),
     cases = list(
@@ -133,7 +111,12 @@ test_that("_response_not_in_rhs fails if response in rhs1", {
   expect_match(
     checkinput_copulashared_response_not_in_rhs(
       F.formula = as.Formula(y ~ exp(y) + x_num),
-      rhs1.terms = terms(as.Formula(y ~ log(y)), lhs = 0, rhs = 1, data = fixture_copula_df())
+      rhs1.terms = terms(
+        as.Formula(y ~ log(y)),
+        lhs = 0,
+        rhs = 1,
+        data = fixture_copula_df()
+      )
     ),
     regexp = "also appear"
   )
@@ -176,7 +159,7 @@ test_that("_modelframe fails on NAs, illegal classes", {
     regexp = "missing values"
   )
 
-  expect_errmsg(
+  check_errmsg(
     fn = checkinput_copulashared_modelframe,
     base.args = list(data = fixture_copula_df()),
     cases = list(
