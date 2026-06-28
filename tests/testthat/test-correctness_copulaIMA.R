@@ -1,4 +1,5 @@
 skip_on_cran()
+set.seed(42)
 
 # Required data ---------------------------------------------------------------------
 data("dataCopIMAContExo")
@@ -13,19 +14,14 @@ fit_copulaIMA_lowboots <- function(
   num.boots = 10,
   verbose = FALSE
 ) {
-  return(withCallingHandlers(
+  return(suppress_lowboots_warning(
     copulaIMA(
       formula = formula,
       data = data,
       cdf = cdf,
       num.boots = num.boots,
       verbose = verbose
-    ),
-    warning = function(w) {
-      if (grepl("recommended to run 1000", conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      }
-    }
+    )
   ))
 }
 

@@ -54,16 +54,7 @@ specs <- list(
 cdfs <- c("adj.ecdf", "resc.ecdf", "ecdf", "kde")
 
 expect_no_error_ignore_boot_warn <- function(expr) {
-  expect_no_error(
-    withCallingHandlers(
-      expr,
-      warning = function(w) {
-        if (grepl("recommended to run 1000", conditionMessage(w))) {
-          invokeRestart("muffleWarning")
-        }
-      }
-    )
-  )
+  expect_no_error(suppress_lowboots_warning(expr))
 }
 
 # specs x cdf ----------------------------------------------------------------------

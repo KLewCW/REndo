@@ -20,3 +20,16 @@ check_errmsg_empty <- function(fn, base.args = list(), cases) {
     expect_null(do.call(what = fn, args = c(base.args, cases[[nm]])))
   }
 }
+
+
+# Suppress 1000 num.boots warning but lets all other warnings propagate
+suppress_lowboots_warning <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (grepl(pattern = "recommended to run 1000", x = conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}

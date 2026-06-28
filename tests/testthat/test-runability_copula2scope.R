@@ -73,18 +73,6 @@ specs <- list(
 cdfs <- c("adj.ecdf", "resc.ecdf", "ecdf", "kde")
 
 
-# Muffles only the bootstrap warning, other warnings still propagate
-muffle_boot_warn <- function(expr) {
-  withCallingHandlers(
-    expr,
-    warning = function(w) {
-      if (grepl("recommended to run 1000", conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      }
-    }
-  )
-}
-
 # specs x cdf ----------------------------------------------------------------------
 test_that("copula2sCOPE runs across specs and cdf options", {
   for (spec_name in names(specs)) {
@@ -101,9 +89,9 @@ test_that("copula2sCOPE runs across specs and cdf options", {
       )
 
       if (is.null(spec$warn)) {
-        res <- expect_no_warning(muffle_boot_warn(eval(call_expr)))
+        res <- expect_no_warning(suppress_lowboots_warning(eval(call_expr)))
       } else {
-        res <- expect_warning(muffle_boot_warn(eval(call_expr)), regexp = spec$warn)
+        res <- expect_warning(suppress_lowboots_warning(eval(call_expr)), regexp = spec$warn)
       }
 
       expect_false(anyNA(fitted(res)))
@@ -119,7 +107,7 @@ test_that("copula2sCOPE runs across specs and cdf options", {
 test_that("copula2sCOPE runs on small sample", {
   small_data <- dataCopula2sCOPECase1[1:50, ]
 
-  expect_no_error(muffle_boot_warn(
+  expect_no_error(suppress_lowboots_warning(
     copula2sCOPE(
       formula = y ~ P + X | continuous(P),
       data = small_data,

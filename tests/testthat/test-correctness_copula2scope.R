@@ -14,19 +14,14 @@ fit_copula2sCOPE_lowboots <- function(
   num.boots = 10,
   verbose = FALSE
 ) {
-  return(withCallingHandlers(
+  return(suppress_lowboots_warning(
     copula2sCOPE(
       formula = formula,
       data = data,
       cdf = cdf,
       num.boots = num.boots,
       verbose = verbose
-    ),
-    warning = function(w) {
-      if (grepl("recommended to run 1000", conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      }
-    }
+    )
   ))
 }
 
