@@ -9,17 +9,27 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   # from equation 21 of Hu et al. 2025
 
   cop.term <- matrix(NA_real_, nrow = nrow(data), ncol = length(labels.endo))
-  colnames(cop.term) <- paste0(labels.endo, "_cop")
+  # Make labels plain strings before using as colnames (ie strips backticks) because
+  # they need to feed into reformulate() later
+  raw.labels <- vapply(
+    labels.endo,
+    FUN = function(x) {
+      return(deparse1(str2lang(x), backtick = FALSE))
+    },
+    FUN.VALUE = character(1)
+  )
+  colnames(cop.term) <- paste0(raw.labels, "_cop")
+
   condists <- list()
   mfs <- list()
 
   for (k in seq_along(labels.endo)) {
-    p.var <- labels.endo[k]
+    p.label <- labels.endo[k]
 
     if (verbose) {
       message(
         "Computing conditional CDF for endogenous regressor '",
-        p.var,
+        p.label,
         "' (",
         k,
         " of ",
@@ -30,13 +40,13 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
 
     # exo column is everything that is non-intercept and non-endo col
     f.endo.exo <- reformulate(
-      response = p.var,
+      response = p.label,
       termlabels = labels.exo
     )
 
     # specify endo as DV to know where to read from
     mf.p <- model.frame(formula = f.endo.exo, data = data, na.action = na.fail)
-    mfs[[p.var]] <- mf.p
+    mfs[[p.label]] <- mf.p
 
     # TODO: Check if bw were fit with formula or 2 data inputs as user might specify differently?
 
@@ -45,7 +55,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
     # cdf.fit <- np::npcdist(bws = h, newdata = data.frame(y.data, x.data))
     # When passing bw: REQUIRED to also pass txdat/tydat as otherwise (silently)
     # the data on which bws was fit is used!
-    bw.p <- bws[[p.var]]
+    bw.p <- bws[[p.label]]
     txdat <- mf.p[, -1, drop = FALSE]
     tydat <- mf.p[, 1, drop = FALSE]
     if (!identical(sort(colnames(txdat)), sort(bw.p$xnames))) {
@@ -75,11 +85,13 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
     )
 
     # store for return
-    condists[[p.var]] <- cdf.fit
+    condists[[p.label]] <- cdf.fit
 
     # applying normal quantile transformation:  C_{i,pk} = phi^{-1} (F hat_ (P_k | X))
     # table 3 stage 1 and equation 21 from Hu et al. 2025
     conditional.cdf <- cdf.fit$condist
+    # write to results using index and not p.var (label) as colnames have been stripped
+    # from backticks
     cop.term[, k] <- qnorm(conditional.cdf)
   }
 
@@ -87,18 +99,16 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   # Adding the correction term to the structural model and estimate by OLS
   # using equation 20: Y = mu + sum_{k=1} ^ {K} ( P_{i,k} * alpha_k + beta' X_i + sum_{k=1}^{K} C_{i,pk} * gamma_k + epsilon_i
 
-
   # Get labels separately because needed to read-out coefs(lm)
-  # wrap in backticks to protect from non-syntactic names.
-  # Internal terms() in reformulate() will remove them from the label if not necessary
-  # message("cop.term: ", toString(colnames(cop.term)))
-  # print(head(cop.term))
-  labels.pcop <- labels(terms(reformulate(
-    termlabels = paste0("`", colnames(cop.term), "`"),
-    response = NULL
-  )))
+  labels.pcop <- vapply(
+    colnames(cop.term),
+    FUN = function(x) {
+      deparse1(as.name(x), backtick = TRUE)
+    },
+    FUN.VALUE = character(1),
+    USE.NAMES = FALSE
+  )
 
-  # message("labels.pcop: ", toString(labels.pcop))
   f.pcop <- reformulate(
     termlabels = c(".", labels.pcop),
     response = NULL,
@@ -117,9 +127,9 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
     mfs = mfs,
     # because cop.term is only numeric, coef() (actually model.matrix() used in lm())
     # preserves the terms as they are in the formula. For f.pcop these may be backticked
-    # or not, depending if necessary. Therefore read labels from terms().
+    # or not, depending if necessary.
     labels.pcop = labels.pcop
-    ))
+  ))
 }
 
 
@@ -132,8 +142,14 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
 #Then the normal quantile transformation is applied to get the copula correction term
 #' @importFrom stats model.frame model.matrix
 #' @importFrom np npcdistbw npcdist
-copula2sCOPEnp_bandwidth <- function(data, bws, npcdistbw.args, labels.exo, labels.endo, verbose) {
-
+copula2sCOPEnp_bandwidth <- function(
+  data,
+  bws,
+  npcdistbw.args,
+  labels.exo,
+  labels.endo,
+  verbose
+) {
   k <- 1
 
   l.bws <- lapply(labels.endo, function(p.var) {
@@ -166,7 +182,6 @@ copula2sCOPEnp_bandwidth <- function(data, bws, npcdistbw.args, labels.exo, labe
     #   - not model.matrix because need to preserve factors
     #   - not columns of `data` because transformations need to be applied
 
-
     # formula (single endo) ~ (all exo)
     # there is no intercept produced by model.frame() but be explicit here that the
     # exogenous data passed here is without intercept
@@ -186,12 +201,12 @@ copula2sCOPEnp_bandwidth <- function(data, bws, npcdistbw.args, labels.exo, labe
     # Add existing bandwidth object to call args, if user passed `bws`.
     # Dont set to NULL because docu doesnt explicitly specify this as not-specified.
     # Rather leave entirely unset.
-    if(!is.null(bws)){
+    if (!is.null(bws)) {
       bw.call.args[["bws"]] <- bws[[p.var]]
     }
     bw.call.args <- modifyList(bw.call.args, npcdistbw.args)
 
-    return(do.call(what=np:::npcdistbw, args = bw.call.args))
+    return(do.call(what = np:::npcdistbw, args = bw.call.args))
   })
 
   names(l.bws) <- labels.endo
