@@ -226,11 +226,14 @@ checkinput_copulashared_vars_in_data <- function(F.formula, data) {
   # Also correct if there are non-syntactic names
   # all.vars() returns pure strings without backticks, like they are in colnames
   # (eg all.vars(~ `X space`) = "X space" = colnames("X space"))
-  missing.vars <- setdiff(all.vars(F.formula), colnames(data))
+  #
+  # but have to support dot `.`: Put along colnames(). If passed expanded formula instead,
+  # the terms() call required for expansion would fail hard if cols are missing
+  missing.vars <- setdiff(all.vars(F.formula), c(colnames(data), "."))
   if (length(missing.vars) > 0) {
     return(paste0(
       "Variable(s) in parameter 'formula' not found in parameter 'data': ",
-      paste0(missing.vars, collapse = ", "),
+      paste0(missing.vars, collapse = "', '"),
       "."
     ))
   }
@@ -277,7 +280,7 @@ checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes)
   mf <- tryCatch(
     # Making model.frame with rhs=1 also verifies that rhs=2 regressors are fine
     model.frame(formula(F.formula, lhs = 1, rhs = 1), data = data, na.action = na.fail),
-    error = function(e) conditionMessage(e)
+    error = function(e) {return(conditionMessage(e))}
   )
   if (!is.data.frame(mf)) {
     return(paste0(
@@ -307,25 +310,25 @@ checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes)
     }
   }
 
-  # warn about low-cardinality numeric variables
-  is.low.card <- sapply(mf, function(x){
-    # no NAs at this point
-    is.numeric(x) && length(unique(x)) <= 10
-    })
-
-  if(any(is.low.card)){
-
-    low.card.vars <- names(which(is.low.card))
-
-    warning(
-      "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
-      toString(low.card.vars),
-      "\nTreating them as numeric instead of (ordered) factors may yield wrong results as the method depend on correctly classed data. ",
-      "Consider converting them with `factor()` or `ordered()`, if appropriate.",
-      call. = FALSE,
-      immediate. = TRUE
-    )
-  }
+  # # warn about low-cardinality numeric variables
+  # is.low.card <- sapply(mf, function(x){
+  #   # no NAs at this point
+  #   is.numeric(x) && length(unique(x)) <= 10
+  #   })
+  #
+  # if(any(is.low.card)){
+  #
+  #   low.card.vars <- names(which(is.low.card))
+  #
+  #   warning(
+  #     "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
+  #     toString(low.card.vars),
+  #     "\nTreating them as numeric instead of (ordered) factors may yield wrong results as the method depend on correctly classed data. ",
+  #     "Consider converting them with `factor()` or `ordered()`, if appropriate.",
+  #     call. = FALSE,
+  #     immediate. = TRUE
+  #   )
+  # }
 
   return(err.msg)
 }

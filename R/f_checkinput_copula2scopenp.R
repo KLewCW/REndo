@@ -26,7 +26,7 @@ checkinput_copula2scopenp_formula_data <- function(formula, data) {
     return(err.msg)
   }
 
-  # Expand dot against columns in data
+  # Expand dot against data
   # specials: check if user wrongly specified them
   specials <- c("discrete", "continuous")
   rhs1.terms <- terms(F.formula, lhs = 0, rhs = 1, data = data, specials = specials)
@@ -50,7 +50,8 @@ checkinput_copula2scopenp_formula_data <- function(formula, data) {
     err.msg <- c(err.msg, "discrete()/continuous() are not supported for this method.")
   }
 
-  # No interactions allowed!
+  # No interactions allowed! Only model.matrix would do this but we pass model.frame()
+  # output into np:npcdistbw() already
   if (any(attr(rhs1.terms, "order") > 1) || any(attr(rhs2.terms, "order") > 1)) {
     err.msg <- c(err.msg, "Interaction terms are not supported for this method.")
   }
@@ -75,7 +76,6 @@ checkinput_copula2scopenp_formula_data <- function(formula, data) {
       toString(not.in.rhs1), "."))
   }
 
-  # Don't build the model frame or check classes on a malformed grammar.
   if (length(err.msg) > 0) {
     return(err.msg)
   }
@@ -134,6 +134,7 @@ checkinput_copula2scopenp_npcdistbwargs <- function(npcdistbw.args) {
   valid.nms <- names(formals(getS3method(f = "npcdistbw", class = "default")))
   unknown.nms <- setdiff(nms, valid.nms)
   if (length(unknown.nms) > 0) {
+    # only WARN because there is the `...` parameter in np::npcdistbw which may be used!
     warning(
       "Unknown argument(s) in `npcdistbw.args`: ",
       toString(unknown.nms),
