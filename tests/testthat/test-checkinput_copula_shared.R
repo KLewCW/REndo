@@ -1,23 +1,6 @@
 # dont skip on cran: These are important tests! (and fast)
 set.seed(42)
 
-# Fixtures ----------------------------------------------------------------------------
-
-fixture_df <- function(n = 100) {
-  return(data.frame(
-    y = rnorm(n),
-    x_num = rnorm(n),
-    `x space` = rnorm(n), # non-syntactic name
-    x_string = rep(c("a", "b"), length.out = n),
-    x_fac = factor(rep(c("a", "b"), length.out = n)),
-    x_ord = ordered(rep(c("lo", "hi"), length.out = n), levels = c("lo", "hi")),
-    x_lowcard = rep(1:2, length.out = n),
-    x_na = c(NA, rnorm(n - 1)),
-    check.names = FALSE, # dont need to be syntactically valid
-    stringsAsFactors = FALSE
-  ))
-}
-
 
 # Expect helpers --------------------------------------------------------------------
 # Expect error messages returned
@@ -42,7 +25,7 @@ expect_empty <- function(fn, base.args = list(), cases) {
 }
 # checkinput_copulashared_data_basics ---------------------------------------
 test_that("_data_basics rejects invalid data", {
-  df <- fixture_df()
+  df <- fixture_copula_df()
 
   expect_errmsg(
     checkinput_copulashared_data_basics,
@@ -64,7 +47,7 @@ test_that("_data_basics rejects invalid data", {
 
 test_that("data_basics accepts valid data", {
   # the data.frame itself is valid
-  expect_null(checkinput_copulashared_data_basics(data = fixture_df()))
+  expect_null(checkinput_copulashared_data_basics(data = fixture_copula_df()))
 })
 
 
@@ -103,7 +86,7 @@ test_that("_formula_basics accepts valid formulas incl all kinds of edge cases",
 test_that("_vars_in_data reports missing variables", {
   expect_errmsg(
     fn = checkinput_copulashared_vars_in_data,
-    base.args = list(data = fixture_df()),
+    base.args = list(data = fixture_copula_df()),
     cases = list(
       "missing in rhs1" = list(F.formula = as.Formula(y ~ mis | x_num)),
       "missing in rhs2" = list(F.formula = as.Formula(y ~ x_num | mis)),
@@ -119,7 +102,7 @@ test_that("_vars_in_data reports missing variables", {
   )
 })
 test_that("_vars_in_data works with valid, non-syntactic, dot", {
-  df <- fixture_df()
+  df <- fixture_copula_df()
   expect_empty(
     fn = checkinput_copulashared_vars_in_data,
     base.args = list(data = df),
@@ -140,7 +123,7 @@ test_that("_response_not_in_rhs fails if response in rhs1", {
         as.Formula(y ~ y + x_num),
         lhs = 0,
         rhs = 1,
-        data = fixture_df()
+        data = fixture_copula_df()
       )
     ),
     regexp = "also appear"
@@ -150,7 +133,7 @@ test_that("_response_not_in_rhs fails if response in rhs1", {
   expect_match(
     checkinput_copulashared_response_not_in_rhs(
       F.formula = as.Formula(y ~ exp(y) + x_num),
-      rhs1.terms = terms(as.Formula(y ~ log(y)), lhs = 0, rhs = 1, data = fixture_df())
+      rhs1.terms = terms(as.Formula(y ~ log(y)), lhs = 0, rhs = 1, data = fixture_copula_df())
     ),
     regexp = "also appear"
   )
@@ -158,7 +141,7 @@ test_that("_response_not_in_rhs fails if response in rhs1", {
 
 test_that("_response_not_in_rhs works when response not in rhs", {
   F.formula <- as.Formula(y ~ x_num + x_fac | x_num)
-  rhs.terms <- terms(F.formula, lhs = 0, rhs = 1, data = fixture_df())
+  rhs.terms <- terms(F.formula, lhs = 0, rhs = 1, data = fixture_copula_df())
   expect_null(
     checkinput_copulashared_response_not_in_rhs(
       F.formula = F.formula,
@@ -187,7 +170,7 @@ test_that("_modelframe fails on NAs, illegal classes", {
   expect_match(
     expect_warning(checkinput_copulashared_modelframe(
       F.formula = as.Formula(y ~ log(x_num - 1000)),
-      data = fixture_df(),
+      data = fixture_copula_df(),
       allowed.classes = list("log(x_num - 1000)" = "numeric")
     )),
     regexp = "missing values"
@@ -195,7 +178,7 @@ test_that("_modelframe fails on NAs, illegal classes", {
 
   expect_errmsg(
     fn = checkinput_copulashared_modelframe,
-    base.args = list(data = fixture_df()),
+    base.args = list(data = fixture_copula_df()),
     cases = list(
       "NA already in data" = list(
         F.formula = as.Formula(y ~ x_na),
@@ -214,7 +197,7 @@ test_that("_modelframe fails on NAs, illegal classes", {
 })
 
 # test_that("_modelframe warns for low-cardinality numerics", {
-#   df <- fixture_df()
+#   df <- fixture_copula_df()
 #   expect_warning(
 #     checkinput_copulashared_modelframe(
 #       F.formula = as.Formula(y ~ x_lowcard),
@@ -229,7 +212,7 @@ test_that("_modelframe works for valid data", {
   expect_null(
     checkinput_copulashared_modelframe(
       F.formula = as.Formula(y ~ x_num + x_fac + x_ord + `x space` + exp(x_num)),
-      data = fixture_df(),
+      data = fixture_copula_df(),
       allowed.classes = list(
         x_num = "numeric",
         "exp(x_num)" = "numeric",
