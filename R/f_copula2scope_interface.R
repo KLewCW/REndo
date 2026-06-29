@@ -58,7 +58,6 @@
 #'         error term.
 #' }
 #'
-#' @templateVar show_header FALSE
 #' @template template_text_details_bootsdegenerates
 #'
 #' @details
