@@ -150,7 +150,7 @@
 #' @eval doc_rendocopula2scopenp_return()
 #'
 #' @family copula-based methods
-#' @seealso \code{\link[summary.rendo.]{summary.rendo.copula.2sCOPE.np}}
+#' @seealso \code{\link[REndo:summary.rendo.copula.2sCOPE.np]{summary}}
 #' @seealso \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
 #'  \code{npcdistbw.args}.
 #'

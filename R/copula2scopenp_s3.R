@@ -10,32 +10,24 @@
 #'
 #' @details
 #'
-#' For each bandwidth estimated in the first stage, a separate block is reported
-#' For the first stage, a conditional CDF is fit for each endogenous regressor using
-#' \code{np::npcdistbw()}. For each, a separate block reports diagnostics.
+#' In the first stage, \code{np::npcdistbw()} computes bandwidths for each endogenous
+#' regressor (which later feed the conditional CDF estimation). The summary reports one
+#' block per endo regressor, each a table of the selected bandwidths with the following
+#' columns:
+#'
 #' \describe{
 #' \item{Role}{Whether the variable is the dependent variable in the conditional CDF
 #' (endogenous) or an explanatory variable (exogenous)}
 #' \item{Type}{Type detected by \code{np::npcdistbw()}: One of \code{continuous},
 #' \code{ordered}, or \code{unordered}.}
-#' \item{Scaled bw}{For continuous variables: The scale factor}
-#' \item{Raw bw}{For type continuous: Bandwith in original units.}
-#' \item{Lambda}{For factors and ordered types:}
+#' \item{Scale factor}{Continuous variables only: The bandwidth scale factor.}
+#' \item{Bandwidth}{Continuous variables only: The bandwidth in original units.}
+#' \item{Lambda}{Discrete variables only (\code{ordered}/\code{unordered}): The estimated bandwidth.}
+#' \item{Lambda Max}{Discrete variables only: The maximum possible value of \code{Lambda}.}
 #' }
 #'
-#' @return
-#' An object of class \code{summary.rendo.copula.2sCOPE.np}, which extends the summary
-#' class of .It additionally contains:
-#' \item{bws.summaries}{A named list with one item per endogenous regressor: The
-#' computed bandwidths and selection details.}
+#' @seealso \code{\link[np:npcdistbw]{np::npcdistbw}, \link{copula2sCOPEnp}}
 #'
-#' \code{print} is called for its side effect of printing a formatted summary
-#' and returns its argument \code{x} invisibly.
-#'
-#' @seealso [copula2sCOPEnp()]
-#' @seealso [np::npcdistbw()]
-#'
-#' @rdname summary.rendo.copula.2sCOPE.np
 #' @export
 summary.rendo.copula.2sCOPE.np <- function(object, ...) {
   # Get the summary from the parent class ------------------------------------
@@ -55,7 +47,6 @@ summary.rendo.copula.2sCOPE.np <- function(object, ...) {
 }
 
 
-#' @describeIn
 #' @export
 print.summary.rendo.copula.2sCOPE.np <- function(
   x,
