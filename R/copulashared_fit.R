@@ -63,6 +63,17 @@ copula_compute_structural_fitted_residuals <- function(
   }
 
   names.coefs.all <- names(coef(res.lm.aug))
+
+  # Check if all aux regs are here
+  missing.aux <- setdiff(names.aux.regs, names.coefs.all)
+  if (length(missing.aux)) {
+    stop(
+      "Aux regressor(s) not found in coefficients: ",
+      toString(missing.aux),
+      " This should not happen - please report as a bug!"
+    )
+  }
+
   names.structural <- names.coefs.all[!names.coefs.all %in% names.aux.regs]
   coefs.structural <- coef(res.lm.aug)[names.structural]
   mm.structural <- model.matrix(res.lm.aug)[, names.structural, drop = FALSE]
