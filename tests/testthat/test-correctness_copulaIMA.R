@@ -154,16 +154,5 @@ test_that("structural residuals & fitted values are calculated correctly", {
     formula = y ~ X + P - 1 | continuous(P),
     data = dataCopIMAContExo
   )
-  res.lm <- res$res.lm.augmented
-
-  # Alternative route: Remove cop contribution from augmented fit
-  names.coefs.cop <- c("P_cop")
-  pcop.coefs <- coef(res.lm)[names.coefs.cop]
-  cop.matrix <- model.matrix(res.lm)[, names.coefs.cop, drop = FALSE]
-
-  residuals.alt <- drop(residuals(res.lm) + cop.matrix %*% pcop.coefs)
-  fitted.alt <- drop(fitted(res.lm) - cop.matrix %*% pcop.coefs)
-
-  expect_equal(residuals(res), residuals.alt)
-  expect_equal(fitted.values(res), fitted.alt)
+  check_struct_residuals(res = res, aux.names = "P_cop")
 })
