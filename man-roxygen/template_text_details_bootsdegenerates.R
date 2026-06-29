@@ -1,4 +1,7 @@
 #' @details
+#' <% if (show_header) { %>
+#' ## Boostrap inference
+#' <% } %>
 #' Bootstrap inference is performed by resampling the data with replacement.
 #' Degenerate bootstrap samples (e.g. singular design matrices or failed
 #' model estimation) are discarded and resampled until the requested number

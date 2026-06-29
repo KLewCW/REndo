@@ -158,8 +158,7 @@ The formula may contain no interaction term (\code{A:B}) because these
 wont be expanded for estimating the kernel conditional CDF.
 }
 
-\subsection{Boostrap inference}{
-}
+## Boostrap inference
 
 Bootstrap inference is performed by resampling the data with replacement.
 Degenerate bootstrap samples (e.g. singular design matrices or failed

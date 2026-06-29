@@ -114,7 +114,7 @@
 #' The formula may contain no interaction term (\code{A:B}) because these
 #' wont be expanded for estimating the kernel conditional CDF.
 #'
-#' ## Boostrap inference
+#' @templateVar show_header TRUE
 #' @template template_text_details_bootsdegenerates
 #'
 #' @details
