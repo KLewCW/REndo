@@ -19,6 +19,14 @@ check_labelled_consistently <- function(res) {
   expect_equal(length(res$labels.pcop), length(res$labels.endo))
   # one bw per endo, named after endo
   expect_setequal(names(res$bws), res$labels.endo)
+  # one bandwidth per endo, named after the endogenous terms
+  expect_setequal(names(res$bws), res$labels.endo)
+
+  # all names of main coefs preserved
+  labels.structural <- c(res$labels.exo, res$labels.endo)
+  expect_true(all(labels.structural %in% names(coef(res))))
+  # coefs in summary named same as coefs
+  expect_setequal(rownames(coef(summary(res))), names(coef(res)))
 }
 
 
@@ -41,6 +49,15 @@ test_that("Order in formula does not impact coefs", {
   res.px <- fit_2scopenp_fast(formula = y ~ P + X | P, data = data.cont.pos)
   res.xp <- fit_2scopenp_fast(formula = y ~ X + P | P, data = data.cont.pos)
   expect_equal(sort(coef(res.px)), sort(coef(res.xp)))
+})
+
+test_that("Dot yields same as explicitly specified regressors", {
+  res.dot <- fit_2scopenp_fast(formula = y ~ . | P, data = dataCopula2sCOPEnpCont)
+  res.explicit <- fit_2scopenp_fast(
+    formula = y ~ P + X | P,
+    data = dataCopula2sCOPEnpCont
+  )
+  expect_equal(coef(res.dot), coef(res.explicit))
 })
 
 test_that("Duplicate regressor has same result as single", {
@@ -126,7 +143,6 @@ test_that("Parameter bws is used as-is", {
   # if bws were ignored the coefficients would be unchanged
   expect_false(isTRUE(all.equal(coef(res.perturbed), coef(res1))))
 })
-
 
 # Params recoveret ------------------------------------------------------------------
 
