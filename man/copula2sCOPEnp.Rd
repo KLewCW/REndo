@@ -182,6 +182,8 @@ near-multicollinearity between the copula correction term and the original regre
 which may suggest a potential identification issue. (Hu et al. 2025, section 3.5)
 }
 \examples{
+
+\dontrun{
 # # Set a random number seed because NP procedure is random
 # set.seed(42)
 
@@ -199,7 +201,6 @@ res1 <- copula2sCOPEnp(
  y ~ P + X | P,
   data = dataCopula2sCOPEnpCont)
 
-\donttest{
 #--------------------------------------------------------------
 # Example 2: Binary endogenous regressor
 # (Hu et al. 2025, Section 4.5)

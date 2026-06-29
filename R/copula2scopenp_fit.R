@@ -206,7 +206,7 @@ copula2sCOPEnp_bandwidth <- function(
     }
     bw.call.args <- modifyList(bw.call.args, npcdistbw.args)
 
-    return(do.call(what = np:::npcdistbw, args = bw.call.args))
+    return(do.call(what = np::npcdistbw, args = bw.call.args))
   })
 
   names(l.bws) <- labels.endo
