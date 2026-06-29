@@ -111,23 +111,6 @@ test_that("Duplicate regressors are handled correctly", {
 })
 
 # Parameter recovery -------------------------------------------------------
-expect_param_recovery <- function(res, true_vals) {
-  coefs <- coef(res)
-  ses <- sqrt(diag(vcov(res)))
-  for (nm in names(true_vals)) {
-    diff <- abs(coefs[nm] - true_vals[nm])
-    expect_true(
-      object = diff < 2 * ses[nm],
-      info = sprintf(
-        "%s: est=%.3f, true=%.3f, 2*SE=%.3f",
-        nm,
-        coefs[nm],
-        true_vals[nm],
-        2 * ses[nm]
-      )
-    )
-  }
-}
 
 copulaIMA_param_recovery <- function(formula, data, true_vals) {
   res <- copulaIMA(
@@ -137,7 +120,7 @@ copulaIMA_param_recovery <- function(formula, data, true_vals) {
     num.boots = 1000,
     verbose = FALSE
   )
-  expect_param_recovery(res = res, true_vals = true_vals)
+  check_param_recovery(res = res, true_vals = true_vals)
 }
 
 test_that("Parameter recovery: dataCopIMAContExo", {
