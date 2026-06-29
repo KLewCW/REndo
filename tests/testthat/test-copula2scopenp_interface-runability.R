@@ -25,7 +25,7 @@ test_that("works out of the box with default params", {
 
 
 # Formula -------------------------------------------------------------------------
-test_that("works for edge-cases", {
+test_that("works for edge-cases, incl print & print(summary())", {
   cases <- list(
     "dot in rhs1" = y ~ . | P,
     "transformed exo" = y ~ P + log(X_pos) | P,
@@ -40,6 +40,9 @@ test_that("works for edge-cases", {
   for (nm in names(cases)) {
     res <- fit_2scopenp_fast(formula = cases[[nm]], data = df)
     check_clean_fit(res)
+    # S3 methods
+    expect_no_error(capture_output(print(res)))
+    expect_no_error(capture_output(print(summary(res))))
   }
 })
 
@@ -129,10 +132,3 @@ test_that("verbose works", {
   )
 })
 
-
-# S3 methods -----------------------------------------------------------
-test_that("S3 methods work", {
-  res <- fit_2scopenp_fast(formula = y ~ P + X | P, data = dataCopula2sCOPEnpCont)
-  expect_no_error(capture_output(print(res)))
-  expect_no_error(capture_output(print(summary(res))))
-})
