@@ -118,7 +118,7 @@
 #'
 #' @details
 #' Note that the bandwidth is fit on the full \code{data} and then re-used across
-#' bootstrap samples. This would substantially lower the computation time by avoiding
+#' bootstrap samples. This substantially lowers the computation time by avoiding
 #' repeated cross-validation for the selection of the bandwidth for each bootstrap sample.
 #' By fixing the bandwidth, the impact on inference for large samples is expected to be
 #' low because the conditional CDF estimator enters the procedure as an auxiliary
