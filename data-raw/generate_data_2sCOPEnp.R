@@ -102,67 +102,80 @@ y <-  mu + alpha * P + beta * X + Xi
 dataCopula2sCOPEnpBi <- data.frame(y = y, P = P, X = X)
 usethis::use_data(dataCopula2sCOPEnpBi, overwrite = TRUE)
 
-# Dataset 3: dataCopula2sCOPEnpMulti: extension with 2 endogenous and 2 exogenous regressors
-# Based on case 3 and is extended to show that method works with multiple endogenous
-#regressors.
+# Dataset 3: dataCopula2sCOPEnpMulti
+# The following dataset is made up of different types of variable.
+
+#P1 is lognormal (continuous endogenous)
+#P2 ordered endogenous (here 4 levels)
+#X1~ N(0,1) (continuous exogenous)
+#X2 continuous exogenous ~ t(3) and correlated with P2 via latent score
+#X3 ordered factor exogenous (here 3 levels: low, medium and high)
 
 set.seed(123)
 
-n <- 1000
+n <- 2000
 
-#True values: mu = 1, alpha1 = 1 (P1), alpha2 = 1 (P2), beta1 = 2 (X1), beta2 = -1 (X2)
+#True values: mu = 1, alpha1 = -1 (P1), alpha2 = 1 (P2 per ordered level),
+#beta1 = 2 (X1), beta2 = 0.5 (X2) and beta3 = 1 (X3)
 
 mu <- 1
-alpha1 <- 1
+alpha1 <- -1
 alpha2 <- 1
 beta1 <- 2
-beta2 <- -1
+beta2 <- 0.5
+beta3 <- 1
 
 # Latent Gaussian dependence structure:
-# rho(P1*, P2*) = 0.4 representing the correlation between the endogenous regressors
-# rho(P1*, X1*) = 0.5 P1 correlated with X1
-# rho(P2*, X2*) = 0.5 P2 correlated with X2
-# rho(P1*, xi*) = 0.5 enogeneity of P1
-# rho(P2*, xi*) = 0.5 endogeneity of P2
+# rho(P1, epsilon) = 0.5
+# rho(P2_latent, epsilon) = 0.4
+# rho(P1, P2_latent) = 0.3
+#P1 is correlated with X1
+#P2_latent is correlated with X3
 
-Sigma <- matrix(c(1, 0.4, 0.5, 0, 0.5,
-                  0.4, 1, 0, 0.5, 0.5,
-                  0.5, 0, 1, 0, 0,
-                  0, 0.5, 0, 1, 0,
-                  0.5, 0.5, 0, 0, 1),
-                nrow = 5, ncol= 5, byrow = TRUE)
+#joint latent normal for epsilon, P1_latent and P2_latent
+Sigma <- matrix(c(1, 0.5, 0.4,
+                  0.5, 1, 0.3,
+                  0.4, 0.3, 1),
+                nrow = 3, ncol= 3, byrow = TRUE)
 
-latent <- MASS::mvrnorm(n = n, mu = rep(0,5), Sigma = Sigma)
-P1star <- latent[,1]
-P2star <- latent[,2]
-X1star <- latent[,3]
-X2star <- latent[,4]
-Xistar <- latent[,5]
+latent <- MASS::mvrnorm(n = n, mu = c(0,0,0), Sigma = Sigma)
+epsilon <- latent[,1] #structural error ~N(0,1)
+P1_latent <- latent[,2] #latent score for continuous P1
+P2_latent <- latent[,3] #latent score for discrete ordered P2
 
-#X1 ~ t(3) nonnormal exo regressor (same as in case 3)
-X1 <- qt(pnorm(X1star), df = 3)
+#Exogenous regressors
+X1 <- rnorm(n)
 
-#X2 ~ N(0,1) normal exo regressor
-X2 <- X2star
+#X2 continuous exogenous ~ t(3) and correlated with P2 via latent score
+X2_latent <- P2_latent + rnorm(n, sd = 0.5)
+X2 <- qt(pnorm(X2_latent), df = 3)   # t(3)  non-normal and correlated with P2
 
-#P1|X1 and X2 truncated normal with X1 dependent bounds
-a1 <- pmin(0, -2*X1 + 2)
-b1 <- pmax(2, -2 * X1 +2)
-P1 <- truncnorm::qtruncnorm(pnorm(P1star), a = a1, b = b1, mean = 0, sd = 1)
 
-#P2|X1 and X2 truncated normal with X2 depedent boungs
+#X3 ordered factor with 3 levels correlated with P2 through latent scores
+X3_score <- P2_latent + rnorm(n, sd = 0.3)
+X3_cuts  <- quantile(X3_score, probs = c(1/3, 2/3))
+X3_index   <- findInterval(X3_score, X3_cuts) + 1L  # 1, 2, or 3
+X3 <- ordered( c("low", "medium", "high")[X3_index], levels = c("low", "medium", "high")
+)
+#P1 continuous lognorma and correlated with X1 through latent scores
+P1_score <- P1_latent + 0.5 *X1
+P1 <- exp(P1_score) #lognormal which is strictly positive.
 
-a2 <- pmin(0, -2 * X2 + 2)
-b2 <- pmax(2, -2 * X2 + 2)
-P2 <- truncnorm::qtruncnorm(pnorm(P2star), a = a2, b = b2, mean = 0, sd = 1)
+#P2 ordered factor with 4 levels and obtained from P2_latent + X3 contribution.
+#X3 contribution creates P2 -X3 correlation (which is the endo-exo correlation)
+P2_score <- P2_latent + 0.3 * as.numeric(X3)
+P2_cuts <- quantile(P2_score, probs = c(0.25, 0.5, 0.75))
+P2_index   <- findInterval(P2_score, P2_cuts) + 1L  # 1, 2, 3, or 4
+P2 <- ordered( c("low", "medium", "high", "very_high")[P2_index], levels = c("low", "medium", "high", "very_high")
+)
+#representing outcome equation numerically
+X3_n <- as.numeric(X3) # 1=low, 2=medium, 3=high
+P2_n <- as.numeric(P2) # 1=low, 2=medium, 3=high, 4=very_high
 
-#Xi = Xi star and is normally distributed
-Xi <- Xistar
+#outcome equation: Y_i = mu + alpha1*P1_i + alpha2*P2_i + beta1*X1_i + beta2*X2 + beta3 * X3_n
+y <- mu + alpha1 * P1 + alpha2 * P2_n + beta1 * X1 + beta2 * X2 +  beta3 * X3_n + epsilon
 
-#outcome equation: Y_i = mu + alpha1*P1_i + alpha2*P2_i + beta1*X1_i + beta2*X2_i + Xi_i
-y <- mu + alpha1 * P1 + alpha2 * P2 + beta1 * X1 + beta2 * X2 + Xi
-
-dataCopula2sCOPEnpMulti <- data.frame(y = y, P1 = P1, P2 = P2, X1 = X1, X2 = X2)
+dataCopula2sCOPEnpMulti <- data.frame(y = y, P1 = P1, P2 = P2, X1 = X1, X2 = X2, X3 = X3)
 
 usethis::use_data(dataCopula2sCOPEnpMulti, overwrite = TRUE)
 
