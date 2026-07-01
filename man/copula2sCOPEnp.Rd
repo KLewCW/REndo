@@ -16,9 +16,10 @@ copula2sCOPEnp(
 \arguments{
 \item{formula}{A symbolic description of the model to be fitted. See the "Details" section for the exact notation.}
 
-\item{data}{A data.frame containing the data of all parts specified in the formula
-parameter. Variables must be correctly classed (\code{numeric}, \code{factor}, or
-\code{ordered}) otherwise it will silently yield wrong results!}
+\item{data}{A data.frame containing the data of all variables specified in the \code{formula}
+parameter. Variables classes must be set correctly before calling the function.
+Endogenous regressors must be \code{numeric} or \code{factor}. Exogenous regressors
+must be (\code{numeric}, \code{factor}, or \code{ordered}). Otherwise it will silently yield wrong results!}
 
 \item{npcdistbw.args}{A named list of arguments which are passed to
 \code{\link[np]{npcdistbw}}. To tweak the bandwidth selection for the kernel
@@ -68,6 +69,10 @@ for a first-stage regression (as in \code{\link{copula2sCOPE}}) and relaxes
 the Gaussian copula assumption on the regressor-error dependence structure.
 2sCOPEnp also supports \emph{discrete} endogenous regressors by leveraging
 the exogenous control variables to smooth the discrete conditional CDF.
+
+When the endogenous regressor \eqn{P} is independent of all exogenous regressors \eqn{X},
+the conditional CDF collapses to the marginal CDF, \eqn{\hat{F})(P|X) = \hat{F}(P)} and the
+method then reduces to the Park and Gupta (2012) copula correction.
 }
 \details{
 \subsection{Model}{
@@ -153,9 +158,9 @@ The second part lists the endogenous regressors:
 
 At least one exogenous regressor must be present in the model for the
 nonparametric conditional CDF estimation to be feasible.
-
-The formula may contain no interaction term (\code{A:B}) because these
-wont be expanded for estimating the kernel conditional CDF.
+The formula may not contain interaction term (\code{A:B}) in either part because these
+are only expanded by \code{model.matrix()} but the method uses \code{model.frame()}
+output to preserve factor structure for the kernel.
 }
 
 \subsection{Bootstrap inference}{
@@ -217,17 +222,18 @@ res2 <- copula2sCOPEnp(
 summary(res2)
 
 #--------------------------------------------------------------
-# Example 3: Multiple endogenous and exogenous regressors
+# Example 3: Multiple endogenous regressors with factor and ordered exogenous
+# variables
 
-# To show the extension of 2sCOPEnp with multiple regressors
+# To show the extension of 2sCOPEnp with a mixed types of variables
 
-# True values: mu = 1, alpha1 = 1 (P1), alpha2 = 1 (P2),
-#              beta1 = 2 (X1), beta2 = -1 (X2).
+# True values: mu = 1, alpha1 = -1 (P1), alpha2 = 1 (P2),
+#              beta1 = 2 (X1), beta2 = 0.5, beta3 = 1 (X3)
 #--------------------------------------------------------------
 
 data("dataCopula2sCOPEnpMulti")
 res3 <- copula2sCOPEnp(
-  y ~ P1 + P2 + X1 + X2 | P1 + P2,
+  y ~ P1 + P2 + X1 + X2 + X3 | P1 + P2,
   data = dataCopula2sCOPEnpMulti
 )
 summary(res3)
