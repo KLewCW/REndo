@@ -106,14 +106,14 @@ usethis::use_data(dataCopula2sCOPEnpBi, overwrite = TRUE)
 # The following dataset is made up of different types of variable.
 
 #P1 is lognormal (continuous endogenous)
-#P2 ordered endogenous (here 4 levels)
+#P2 ordered endogenous (here 4 levels: low, meidum, high and very_high)
 #X1~ N(0,1) (continuous exogenous)
-#X2 continuous exogenous ~ t(3) and correlated with P2 via latent score
+#X2 ~N(0,1) (continuous exogenous) and correlated with P2 via latent score
 #X3 ordered factor exogenous (here 3 levels: low, medium and high)
 
 set.seed(123)
 
-n <- 2000
+n <- 5000
 
 #True values: mu = 1, alpha1 = -1 (P1), alpha2 = 1 (P2 per ordered level),
 #beta1 = 2 (X1), beta2 = 0.5 (X2) and beta3 = 1 (X3)
@@ -127,15 +127,15 @@ beta3 <- 1
 
 # Latent Gaussian dependence structure:
 # rho(P1, epsilon) = 0.5
-# rho(P2_latent, epsilon) = 0.4
+# rho(P2_latent, epsilon) = 0.7
 # rho(P1, P2_latent) = 0.3
 #P1 is correlated with X1
 #P2_latent is correlated with X3
 
 #joint latent normal for epsilon, P1_latent and P2_latent
-Sigma <- matrix(c(1, 0.5, 0.4,
+Sigma <- matrix(c(1, 0.5, 0.7,
                   0.5, 1, 0.3,
-                  0.4, 0.3, 1),
+                  0.7, 0.3, 1),
                 nrow = 3, ncol= 3, byrow = TRUE)
 
 latent <- MASS::mvrnorm(n = n, mu = c(0,0,0), Sigma = Sigma)
@@ -146,13 +146,11 @@ P2_latent <- latent[,3] #latent score for discrete ordered P2
 #Exogenous regressors
 X1 <- rnorm(n)
 
-#X2 continuous exogenous ~ t(3) and correlated with P2 via latent score
-X2_latent <- P2_latent + rnorm(n, sd = 0.5)
-X2 <- qt(pnorm(X2_latent), df = 3)   # t(3)  non-normal and correlated with P2
-
+#X2 ~ N(0,1) correlated with P2_latent and avoiding extreme outliers
+X2 <- P2_latent * 0.5 + rnorm(n, sd = sqrt(1-0.25)) #corr(X2, P2_latent) = 0.5
 
 #X3 ordered factor with 3 levels correlated with P2 through latent scores
-X3_score <- P2_latent + rnorm(n, sd = 0.3)
+X3_score <- P2_latent + rnorm(n, sd = 1.5)
 X3_cuts  <- quantile(X3_score, probs = c(1/3, 2/3))
 X3_index   <- findInterval(X3_score, X3_cuts) + 1L  # 1, 2, or 3
 X3 <- ordered( c("low", "medium", "high")[X3_index], levels = c("low", "medium", "high")
@@ -163,7 +161,7 @@ P1 <- exp(P1_score) #lognormal which is strictly positive.
 
 #P2 ordered factor with 4 levels and obtained from P2_latent + X3 contribution.
 #X3 contribution creates P2 -X3 correlation (which is the endo-exo correlation)
-P2_score <- P2_latent + 0.3 * as.numeric(X3)
+P2_score <- P2_latent + 0.5 * X2
 P2_cuts <- quantile(P2_score, probs = c(0.25, 0.5, 0.75))
 P2_index   <- findInterval(P2_score, P2_cuts) + 1L  # 1, 2, 3, or 4
 P2 <- ordered( c("low", "medium", "high", "very_high")[P2_index], levels = c("low", "medium", "high", "very_high")
