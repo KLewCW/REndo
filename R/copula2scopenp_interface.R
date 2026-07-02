@@ -195,13 +195,18 @@
 #' summary(res2)
 #'
 #' #--------------------------------------------------------------
-#' # Example 3: Multiple endogenous regressors with factor and ordered exogenous
-#' # variables
+#' # Example 3: Multiple endogenous regressors with mixed variables.
 #'
 #' # To show the extension of 2sCOPEnp with a mixed types of variables
+#' #P1 is continuous lognormal endogenous correlated with X1
+#' #P2 is ordered factor endogenous (4 levels) correlated with X2
+#' #X3 is ordered factor exogenous (3 levels)
 #'
 #' # True values: mu = 1, alpha1 = -1 (P1), alpha2 = 1 (P2),
 #' #              beta1 = 2 (X1), beta2 = 0.5, beta3 = 1 (X3)
+#' # note that P2.Q may have small significant coefficient. This is expected
+#' #when there is stronger endogeneity with discreted ordered regressors.
+#'
 #' #--------------------------------------------------------------
 #'
 #' data("dataCopula2sCOPEnpMulti")
