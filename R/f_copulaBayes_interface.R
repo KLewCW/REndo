@@ -78,9 +78,9 @@
 #' res_bayes <- copulaBayes(
 #'   y ~ x + z | continuous(z),
 #'   data           = dataCopBayes,
-#'   num.iterations = 102000,
-#'   burnin         = 2000,
-#'   thin           = 100,
+#'   num.iterations = 12000L,
+#'   burnin         = 2000L,
+#'   thin           = 10L,
 #'   verbose        = TRUE
 #' )
 #' summary(res_bayes)
@@ -95,9 +95,9 @@
 copulaBayes <- function(
     formula,
     data,
-    # num.iterations = 102000,that was default in the paper but it could take long to compute
-    burnin         = 2000,
-    thin           = 100,
+    num.iterations = 102000L,#paper default but for quick testing 12000 iterations with 10 thin ?
+    burnin         = 2000L,
+    thin           = 100L,
     verbose        = TRUE
 ) {
   cl <- match.call()
@@ -185,7 +185,7 @@ copulaBayes <- function(
   )
   structure.cols  <- c(col.alpha, col.delta, col.beta, col.sigma2)
 
-  chain.structure <- chain[, structure.cols, drop = FALSE]
+  chain.struct <- chain[, structure.cols, drop = FALSE]
   colnames(chain.struct) <- coef.names
 
   # Posterior summaries
