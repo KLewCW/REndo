@@ -112,6 +112,12 @@ generated regressors and estimate using OLS (Equation 20):
       \sum_{k=1}^{K} C_{i,pk}\gamma_k + \xi_i}
 where \eqn{\gamma_k} is the coefficient of the copula correction term \eqn{C_{i, pk}} and
 \eqn{\xi_i} is the new error term.
+
+Note that small but significant quadratic (\code{P.Q}) or cubic (\code{P.C}) coefficients
+may appear for discrete ordered regressors under strong endogeneity. This is expected
+of the augmented regression separating structural coefficients from the correction
+term when the correction term takes few distinct values (one per ordered level).
+It does not indicate misspecification.
 }
 
 \subsection{Bandwidth Selection}{
