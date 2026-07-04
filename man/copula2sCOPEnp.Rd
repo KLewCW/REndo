@@ -353,6 +353,11 @@ Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np packag
 \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
 \code{npcdistbw.args}.
 
+\code{\link[REndo:dataCopula2sCOPEnpCont]{dataCopula2sCOPEnpCont},
+\link[REndo:dataCopula2sCOPEnpBi]{dataCopula2sCOPEnpBi},
+\link[REndo:dataCopula2sCOPEnpMulti]{dataCopula2sCOPEnpMulti}} for detailed
+information about the simulated datasets
+
 Other copula-based methods: 
 \code{\link{copula2sCOPE}()},
 \code{\link{copulaCorrection}()},

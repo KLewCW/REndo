@@ -163,6 +163,10 @@
 #' @seealso \code{\link[REndo:summary.rendo.copula.2scope.np]{summary}}
 #' @seealso \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
 #'  \code{npcdistbw.args}.
+#' @seealso \code{\link[REndo:dataCopula2sCOPEnpCont]{dataCopula2sCOPEnpCont},
+#' \link[REndo:dataCopula2sCOPEnpBi]{dataCopula2sCOPEnpBi},
+#' \link[REndo:dataCopula2sCOPEnpMulti]{dataCopula2sCOPEnpMulti}} for detailed
+#' information about the simulated datasets
 #'
 #' @examples
 #'
