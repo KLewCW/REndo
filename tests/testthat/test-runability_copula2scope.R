@@ -7,7 +7,7 @@ data("dataCopula2sCOPECase1")
 # Works out of the box --------------------------------------------------------------
 # also checks verbose=T
 test_that("Works out of the box", {
-  expect_no_failure(capture_output(
+  expect_success(capture_output(
     copula2sCOPE(
       formula = y ~ P + X | continuous(P),
       data = dataCopula2sCOPECase1
