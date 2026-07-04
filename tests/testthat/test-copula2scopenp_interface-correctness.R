@@ -204,30 +204,33 @@ test_that("Parameter bws is used as-is", {
 
 test_that("Recovery: Continuous endo (dataCopula2sCOPEnpCont)", {
   skip_on_cran()
-  res <- fit_2scopenp_defaults(
+  res <- copula2sCOPEnp(
     formula = y ~ P + X | P,
     data = dataCopula2sCOPEnpCont,
-    npcdistbw.args = list(nmulti = 1)
+    npcdistbw.args = list(nmulti = 1),
+    verbose = FALSE
   )
   check_param_recovery(res = res, true_vals = c("(Intercept)" = 1, P = 1, X = 2))
 })
 
 test_that("Recovery: Binary enod (dataCopula2sCOPEnpCont)", {
   skip_on_cran()
-  res <- fit_2scopenp_defaults(
+  res <- copula2sCOPEnp(
     formula = y ~ P + X | P,
     data = dataCopula2sCOPEnpBi,
-    npcdistbw.args = list(nmulti = 1)
+    npcdistbw.args = list(nmulti = 1, tol=0.1, ftol=0.1),
+    verbose = FALSE
   )
   check_param_recovery(res = res, true_vals = c("(Intercept)" = 0, P = 1, X = 2))
 })
 
 test_that("Recovery: multiple endo (dataCopula2sCOPEnpMulti)", {
   skip_on_cran()
-  res <- fit_2scopenp_defaults(
+  res <- copula2sCOPEnp(
     formula = y ~ . | P1 + P2,
     data = dataCopula2sCOPEnpMulti,
-    npcdistbw.args = list(nmulti = 1)
+    npcdistbw.args = list(nmulti = 1, tol=0.1, ftol=0.1),
+    verbose = FALSE
   )
   # check continuous numeric params only
   check_param_recovery(
