@@ -3,39 +3,58 @@
 \docType{data}
 \name{dataCopula2sCOPEnpMulti}
 \alias{dataCopula2sCOPEnpMulti}
-\title{Simulated Dataset for 2sCOPEnp -  Multiple Endogenous and Exogenous Regressors}
+\title{Simulated Dataset for 2sCOPEnp -  Multiple Endogenous and Exogenous Regressors with
+mixed continuous, ordered and factor variables}
 \format{
-A data frame with 1000 observations on 5 variables:
+A data frame with 5000 observations on 6 variables:
 \describe{
 \item{\code{y}}{a numeric vector representing the dependent variable.}
 \item{\code{P1}}{a numeric vector which is continuous and endogenous following a
-truncated normal distribution with \code{X1} dependent bounds
-\eqn{a = \min(0, -2X_1 + 2)} and \eqn{b = \max(2, -2X_1 + 2)}.}
-\item{\code{P2}}{a numeric vector which is continuous and endogenous following a
-truncated normal distribution with \code{X2} dependent bounds
-\eqn{a = \min(0, -2X_2 + 2)} and \eqn{b = \max(2, -2X_2 + 2)}.}
-\item{\code{X1}}{a numeric vector continuous and exogenous. It follows a Student-t
-distribution with 3 degrees of freedom.}
-\item{\code{X2}}{a numeric vector continuous and exogenous, follows a standard normally distribution.}
+lognormal distribution and correlated with structural error (\eqn{\rho = 0.5}) and with \code{X1}}
+\item{\code{P2}}{an ordered factor with 4 levels (low, medium, high and very high) endogenous.
+\code{P2} is correlated with the structural error (\eqn{\rho = 0.7}) and with \code{X2}.}
+\item{\code{X1}}{a numeric vector which is continuous and exogenous.
+It follows a  \eqn{N(0,1)} distribution and is correlated with \code{P1}.}
+\item{\code{X2}}{a numeric vector which is continuous and exogenous and approximately
+follows a \eqn{N(0,1)} distribution. It is Correlated with \code{P2}.
+Note that this was kept continuous (not a factor) so that cross-validation for \eqn{\hat{F}(P_2 | X)}
+finds a finite non-degenerate bandwidth rather than collapsing to exact category matching.}
+\item{\code{X3}}{an ordered factor with three levels (low, medium and high) purely exogenous.
+Used as an  ordered control variable in the outcome equation.
+Note that it was not used in the generation of \code{P2} so that cross-validation does not
+collapse to exact category matching on \code{X3}.}
 }
 }
 \usage{
 data("dataCopula2sCOPEnpMulti")
 }
 \description{
-A dataset simulated with two exogenous regressors \code{X1} and
-\code{X2} and two continuous endogenous regressors \code{P1} and \code{P2}. Dataset
-generated as an extension of case 3 of Hu et al. (2025). The exogenous regressor \code{X1}
-follows a Student-t distribution with 3 degrees of freedom amd \code{X2} is standard normal.
-The conditional CDF of each endogenous regressor is estimated nonparametrically.
-The correlation between \code{P1*} and \code{P2*} is 0.4, between \code{P1*} and \code{X1*} is 0.5
-and between \code{P1*} and \code{P2*} is 0.5. The endogeneity strength is rho = 0.5 for both
-\code{P1} and \code{P2}.
-Note: the finite sample recovery of \code{P1} has higher variance than \code{P2} because of the heavier
-tails of the \code{X1} ~ t(3) distribution. This makes the nonparametric conditional CDF estimation harder for
-\code{P1}.
-The true parameter values are: \code{mu =1}, \code{alpha1 =1} (\code{P1}), \code{alpha2 = 1}(\code{P2}), \code{beta1 =2}
-(\code{x1}) and \code{beta2 = -1} (\code{X2})
+A dataset simulated with to demonstrate how \code{\link{copula2sCOPEnp}} interacts
+with different types of variables and multiple endogenous and exogenous regressors. The structural
+model here is:
+\deqn{y_i = \mu + \alpha_1 P_{1,i} + \alpha_2 P_{2,i} + \beta_1 X_{1,i} + \beta_2 X_{2,i} + \beta_3 X_{3,i} + \varepsilon_i}
+
+\code{P1} and \code{P2} are both endogenous regressors correlated with the structural error,
+\eqn{\rho_{P1. \varepsilon} = 0.5} and \eqn{\rho_{P2, \varepsilon} = 0.7} respectively.
+They are correlated with each other \eqn{\rho_{P1,P2} = 0.3}. \code{P1} is correlated with the
+continuous exogenous regressor \code{X1}, and \code{P2} with the continuous exogenous regressor \code{X2}.
+\code{X3} is purely exogenous ordered control variable.
+
+\code{P2} is an ordered factor endogenous regressor with 4 levels: low, medium, high and very high.
+
+Note that a stronger endogeneity for \code{P2} (\eqn{\rho = 0.7}) and larger sample size (\eqn{n = 5000}) were used
+because the correction term \eqn{\Phi^{-1}(\hat{F}(P_2 | X))} takes only 4 distinct values (one per ordered level),
+reducing detection power compared to a continuous endogenous regressor.
+
+The true parameter values are: \code{mu =1} (intercept), \code{alpha1 = -1} (\code{P1}), \code{alpha2 = 1}(\code{P2}, per ordered level),
+\code{beta1 =2} (\code{X1}), \code{beta2 = 0.5}(\code{X2}) and \code{beta3 = 1} (\code{X3}, per ordered level)
+}
+\note{
+Both \code{P1_cop} and \code{P2_cop} are statistically significant, confirming endogeneity of both
+regressors. The quadratic contrast \code{P2.Q} may show a small but significant coefficient even though
+the true relationship is linear in the ordered levels — this is an expected behaviour of the augmented
+regression separating the structural \code{P2} coefficients from the discrete correction term
+at stronger endogeneity levels (\eqn{\rho = 0.7}).
 }
 \author{
 Kimberly Lew \email{kimberlylew12@gmail.com}

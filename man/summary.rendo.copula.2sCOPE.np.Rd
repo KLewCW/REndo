@@ -31,6 +31,12 @@ columns:
 \item{Lambda}{Discrete variables only (\code{ordered}/\code{unordered}): The estimated bandwidth.}
 \item{Lambda Max}{Discrete variables only: The maximum possible value of \code{Lambda}.}
 }
+
+Small but significant quadratic (\code{P.Q}) or cubic (\code{P.C}) coefficients may
+appear for discrete ordered regressors under strong endogeneity. This is expected
+of the augmented regression separating structural coefficients from the correction term
+when the correction term takes few distinct values (one per ordered level). It does not indicate
+misspecification.
 }
 \seealso{
 \code{\link[np:npcdistbw]{np::npcdistbw}, \link{copula2sCOPEnp}}
