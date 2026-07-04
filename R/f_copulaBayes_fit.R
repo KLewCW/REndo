@@ -1,7 +1,6 @@
-#' @importFrom stats lm residuals var runif rnorm dnorm
-#' @importFrom mvtnorm rmvnorm dmvnorm
-#' @importFrom LaplacesDemon rinvwishart rdirichlet
-#' @importFrom invgamma rinvgamma
+#' @importFrom stats lm residuals var runif rnorm rgamma
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom MCMCpack riwish rdirichlet
 #'
 
 # MCMC sampler of the copula model from Appendix D
@@ -12,6 +11,9 @@
 # 3. Gibbs step for correlation matrix W (Appendix A W5, Wishart distribution)
 # 4. Gibbs step for Dirichlet masses lambda (Appendix W7)
 
+#Note: for steps one and 2 :  the MH (random walk) replaces the IWLS and Laplace proposals.
+#From MCMCpack, random walk and Hastings ratio have been used.
+
 #modification done from previous code because was a bit lost:
 # X has now been kept as a N x L matrix (when L =0, it has 0 columns, i.e., X %*% beta = 0 )
 
@@ -20,8 +22,8 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
 
   N <- length(y)
   K <- ncol(z)
-  L <- ncol(x) # 0 when no exogenous regressors are present
-  dim <- K + L + 1  #dimension of the copula correlation matrix
+  L <- ncol(x)
+  dim <- K + L + 1L  #copula dimension = K endogenous + L exogenous + error
 
 
   #building margin structures per regressor (from Appendix D step 2)
@@ -39,11 +41,11 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
   coef.ols <- coef(mod.ols)
 
   alpha.cur <- coef.ols["(Intercept)"]
-  delta.cur <- coef.ols[1 + seq_len(K)]
-  beta.cur <- if( L >0){
-    coef.ols[1 + K + seq_len(L)]
+  delta.cur <- coef.ols[1L + seq_len(K)]
+  beta.cur <- if( L >0L){
+    coef.ols[1L + K + seq_len(L)]
   } else {
-    numeric(0)
+    numeric(0L)
   }
 
   sigma2.cur <- var(residuals(mod.ols))
@@ -53,8 +55,8 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
   Phi.cur <- diag(dim)
 
   #initial lambda from Dir(1,...,1) are drawn
-  lambdaz.list <- lapply(mgz.list, function(mg) as.vector(LaplacesDemon::rdirichlet(1, rep(1, mg$m))))
-  lambdax.list <- lapply(mgx.list, function(mg) as.vector(LaplacesDemon::rdirichlet(1, rep(1, mg$m))))
+  lambdaz.list <- lapply(mgz.list, function(mg) as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m))))
+  lambdax.list <- lapply(mgx.list, function(mg) as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m))))
 
   #initial normal scores from the starting lambda
   # xi_{varpi, i} = Phi^{-1} (u_{varpi, i} (lambda_varpi)) from section 3.1 of Haschka 2025, page 522
@@ -68,52 +70,54 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
 
   # Chain storage: one row per iteration.
   # Column layout (fixed throughout)
-  n.rho <- dim * (dim - 1)/2
-  n.hyper <- 1 + K + L
+  n.rho <- dim * (dim - 1L)/2L
+  n.hyper <- 1L + K + L
+  n.coef <- 1L + K + L  #alpha + delta+ beta
 
-  col.alpha <- 1 #intercept alpha
-  col.delta <- 1 + seq_len(K) #delta_1,...,delta_K (endo coefficients)
+  col.alpha <- 1L #intercept alpha
+  col.delta <- 1L + seq_len(K) #delta_1,...,delta_K (endo coefficients)
   col.beta <- if (L > 0 ){
-    1 + K + seq_len(L)
+    1L + K + seq_len(L)
   } else{ # exo coefficients beta_1,...,beta_L. Empty if L=0
-    integer (0)
+    integer (0L)
   }
 
-  col.sigma2 <- 1 + K + L + 1 #error variance sigma^2
+  col.sigma2 <- 1L + K + L + 1L #error variance sigma^2
 
   col.rho <- col.sigma2 + seq_len(n.rho) #upper triangle of Phi
 
-  col.sa <- tail(col.rho, 1) + 1 #'horseshoe' hyperprior variances for alpha
+  col.sa <- tail(col.rho, 1L) + 1L #'horseshoe' hyperprior variances for alpha
 
   col.sb.d <- col.sa + seq_len(K) #'horseshoe' hyperprior variances for delta_1,..., delta_K
 
-  col.sb.b <- if (L >0 ){ #'horseshoe' hyperprior variances for  beta_1,..,beta_L
+  col.sb.b <- if (L >0L ){ #'horseshoe' hyperprior variances for  beta_1,..,beta_L
     col.sa + K + seq_len(L)
   } else{
-    integer(0)
+    integer(0L)
   }
 
-  n.cols <- tail(col.rho, 1) + n.hyper
+  n.cols <- tail(col.rho, 1L) + n.hyper
 
-  chain <- matrix(NA_real_, nrow = num.iterations + 1 , ncol = n.cols)
+  chain <- matrix(NA_real_, nrow = num.iterations + 1L , ncol = n.cols)
 
   #Input first row with the starting values
-  chain[1, col.alpha] <- alpha.cur
-  chain[1, col.delta] <- delta.cur
-  if ( L > 0 ) chain[1, col.beta] <- beta.cur
-  chain [1, col.sigma2] <- sigma2.cur
-  chain[1, col.rho] <-copulaBayesMatrixtoVector(Phi.cur)
-  chain[1, col.sa] <- 1000
-  chain[1, col.sb.d] <- rep (1000, K)
-  if (L > 0 ) chain[1, col.sb.b] <- rep(1000, L)
+  chain[1L, col.alpha] <- alpha.cur
+  chain[1L, col.delta] <- delta.cur
+  if ( L > 0L ) chain[1L, col.beta] <- beta.cur
+  chain [1L, col.sigma2] <- sigma2.cur
+  chain[1L, col.rho] <-copulaBayesMatrixtoVector(Phi.cur)
+  chain[1L, col.sa] <- 1000
+  chain[1L, col.sb.d] <- rep (1000, K)
+  if (L > 0L ) chain[1L, col.sb.b] <- rep(1000, L)
 
   #MCMC loop
 
   for (i in seq_len(num.iterations)){
 
-    if (verbose && i %% 500 == 0){
-      message( "Iteration: ", i, " | alpha = ", round(chain[i, col.alpha], 3), " | delta[1] =",
-                round(chain[i, col.delta[1]], 3), " | sigma2 = ", round(chain[i, col.sigma2], 3))
+    if (verbose && i %% 500L == 0L){
+      message( "Iteration: ", i, " | alpha = ", round(chain[i, col.alpha], 3L), " | delta[1] =",
+                round(chain[i, col.delta[1L]], 3L), " | sigma2 = ", round(chain[i, col.sigma2], 3L),
+               " | accept rate = ", round(n.accepted/i, 2L))
     }
 
     #Retrieving current hyperprior variances from chain
@@ -122,135 +126,55 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
     sb.b.cur <- if (L >0){
       chain[i, col.sb.b]
     } else {
-      numeric(0)
+      numeric(0L)
     }
 
-    #pre computing precision amtrix quantities used in both MH steps
-    invPhi <- solve(Phi.cur)
-    A <- invPhi - diag(dim) #sigma^{-1} - I from eq. 3
-    invPhi33 <- invPhi[dim, dim] #(e,e) entry
+    #Step 1 and 2 of the iteration: random walk mH for alpha, delta, beta, log sigma^2
+    #Using the MCMCpack metropolis principle: propose, then evalute ratio and accept.
+    #Parameters are sampled jointly in the reparametrised space (log sigma^2) so that
+    #the proposal is unconstrained. Replaces the custom IWLS and Laplace proposals from
+    #the repository without any score computation.
 
+    theta.cur <- c(alpha.cur, delta.cur, beta.cur, log(sigma2.cur))
+    theta.prop <- theta.cur + rnorm(length(theta.cur), mean = 0, sd = tune)
 
-    #MH for (alpha, delta, beta) - IWLS proposal
-    #working weight M_I = 2/sigm^2 (W13 from Annex)
-    #sigma_prop = (sigma^2 / 2) * solve (X'X)
+    logpost.cur <- copulaBayeslogpostparam(theta.cur, Phi.cur, xi.z, xi.x, sa.cur, sb.d.cur, sb.b.cur, y, z, x, K, L)
+    logpost.prop <- copulaBayeslogpostparam(theta.prop, Phi.cur,xi.z, xi.x, sa.cur, sb.d.cur, sb.b.cur, y, z, x, K, L )
 
+    log.mh <- logpost.prop - logpost.cur
+    if(!is.finite(log.mh)) log.mh <- -Inf
 
-    #MH step for alpha, delta and beta
-    #From appendix D algorithm 2nd step
-
-
-    e.cur <- y - alpha.cur - z %*% delta.cur - x %*% beta.cur
-
-    #Score vecotr from W11
-    nu.I <- copulaBayesScoreEta(A, xi.z, xi.x, e.cur, sigma2.cur, dim)
-
-    #Design matrix X = (1, z, x)
-    XX.aug <- cbind(1, z, x)
-    sigma.prop <- (sigma2.cur/2) * solve(crossprod(XX.aug))
-    sigma.prop <- (sigma.prop + t (sigma.prop))/2
-
-    coef.cur <- c(alpha.cur, delta.cur, beta.cur)
-    mu.cur <- as.vector(coef.cur + sigma.prop %*% ( t (XX.aug) %*% nu.I))
-    coef.prop <- as.vector (mvtnorm::rmvnorm(1, mu.cur, sigma.prop))
-
-    alpha.prop <- coef.prop[1]
-    delta.prop <- coef.prop[1 + seq_len(K)]
-    beta.prop <- if (L > 0) coef.prop[1 + K + seq_len(L)] else numeric(0)
-
-    e.prop <- y - alpha.prop - z %*% delta.prop - x %*% beta.prop # reverse proposal mean (from the proposed values back to current)
-
-    nu.prop <- copulaBayesScoreEta( A, xi.z, xi.x, e.prop, sigma2.cur, dim)
-    mu.prop <- as.vector(coef.prop + sigma.prop %*% (t (XX.aug) %*% nu.prop))
-
-    #Log Hastings ratio= log q(cur|prop) - log q(prop|cur)
-    log.q.fwd <- mvtnorm :: dmvnorm(coef.prop, mu.cur, sigma.prop, log = TRUE)
-    log.q.rev <- mvtnorm::dmvnorm(coef.cur, mu.prop, sigma.prop, log = TRUE)
-
-    #log posterior at current anf proposed values
-    logpost.cur <- copulaBayeslogpost(alpha.cur, delta.cur, beta.cur, sigma2.cur, Phi.cur, xi.z, xi.x,
-                                      sa.cur, sb.d.cur, sb.b.cur, y, z, x)
-
-    logpost.prop <- copulaBayeslogpost(alpha.prop, delta.prop, beta.prop, sigma2.cur,
-                                       Phi.cur, xi.z, xi.x, sa.cur, sb.d.cur, sb.b.cur, y, z, x)
-
-    log.mh <- logpost.prop - logpost.cur + log.q.rev - log.q.fwd #MH acceptance step
-
-    if ( !is.finite(log.mh)) log.mh <- - Inf
-
-    if (log(runif(1)) < log.mh){
-      alpha.cur <- alpha.prop
-      delta.cur <- delta.prop
-      beta.cur <- beta.prop
+    if(log(runif(1L)) < log.mh){
+      theta.cur <- theta.prop
+      n.acccepted <- n.accepted + 1L
     }
 
-    chain[i + 1, col.alpha] <- alpha.cur
-    chain [i + 1, col.delta ] <- delta.cur
+    alpha.cur  <- theta.cur[1L]
+    delta.cur  <- theta.cur[seq(2L, 1L + K)]
+    beta.cur   <- if (L > 0L) theta.cur[seq(2L + K, 1L + K + L)] else numeric(0L)
+    sigma2.cur <- exp(theta.cur[1L + K + L + 1L])
 
-    if ( L > 0) chain[i +1, col.beta] <- beta.cur
+    chain[i + 1L, col.alpha]  <- alpha.cur
+    chain[i + 1L, col.delta]  <- delta.cur
+    if (L > 0L) chain[i + 1L, col.beta] <- beta.cur
+    chain[i + 1L, col.sigma2] <- sigma2.cur
 
-    #MH for log(sigma^2 ) - Laplace proposal
+    #tuning every 50 iterations (Robbins-Monro)
+    if (i %% 50L == 0L) {
+      rate <- n.accepted / i
+      if (rate < 0.20) tune <- tune * 0.9
+      if (rate > 0.40) tune <- tune * 1.1
+    }
 
+    #Step 3: the Gibbs for copula correction matrix W (appendix A W5)
     e.cur <- y - alpha.cur - z %*% delta.cur - x %*% beta.cur
-    sc.cur <- copulaBayesScorelogsigma2(A, invPhi33, xi.z, xi.x, e.cur, sigma2.cur)
+    xi.e <- pmin(pmax(qnorm(pnorm(as.vector(e.cur) /sqrt(sigma2.cur))), -8), 8)
+    xi.all <- cbind(xi.z, xi.x, xi.e)
 
-    tau.cur <- log(sigma2.cur)
-    P.cur <- if (sc.cur$f2 < 0 ) - 1/sc.cur$f2 else 1.0
-    mu.tau <- P.cur * sc.cur$Score + tau.cur
-
-    tau.new <- rnorm(1, mu.tau, sqrt(P.cur))
-    sig2.new <- exp(tau.new)
-
-    sc.new <- copulaBayesScorelogsigma2(A, invPhi33, xi.z, xi.x, e.cur, sig2.new) #reverse proposal from new back to current
-    #evalutaed at sig2.new
-
-    P.new <- if (sc.new$f2 < 0 ) -1/sc.new$f2 else 1.0
-    mu.new.t <- P.new * sc.new$Score + tau.new
-
-    q.ratio <- dnorm(tau.cur, mu.new.t, sqrt(P.new), log = TRUE) -
-      dnorm(tau.new, mu.tau, sqrt(P.cur), log = TRUE)
-
-    logpost.cur2 <- copulaBayeslogpost(alpha.cur, delta.cur, beta.cur,
-                                    sigma2.cur, Phi.cur, xi.z, xi.x,
-                                    sa.cur, sb.d.cur, sb.b.cur, y, z, x)
-    logpost.new2 <- copulaBayeslogpost(alpha.cur, delta.cur, beta.cur,
-                                    sig2.new, Phi.cur, xi.z, xi.x,
-                                    sa.cur, sb.d.cur, sb.b.cur, y, z, x)
-
-    log.mh.s <- logpost.new2 - logpost.cur2 + q.ratio
-    if (!is.finite(log.mh.s)) log.mh.s <- -Inf
-
-    if (log(runif(1)) < log.mh.s) sigma2.cur <- sig2.new
-    chain[i+1, col.sigma2] <- sigma2.cur
-
-
-    # Gibbs for W (Appendix A, W5)
-    #W has na inverse Wishart prior from eq. 8 and the likelihood (W1 to W3 from appendix A) also
-    #has a Wishart shape.
-    # W | A ~ W^{-1}(sum(xi_i xi_i') + I, N + K+L+1)
-
-    #Gibbs step draw directly from the exact full conditional. Afterwards, it is converted to a correlation
-    #matrix Phi (from Appendix A) Cholesky factorisation.
-
-    #exogeneiy restriction will also be enforced by setting Phi[x_l, e] = 0 for all l-x uncorrelated with e (from Haschka section 3, page 523)
-
-    e.cur2  <- y - alpha.cur - z %*% delta.cur - x %*% beta.cur
-
-    #normal score of standardised error. The last element of the xi vector
-    xi.e    <- qnorm(pnorm(as.vector(e.cur2) / sqrt(sigma2.cur)))
-    xi.e    <- pmin(pmax(xi.e, -8), 8)
-
-    #stacking all normal scores and ordering
-    xi.all  <- cbind(xi.z,xi.x , matrix(xi.e, N, 1))
-
-    W.new    <- LaplacesDemon::rinvwishart( #inverse Wishart from W5 Appendix A
-      nu = N + dim,
-      S  = diag(dim) + crossprod(xi.all)
-    )
-    #coverting covatiance W to correlation Phi
-    sds      <- sqrt(diag(W.new))
-    D.inv    <- diag(1 / sds)
-    Phi.cur  <- D.inv %*% W.new %*% D.inv
+    W.new <- MCMCpack::riwish(N + dim, diag(dim) + crossprod(xi.all))
+    sds <- sqrt(diag(W.new))
+    D.inv <- diag(1/sds)
+    Phi.cur <- D.inv %*% W.new %*% D.inv
 
     # Enforce exogeneity
     for (l in seq_len(L)) {
@@ -258,41 +182,35 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
       Phi.cur[dim, K + l] <- 0
     }
 
-    chain[i +1, col.rho] <- copulaBayesMatrixtoVector(Phi.cur)
+    chain[i + 1L , col.rho] <- copulaBayesMatrixtoVector(Phi.cur)
 
+    #Step 4: Gibbs for Dirichlet masses lambda (Appendix B W7)
+    #Drawing correlated normals from current phi, then copulaBayesDrawLambda updates
+    #each variable's mass vector
 
-    #  Gibbs for Dirichlet masses lambda (Appendix B)
-
-    epsilon <- mvtnorm::rmvnorm(N, mean = rep(0, dim), sigma = Phi.cur)
+    eps <- mvtnorm::rmvnorm(N,mean = rep(0,dim), sigma = Phi.cur)
 
     for (k in seq_len(K)) {
-      lambdaz.list[[k]] <- copulaBayesDrawLambda(pnorm(epsilon[, k]),
-                                                mgz.list[[k]])
-      xi.z[, k]      <- copulaBayesConverter(lambdaz.list[[k]],
-                                                   mgz.list[[k]])
+      lambdaz.list[[k]] <- copulaBayesDrawLambda(pnorm(eps[, k]),mgz.list[[k]])
+      xi.z[, k] <- copulaBayesConverter(lambdaz.list[[k]],mgz.list[[k]])
     }
-
     for (l in seq_len(L)) {
-        lambdax.list[[l]] <- copulaBayesDrawLambda(pnorm(epsilon[, K + l]),
-                                                  mgx.list[[l]])
-        xi.x[, l]      <- copulaBayesConverter(lambdax.list[[l]],
-                                                     mgx.list[[l]])
+      lambdax.list[[l]] <- copulaBayesDrawLambda(pnorm(eps[, K + l]), mgx.list[[l]])
+      xi.x[, l] <- copulaBayesConverter(lambdax.list[[l]], mgx.list[[l]])
     }
 
+    #'Horseshoe hyperprior updates (From equation 5 of Haschka 2025)
 
-    # Horseshoe hyperprior updates (eq. 5)
+    chain[i + 1L, col.sa] <- 1 / rgamma(1L, shape = 0.501, rate = (alpha.cur^2 + 0.002) / 2)
 
-    chain[i+1, col.sa] <- invgamma::rinvgamma(
-      1, shape = 0.501, rate = (alpha.cur^2 + 0.002) / 2)
-
-    for (k in seq_len(K))
-      chain[i+1, col.sb.d[k]] <- invgamma::rinvgamma(
-        1, shape = 0.501, rate = (delta.cur[k]^2 + 0.002) / 2)
-
-    if (L > 0)
-      for (l in seq_len(L))
-        chain[i+1, col.sb.b[l]] <- invgamma::rinvgamma(
-          1, shape = 0.501, rate = (beta.cur[l]^2 + 0.002) / 2)
+    for (k in seq_len(K)) {
+      chain[i + 1L, col.sb.d[k]] <- 1 / rgamma(1L, shape = 0.501, rate = (delta.cur[k]^2 + 0.002) / 2)
+    }
+    if (L > 0L) {
+      for (l in seq_len(L)) {
+        chain[i + 1L, col.sb.b[l]] <- 1 / rgamma(1L, shape = 0.501, rate = (beta.cur[l]^2 + 0.002) / 2)
+      }
+    }
 
   }
 
