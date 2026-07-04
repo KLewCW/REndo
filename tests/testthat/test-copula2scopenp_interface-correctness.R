@@ -19,12 +19,25 @@ check_labelled_consistently <- function(res) {
   expect_equal(length(res$labels.pcop), length(res$labels.endo))
   # one bw per endo, named after endo
   expect_setequal(names(res$bws), res$labels.endo)
-  # one bandwidth per endo, named after the endogenous terms
-  expect_setequal(names(res$bws), res$labels.endo)
 
-  # all names of main coefs preserved
+  # all names of main coefs preserved (numeric, factors, ordered)
   labels.structural <- c(res$labels.exo, res$labels.endo)
-  expect_true(all(labels.structural %in% names(coef(res))))
+  cf.names <- names(coef(res))
+  # check each label separately
+  for (l in labels.structural) {
+    expect_true(
+      # fmt: skip
+      any(
+        # continuous: plain name
+        cf.names == l |
+        # ordered: <name>.<L/Q/C>
+        startsWith(cf.names, paste0(l, ".")) |
+        # factor: <name><level>
+        (startsWith(cf.names, l) & cf.names != l)),
+      info = l
+    )
+  }
+
   # coefs in summary named same as coefs
   expect_setequal(rownames(coef(summary(res))), names(coef(res)))
 }
@@ -97,7 +110,8 @@ test_that("Formula edge cases: Label & residuals correct", {
       data = data.cont.pos
     ),
     "multiple endo with backtick" = list(
-      formula = y ~ `P 1` + P2 + X1 + X2 | `P 1` + P2,
+      # continuous variable only: X1,X2,P1 to run faster
+      formula = y ~ X1 + X2 + `P 1` | X2 + `P 1`,
       data = df.multi.bt
     )
   )
@@ -117,6 +131,48 @@ test_that("Internals have correct shape", {
   expect_length(residuals(res), n)
   expect_equal(rownames(vcov(res)), names(coef(res)))
   expect_equal(colnames(vcov(res)), names(coef(res)))
+})
+
+
+test_that("Ordered and factors in endo / exo", {
+  # Also check if formula can make ordered and factor
+  df.small <- dataCopula2sCOPEnpMulti[1:250, ]
+  df.small$P2.char <- as.character(df.small$P2)
+  df.small$X3.char <- as.character(df.small$X3)
+
+  # fmt: skip
+  res <- fit_2scopenp_fast(
+    formula = y ~ P1 + ordered(P2.char) + X1 + X2 + factor(X3.char) | P1 + ordered(P2.char),
+    npcdistbw.args = list(nmulti = 1, tol = 1, ftol = 1),
+    data = df.small
+  )
+  check_labelled_consistently(res)
+  check_struct_residuals(res = res, aux.names = res$labels.pcop)
+
+  # correct param names
+  expect_named(
+    coef(res),
+    expected = c(
+      "(Intercept)",
+      "X1",
+      "X2",
+      "factor(X3.char)low",
+      "factor(X3.char)medium",
+      "P1",
+      "ordered(P2.char).L",
+      "ordered(P2.char).Q",
+      "ordered(P2.char).C",
+      "P1_cop",
+      "`ordered(P2.char)_cop`"
+    ),
+    ignore.order = TRUE
+  )
+
+  # made to correct type
+  res.s <- summary(res)
+  df.table <- res.s$bws.summaries[[2]]$bandwidths
+  expect_true(df.table[df.table$name == "ordered(P2.char)", "type"] == "ordered")
+  expect_true(df.table[df.table$name == "factor(X3.char)", "type"] == "unordered")
 })
 
 
@@ -144,7 +200,7 @@ test_that("Parameter bws is used as-is", {
   expect_false(isTRUE(all.equal(coef(res.perturbed), coef(res1))))
 })
 
-# Params recoveret ------------------------------------------------------------------
+# Params recovery ------------------------------------------------------------------
 
 test_that("Recovery: Continuous endo (dataCopula2sCOPEnpCont)", {
   skip_on_cran()
@@ -169,12 +225,20 @@ test_that("Recovery: Binary enod (dataCopula2sCOPEnpCont)", {
 test_that("Recovery: multiple endo (dataCopula2sCOPEnpMulti)", {
   skip_on_cran()
   res <- fit_2scopenp_defaults(
-    formula = y ~ P1 + P2 + X1 + X2 | P1 + P2,
+    formula = y ~ . | P1 + P2,
     data = dataCopula2sCOPEnpMulti,
     npcdistbw.args = list(nmulti = 1)
   )
+  # check continuous numeric params only
   check_param_recovery(
     res = res,
-    true_vals = c("(Intercept)" = 1, P1 = 1, P2 = 1, X1 = 2, X2 = -1)
+    true_vals = c("(Intercept)" = 1, P1 = -1, X1 = 2, X2 = 0.5)
   )
+
+  # check expanded factors
+  coefs <- coef(res)
+  expect_true(all(c("P2.L", "P2.Q", "P2.C") %in% names(coefs)))
+  expect_true(all(c("X3.L", "X3.Q") %in% names(coefs)))
+  expect_true(coefs["P2.L"] > 0)
+  expect_true(coefs["X3.L"] > 0)
 })

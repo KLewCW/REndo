@@ -54,9 +54,14 @@ test_that("works with backticked variable names", {
 })
 
 test_that("works with multiple endo terms", {
-  res <- fit_2scopenp_fast(formula = y ~ . | P1 + P2, data = dataCopula2sCOPEnpMulti)
+  # only dataCopula2sCOPEnpMulti has >2 regressors
+  # done use ordered factor columns because too slow
+  res <- fit_2scopenp_fast(
+    formula = y ~ X1 + X2 + P1 | P1 + X2,
+    data = dataCopula2sCOPEnpMulti
+  )
   check_clean_fit(res)
-  expect_named(res$bws, c("P1", "P2"))
+  expect_named(res$bws, c("P1", "X2"))
 })
 
 
@@ -64,6 +69,19 @@ test_that("works with multiple endo terms", {
 test_that("works with a discrete endo", {
   res <- fit_2scopenp_fast(formula = y ~ P + X | P, data = dataCopula2sCOPEnpBi)
   check_clean_fit(res)
+})
+
+# Factor data -------------------------------------------------------------------------
+test_that("works with ordered factors in in endo and exo", {
+  res <- fit_2scopenp_fast(
+    formula = y ~ P1 + P2 + X1 + X2 + X3 | P1 + P2,
+    data = dataCopula2sCOPEnpMulti[1:250, ],
+    # cannot run with heuristic
+    npcdistbw.args = list(nmulti=1, tol=1, ftol=1)
+  )
+  check_clean_fit(res)
+  expect_no_error(capture_output(print(res)))
+  expect_no_error(capture_output(print(summary(res))))
 })
 
 
@@ -131,4 +149,3 @@ test_that("verbose works", {
     fit_2scopenp_fast(formula = y ~ P + X | P, data = dataCopula2sCOPEnpCont)
   )
 })
-
