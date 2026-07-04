@@ -1,11 +1,11 @@
 #' Summarizing Nonparametric 2sCOPE Model Fits
 #'
-#' @param object an object of class \code{rendo.copula.2sCOPE.np}, a result of a call to \code{copula2sCOPEnp}.
+#' @param object an object of class \code{rendo.copula.2scope.np}, a result of a call to \code{copula2sCOPEnp}.
 #' @param ... ignored
 #'
 #' @description
 #'
-#' \code{summary} method for a model of class \code{rendo.copula.2sCOPE.np} resulting
+#' \code{summary} method for a model of class \code{rendo.copula.2scope.np} resulting
 #' from fitting \code{copula2sCOPEnp()}.
 #'
 #' @details
@@ -35,7 +35,7 @@
 #' @seealso \code{\link[np:npcdistbw]{np::npcdistbw}, \link{copula2sCOPEnp}}
 #'
 #' @export
-summary.rendo.copula.2sCOPE.np <- function(object, ...) {
+summary.rendo.copula.2scope.np <- function(object, ...) {
   # Get the summary from the parent class ------------------------------------
   res <- NextMethod()
 
@@ -43,18 +43,18 @@ summary.rendo.copula.2sCOPE.np <- function(object, ...) {
   res$bws.summaries <- lapply(
     X = object$labels.endo,
     FUN = function(endo.i) {
-      return(copula2sCOPEnp_summary_condbw(object = object, endo.label = endo.i))
+      return(copula2scopenp_summary_condbw(object = object, endo.label = endo.i))
     }
   )
 
   # Keep all the inherited summary classes from to use their print functions
-  class(res) <- c("summary.rendo.copula.2sCOPE.np", class(res))
+  class(res) <- c("summary.rendo.copula.2scope.np", class(res))
   return(res)
 }
 
 
 #' @export
-print.summary.rendo.copula.2sCOPE.np <- function(
+print.summary.rendo.copula.2scope.np <- function(
   x,
   digits = max(3L, getOption("digits") - 3L),
   signif.stars = getOption("show.signif.stars"),
@@ -92,7 +92,7 @@ print.summary.rendo.copula.2sCOPE.np <- function(
   # per-endo blocks
   for (b in blocks) {
     cat(ruler, "\n", sep = "")
-    copula2sCOPEnp_print_condbw(block = b, print.meta = !all.same, digits = digits, ...)
+    copula2scopenp_print_condbw(block = b, print.meta = !all.same, digits = digits, ...)
     cat("\n")
   }
 
@@ -102,7 +102,7 @@ print.summary.rendo.copula.2sCOPE.np <- function(
 
 # Collect bw data for summary print (for single endo)
 #' @importFrom stats formula
-copula2sCOPEnp_summary_condbw <- function(object, endo.label) {
+copula2scopenp_summary_condbw <- function(object, endo.label) {
   bw <- object$bws[[endo.label]]
   mf <- object$first.stage.frames[[endo.label]]
 
@@ -189,7 +189,7 @@ copula2sCOPEnp_summary_condbw <- function(object, endo.label) {
 }
 
 
-copula2sCOPEnp_print_condbw <- function(
+copula2scopenp_print_condbw <- function(
   block,
   print.meta = TRUE,
   digits = max(3L, getOption("digits") - 3L),

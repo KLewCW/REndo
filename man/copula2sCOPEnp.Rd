@@ -36,7 +36,7 @@ used for standard error estimation. A minimum of 1000 is recommended.}
 \item{verbose}{Show details about the running of the function.}
 }
 \value{
-An object of class \code{rendo.copula.2sCOPE.np} which is a list that contains:
+An object of class \code{rendo.copula.2scope.np} which is a list that contains:
 \item{\code{formula}}{The formula given to specify the fitted model.}
 \item{\code{model}}{The model.frame used for model fitting.}
 \item{\code{terms}}{The terms object used for model fitting.}
@@ -342,7 +342,7 @@ Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np packag
 \doi{10.18637/jss.v027.i05}
 }
 \seealso{
-\code{\link[REndo:summary.rendo.copula.2sCOPE.np]{summary}}
+\code{\link[REndo:summary.rendo.copula.2scope.np]{summary}}
 
 \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
 \code{npcdistbw.args}.

@@ -1,7 +1,7 @@
 #' @importFrom Formula as.Formula
 #' @importFrom stats lm model.frame reformulate update qnorm
 #' @importFrom np npcdist
-copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, verbose) {
+copula2scopenp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, verbose) {
   #conditional CDF smooths the discrete distribution through X
 
   # First stage: conditional CDF ----------------------------------------------------
@@ -142,7 +142,7 @@ copula2sCOPEnp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
 #Then the normal quantile transformation is applied to get the copula correction term
 #' @importFrom stats model.frame model.matrix
 #' @importFrom np npcdistbw npcdist
-copula2sCOPEnp_bandwidth <- function(
+copula2scopenp_bandwidth <- function(
   data,
   bws,
   npcdistbw.args,

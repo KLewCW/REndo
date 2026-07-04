@@ -154,7 +154,7 @@
 #' @eval doc_rendocopula2scopenp_return()
 #'
 #' @family copula-based methods
-#' @seealso \code{\link[REndo:summary.rendo.copula.2sCOPE.np]{summary}}
+#' @seealso \code{\link[REndo:summary.rendo.copula.2scope.np]{summary}}
 #' @seealso \code{\link[np:npcdistbw]{npcdistbw}} for possible elements of parameter
 #'  \code{npcdistbw.args}.
 #'
@@ -339,7 +339,7 @@ copula2sCOPEnp <- function(
   # precomputing the bws once on original data for bootstrap reuse
   # bws estimates are consistent and sampling variability has negligible effect
   # on the bootstrap distribution of the structural coefficients
-  bws <- copula2sCOPEnp_bandwidth(
+  bws <- copula2scopenp_bandwidth(
     data = data,
     labels.exo = labels.exo,
     labels.endo = labels.endo,
@@ -349,11 +349,11 @@ copula2sCOPEnp <- function(
   )
 
   # TODO: warn if itnmax was hit or bws are at search boundaries (lower bound for
-  #   continuous, or lambda at its max). Warn here and not in copula2sCOPEnp_bandwidth
+  #   continuous, or lambda at its max). Warn here and not in copula2scopenp_bandwidth
   #   because should also check the user-given bws
   # TODO: warn if the fit diagnostics of the bandwidths are bad?
 
-  fit <- copula2sCOPEnp_fit(
+  fit <- copula2scopenp_fit(
     F.formula = F.formula,
     data = data,
     labels.exo = labels.exo,
@@ -365,7 +365,7 @@ copula2sCOPEnp <- function(
   # Bootstrapping -------------------------------------------------------------------
 
   fn.fit.boots <- function(data.b) {
-    fit.b <- copula2sCOPEnp_fit(
+    fit.b <- copula2scopenp_fit(
       F.formula = F.formula,
       data = data.b,
       labels.exo = labels.exo,
@@ -393,7 +393,7 @@ copula2sCOPEnp <- function(
 
   # Return object ----------------------------------------------------------------------
 
-  return(new_rendo_copula2sCOPEnp(
+  return(new_rendo_copula2scopenp(
     call = cl,
     F.formula = F.formula,
     res.lm.augmented = fit$res.augmented,
