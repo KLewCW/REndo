@@ -233,9 +233,14 @@ test_that("Recovery: multiple endo (dataCopula2sCOPEnpMulti)", {
     verbose = FALSE
   )
   # check continuous numeric params only
+  # Kimberly: "The intercept absorbs the mean contribution from P2 and X3 (the 2 ordered factors).
+  # P2 levels coded: 1, 2,3 and 4 would give a mean of around 2.5 and X3 levels
+  # coded 1, 2 and 3 would give a mean of around 2, the expected intercept shift would
+  # approximately be alpha2 * mean(P2_n) + beta3 * mean(X3_n) = 1 *2.5 + 1 *2 = 4.5,
+  # which would then be added to the true parameter of the intercept (1)"
   check_param_recovery(
     res = res,
-    true_vals = c("(Intercept)" = 1, P1 = -1, X1 = 2, X2 = 0.5)
+    true_vals = c("(Intercept)" = 1+4.5, P1 = -1, X1 = 2, X2 = 0.5)
   )
 
   # check expanded factors
