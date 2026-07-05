@@ -19,7 +19,7 @@ copula2sCOPE(
 
 \item{cdf}{Character string specifying the method used to estimate the
   marginal distribution functions of the endogenous regressors.
-  One of \code{"adj.ecdf"}, \code{"resc.ecdf"}, \code{"ecdf"}, or \code{"kde"}.
+  One of the following:
 \describe{
     \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction
       (Liengaard et al., 2024). Keeps values strictly inside (0,1).}
@@ -215,6 +215,7 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \seealso{
 Other copula-based methods:
 \code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaBMW]{copulaBMW()}},
 \code{\link[=copulaCorrection]{copulaCorrection()}},
 \code{\link[=copulaIMA]{copulaIMA()}}
 }

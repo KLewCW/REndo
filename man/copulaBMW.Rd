@@ -19,7 +19,7 @@ copulaBMW(
 
 \item{cdf}{Character string specifying the method used to estimate the
   marginal distribution functions of the endogenous regressors.
-  One of \code{"adj.ecdf"}, \code{"resc.ecdf"}, \code{"ecdf"}, or \code{"kde"}.
+  One of the following:
 \describe{
     \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction
       (Liengaard et al., 2024). Keeps values strictly inside (0,1).}
@@ -46,7 +46,8 @@ and the endogenous regressor error. The method also allows conditional
 heteroskedasticity of the structural error.
 }
 \details{
-\strong{Model}
+\subsection{Model}{
+
 Consider the structural regression with \eqn{K} endogenous regressors:
 
 \deqn{Y_i = \mu + \sum_{k=1}^{K} P_{i,k} \alpha_k + X_i' \beta + \varepsilon_i}
@@ -63,8 +64,9 @@ The endogenous variables and the error can be decomposed as:
 where \eqn{e_{i,k} \perp X_i}, \eqn{E[\xi_i | X_i, P_{i,k}] = 0},
 and \eqn{f_k(\cdot)} is a strictly monotone nonlinear function such
 that \eqn{f_k(e_{i,k}) \sim N(0,1)}.
+}
 
-\strong{Methodology}
+\subsection{Methodology}{
 
 The estimator is done in two steps:
 \enumerate{
@@ -75,14 +77,36 @@ variable space to obtain residuals \eqn{\hat{e}_{i,k} = P_{i,k} - \hat{\delta}_k
 regressors and estimate using ordinary least squares. Obtain:
 \deqn{Y_i = \mu + \sum_{k=1}^{K} P_{i,k} \alpha_k + X_i'\beta + \sum_{k=1}^{K} P^*_{i,k} \rho_k
 + \xi_i}
- where \eqn{\rho_k} is the coefficient of the correction term \eqn{P^*_{i,k}}.
+where \eqn{\rho_k} is the coefficient of the correction term \eqn{P^*_{i,k}}.
 
 }
 
 This method requires at least one exogenous regressor for the first-stage
 regression and supports only continuous regressors.
+}
 
-\strong{Note on the \code{cdf = "ecdf"}}
+\subsection{Important assumptions}{
+
+The method requires the following assumptions (Assumption A, Breitung et al. 2024):
+\enumerate{
+\item The endogenous regressor has a linear decomposition
+\eqn{P_k = \delta_k' X + e_k} where \eqn{e_k \perp X},
+\eqn{E[e_k] = 0}, \eqn{V[e_k] = \sigma^2_e > 0}, and \eqn{E[e_k^4] < \infty}.
+\item Conditions on the error:
+\itemize{
+\item (i) The error \eqn{e_k} has a differentiable CDF \eqn{F_e} that does not
+coincide with the normal distribution. This is the identification condition.
+\item (ii) The density \eqn{f_e} of \eqn{e} decays sufficiently fast at the tails.
+This is satisfied by distributions such as Gamma with shape parameter \eqn{\geq 2}
+or Chi-square with degrees of freedom \eqn{\geq 3}. It is a technical condition
+needed to control the estimation error of the normal scores from first-stage
+residuals.
+}
+}
+}
+
+\subsection{Note on the \code{cdf = "ecdf"}}{
+
 The \code{"ecdf"} option in \code{copulaBMW} implements the theoretical
 recommendation of Breitung et al. (2024), Equation (2.3):
 \deqn{\hat{F}(\hat{e}_i) = \frac{\text{rank}(\hat{e}_i)}{n+1}}
@@ -100,28 +124,17 @@ bias through their tail decay condition (Assumption A5).
 
 It is recommended to use \code{cdf = "adj.ecdf"} for the best finite-sample performance
 (Liengaard et al. 2025).
-
-\strong{Important assumptions}
-The method requires the following assumptions (Assumption A, Breitung et al. 2024):
-\enumerate{
-  \item The endogenous regressor has a linear
-        decomposition \eqn{P_k = \delta_k' X + e_k} where \eqn{e_k \perp X},
-        \eqn{E[e_k] = 0}, \eqn{V[e_k] = \sigma^2_e > 0}, and \eqn{E[e_k^4] < \infty}.
-  \item (i) The error \eqn{e_k} has a differentiable CDF \eqn{F_e} that does not
-        coincide with the normal distribution. This is the identification condition.
-        (ii) The density \eqn{f_e} of \eqn{e} decays sufficiently fast at the tails.
-        This is satisfied by distributions such as Gamma with shape parameter \eqn{\geq 2}
-        or Chi-square with degrees of freedom \eqn{\geq 3}. It is a technical condition
-        needed to control the estimation error of the normal scores from first-stage
-        residuals.
 }
 
-\strong{Forumla interface}
-The \code{formula} is separated in two by a \code{|}. The first part is the structural model.
-The second part identifies the continuous endogenous regressors using \code{continuous()}
+\subsection{Parameter \code{formula}}{
 
-\preformatted{y ~ X + P | continuous(P)                  #one endogenous regressor}
-\preformatted{y ~ X + P1 + P2 | continuous(P1) + continuous(P2) #two endogenous regressors}
+The \code{formula} argument follows a two part notation separated by \code{|}.
+The first part specifies the structural model (e.g \code{y ~ X + P}).
+The second part identifies the continuous endogenous regressors:
+
+\preformatted{y ~ X + P | P                       # endogenous P}
+\preformatted{y ~ X + P1 + log(P2) | P1 + log(P2) # multiple endogenous regressors}
+}
 
 \subsection{Bootstrap inference}{
 Bootstrap inference is performed by resampling the data with replacement.
@@ -133,6 +146,7 @@ using only successful bootstrap replications.
 }
 }
 \examples{
+\donttest{
 #------------------------------------------------------------------------
 # Example 1: BMW DGP1 — single endogenous regressor, correlated with
 # exogenous regressor (Breitung, Meyer, Wied 2024, Section 4,
@@ -141,9 +155,9 @@ using only successful bootstrap replications.
 # n = 1000
 # True Paramaters: mu = 1 (intercept), beta = -1 (x), alpha = 1 (P).
 #------------------------------------------------------------------------
-#' data("dataCopBMW")
+data("dataCopBMW")
 res_bmw <- copulaBMW(
-  y ~ x + P | continuous(P),
+  y ~ x + P | P,
   data      = dataCopBMW,
   cdf       = "ecdf",
   num.boots = 1000
@@ -160,13 +174,13 @@ summary(res_bmw)
 #------------------------------------------------------------------------
 data("dataCopBMWMultiEndo")
 res_bmw_multi <- copulaBMW(
-  y ~ x + P1 + P2 | continuous(P1) + continuous(P2),
+  y ~ x + P1 + P2 | P1 + P2,
   data      = dataCopBMWMultiEndo,
   cdf       = "ecdf",
   num.boots = 1000
 )
 summary(res_bmw_multi)
-
+}
 
 }
 \references{
@@ -189,3 +203,15 @@ Qian, Y., Koschmann, A., and Xie, H. (2024). A practical guide to
 endogeneity correction using copulas. NBER Working Paper No. w32231.
 \doi{10.2139/ssrn.4754776}
 }
+\seealso{
+\code{\link[REndo:dataCopBMW]{dataCopBMW},
+\link[REndo:dataCopBMWMultiEndo]{dataCopBMWMultiEndo}} for detailed
+information about the simulated datasets
+
+Other copula-based methods:
+\code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaCorrection]{copulaCorrection()}},
+\code{\link[=copulaIMA]{copulaIMA()}}
+}
+\concept{copula-based methods}

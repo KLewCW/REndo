@@ -1,6 +1,6 @@
 #' @param cdf Character string specifying the method used to estimate the
 #'   marginal distribution functions of the endogenous regressors.
-#'   One of \code{"adj.ecdf"}, \code{"resc.ecdf"}, \code{"ecdf"}, or \code{"kde"}.
+#'   One of the following:
 #' \describe{
 #'     \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction
 #'       (Liengaard et al., 2024). Keeps values strictly inside (0,1).}

@@ -14,7 +14,8 @@
 #' @template template_param_numboots
 #'
 #' @details
-#' \strong{Model}
+#'
+#' ## Model
 #' Consider the structural regression with \eqn{K} endogenous regressors:
 #'
 #' \deqn{Y_i = \mu + \sum_{k=1}^{K} P_{i,k} \alpha_k + X_i' \beta + \varepsilon_i}
@@ -32,7 +33,7 @@
 #' and \eqn{f_k(\cdot)} is a strictly monotone nonlinear function such
 #' that \eqn{f_k(e_{i,k}) \sim N(0,1)}.
 #'
-#' \strong{Methodology}
+#' ## Methodology
 #'
 #' The estimator is done in two steps:
 #' \enumerate{
@@ -50,7 +51,23 @@
 #' This method requires at least one exogenous regressor for the first-stage
 #' regression and supports only continuous regressors.
 #'
-#' \strong{Note on the \code{cdf = "ecdf"}}
+#' ## Important assumptions
+#' The method requires the following assumptions (Assumption A, Breitung et al. 2024):
+#' 1. The endogenous regressor has a linear decomposition
+#' \eqn{P_k = \delta_k' X + e_k} where \eqn{e_k \perp X},
+#' \eqn{E[e_k] = 0}, \eqn{V[e_k] = \sigma^2_e > 0}, and \eqn{E[e_k^4] < \infty}.
+#'
+#' 2. Conditions on the error:
+#'
+#'    -  (i) The error \eqn{e_k} has a differentiable CDF \eqn{F_e} that does not
+#'       coincide with the normal distribution. This is the identification condition.
+#'    -  (ii) The density \eqn{f_e} of \eqn{e} decays sufficiently fast at the tails.
+#'       This is satisfied by distributions such as Gamma with shape parameter \eqn{\geq 2}
+#'       or Chi-square with degrees of freedom \eqn{\geq 3}. It is a technical condition
+#'       needed to control the estimation error of the normal scores from first-stage
+#'       residuals.
+#'
+#' ## Note on the \code{cdf = "ecdf"}
 #' The \code{"ecdf"} option in \code{copulaBMW} implements the theoretical
 #' recommendation of Breitung et al. (2024), Equation (2.3):
 #' \deqn{\hat{F}(\hat{e}_i) = \frac{\text{rank}(\hat{e}_i)}{n+1}}
@@ -69,27 +86,15 @@
 #' It is recommended to use \code{cdf = "adj.ecdf"} for the best finite-sample performance
 #' (Liengaard et al. 2025).
 #'
-#' \strong{Important assumptions}
-#' The method requires the following assumptions (Assumption A, Breitung et al. 2024):
-#' \enumerate{
-#'   \item The endogenous regressor has a linear
-#'         decomposition \eqn{P_k = \delta_k' X + e_k} where \eqn{e_k \perp X},
-#'         \eqn{E[e_k] = 0}, \eqn{V[e_k] = \sigma^2_e > 0}, and \eqn{E[e_k^4] < \infty}.
-#'   \item (i) The error \eqn{e_k} has a differentiable CDF \eqn{F_e} that does not
-#'         coincide with the normal distribution. This is the identification condition.
-#'         (ii) The density \eqn{f_e} of \eqn{e} decays sufficiently fast at the tails.
-#'         This is satisfied by distributions such as Gamma with shape parameter \eqn{\geq 2}
-#'         or Chi-square with degrees of freedom \eqn{\geq 3}. It is a technical condition
-#'         needed to control the estimation error of the normal scores from first-stage
-#'         residuals.
-#' }
 #'
-#' \strong{Forumla interface}
-#' The \code{formula} is separated in two by a \code{|}. The first part is the structural model.
-#' The second part identifies the continuous endogenous regressors using \code{continuous()}
+#' ## Parameter \code{formula}
+#' The \code{formula} argument follows a two part notation separated by \code{|}.
+#' The first part specifies the structural model (e.g \code{y ~ X + P}).
+#' The second part identifies the continuous endogenous regressors:
 #'
-#' \preformatted{y ~ X + P | continuous(P)                  #one endogenous regressor}
-#' \preformatted{y ~ X + P1 + P2 | continuous(P1) + continuous(P2) #two endogenous regressors}
+#' \preformatted{y ~ X + P | P                       # endogenous P}
+#' \preformatted{y ~ X + P1 + log(P2) | P1 + log(P2) # multiple endogenous regressors}
+#'
 #' @template template_text_details_bootsdegenerates
 #'
 #' @references
@@ -99,7 +104,14 @@
 #'
 #' @template template_param_cdf_references
 #'
+#' @family copula-based methods
+#'
+#' @seealso \code{\link[REndo:dataCopBMW]{dataCopBMW},
+#' \link[REndo:dataCopBMWMultiEndo]{dataCopBMWMultiEndo}} for detailed
+#' information about the simulated datasets
+#'
 #' @examples
+#' \donttest{
 #' #------------------------------------------------------------------------
 #' # Example 1: BMW DGP1 — single endogenous regressor, correlated with
 #' # exogenous regressor (Breitung, Meyer, Wied 2024, Section 4,
@@ -108,9 +120,9 @@
 #' # n = 1000
 #' # True Paramaters: mu = 1 (intercept), beta = -1 (x), alpha = 1 (P).
 #' #------------------------------------------------------------------------
-#' #' data("dataCopBMW")
+#' data("dataCopBMW")
 #' res_bmw <- copulaBMW(
-#'   y ~ x + P | continuous(P),
+#'   y ~ x + P | P,
 #'   data      = dataCopBMW,
 #'   cdf       = "ecdf",
 #'   num.boots = 1000
@@ -127,16 +139,19 @@
 #' #------------------------------------------------------------------------
 #' data("dataCopBMWMultiEndo")
 #' res_bmw_multi <- copulaBMW(
-#'   y ~ x + P1 + P2 | continuous(P1) + continuous(P2),
+#'   y ~ x + P1 + P2 | P1 + P2,
 #'   data      = dataCopBMWMultiEndo,
 #'   cdf       = "ecdf",
 #'   num.boots = 1000
 #' )
 #' summary(res_bmw_multi)
+#' }
 #'
-#'
+#' @md
 #' @export
-#' @importFrom stats coef
+#'
+#' @importFrom stats coef terms
+#' @importFrom Formula as.Formula
 copulaBMW <- function(
   formula,
   data,
