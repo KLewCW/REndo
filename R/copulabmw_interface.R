@@ -146,12 +146,12 @@ copulaBMW <- function(
 ) {
   cl <- match.call()
 
-  # check_err_msg(checkinput_copulaBMW_formula(formula))
-  # check_err_msg(checkinput_copulaBMW_data(data))
-  # check_err_msg(checkinput_copulaBMW_dataVSformula(data = data, formula = formula))
-  # check_err_msg(checkinput_copulaBMW_numboots(num.boots))
-  # check_err_msg(checkinput_copulaBMW_verbose(verbose))
-  # check_err_msg(checkinput_copulaBMW_cdf(cdf))
+  # check_err_msg(checkinput_copulabmw_formula(formula))
+  # check_err_msg(checkinput_copulabmw_data(data))
+  # check_err_msg(checkinput_copulabmw_dataVSformula(data = data, formula = formula))
+  # check_err_msg(checkinput_copulabmw_numboots(num.boots))
+  # check_err_msg(checkinput_copulabmw_verbose(verbose))
+  # check_err_msg(checkinput_copulabmw_cdf(cdf))
 
   cdf <- match.arg(cdf, choices = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"))
 
@@ -178,7 +178,7 @@ copulaBMW <- function(
     )
   }
 
-  fit <- copulaBMW_fit(
+  fit <- copulabmw_fit(
     F.formula = F.formula,
     data = data,
     labels.endo = labels.endo,
@@ -189,7 +189,7 @@ copulaBMW <- function(
   # Bootstrapping ----------------------------------------------------------------------
 
   fn.fit.boots <- function(data.b) {
-    fit.b <- copulaBMW_fit(
+    fit.b <- copulabmw_fit(
       F.formula = F.formula,
       data = data.b,
       labels.endo = labels.endo,
@@ -215,7 +215,7 @@ copulaBMW <- function(
 
   # Return object ----------------------------------------------------------------------
 
-  return(new_rendo_copulaBMW(
+  return(new_rendo_copulabmw(
     call = cl,
     F.formula = F.formula,
     res.lm.augmented = fit$res.augmented,

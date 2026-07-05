@@ -22,7 +22,7 @@ pobs_adj <- function(x) {
 #According to BMW(2024), they adopt a 'common practice' and rescale by n + 1
 # Recommendation from eq. 2.3
 #F hat_{e hat} (e hat_i) = rank (e hat_i)/(n+1)
-copulaBMW_ecdf <- function(x) {
+copulabmw_ecdf <- function(x) {
   n <- if (is.matrix(x)) nrow(x) else length(x)
 
   if (is.matrix(x)) {
@@ -37,7 +37,7 @@ copulaBMW_ecdf <- function(x) {
 #Apply CDF to the first-stage residuals (e hat)
 # Does not apply on the original regressors
 
-copulaBMW_pstar <- function(e.hat, cdf) {
+copulabmw_pstar <- function(e.hat, cdf) {
   if (!is.matrix(e.hat)) {
     e.hat <- matrix(e.hat, ncol = 1)
   }
@@ -57,7 +57,7 @@ copulaBMW_pstar <- function(e.hat, cdf) {
     #here we use rank/(n+1), so that no arbitary boundary constant is needed.
     #will still keep all the values strictly in (0,1)
 
-    P.star <- copulaBMW_ecdf(e.hat)
+    P.star <- copulabmw_ecdf(e.hat)
     P.star <- as.matrix(P.star)
     colnames(P.star) <- colnames(e.hat)
   }

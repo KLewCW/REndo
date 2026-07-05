@@ -1,5 +1,5 @@
 #' @importFrom stats lm reformulate
-copulaBMW_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
+copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
 
   # Stage 1 --------------------------------------------------------------------
   # BMW correction
@@ -40,7 +40,7 @@ copulaBMW_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
     # }
 
     #Apply CDF now, then qnorm to residuals e hat
-    P.star <- copulaBMW_pstar(e.hat = e.hat, cdf = cdf)
+    P.star <- copulabmw_pstar(e.hat = e.hat, cdf = cdf)
 
     #Apply qnorm from eq. 2.3, eta hat =  phi^{-1} (F hat_{e hat} (e hat))
     P.cop <- apply(P.star, 2, qnorm) #eta hat is P_cop
