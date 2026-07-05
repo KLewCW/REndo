@@ -275,7 +275,7 @@ canonical_colname <- function(lab) {
 # - warn about low cardinality (<=10) numeric variables
 #
 #' @importFrom stats model.frame na.fail .MFclass
-checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes) {
+checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes, warn.low.card) {
   # Expose build failures to user (bad transformations, generated NAs,...)
   mf <- tryCatch(
     # Making model.frame with rhs=1 also verifies that rhs=2 regressors are fine
@@ -310,25 +310,24 @@ checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes)
     }
   }
 
-  # # warn about low-cardinality numeric variables
-  # is.low.card <- sapply(mf, function(x){
-  #   # no NAs at this point
-  #   is.numeric(x) && length(unique(x)) <= 10
-  #   })
-  #
-  # if(any(is.low.card)){
-  #
-  #   low.card.vars <- names(which(is.low.card))
-  #
-  #   warning(
-  #     "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
-  #     toString(low.card.vars),
-  #     "\nTreating them as numeric instead of (ordered) factors may yield wrong results as the method depend on correctly classed data. ",
-  #     "Consider converting them with `factor()` or `ordered()`, if appropriate.",
-  #     call. = FALSE,
-  #     immediate. = TRUE
-  #   )
-  # }
+
+  # warn about low-cardinality numeric variables
+  if(warn.low.card){
+    is.low.card <- sapply(mf, function(x){
+      # no NAs at this point
+      is.numeric(x) && length(unique(x)) <= 10
+      })
+
+    if(any(is.low.card)){
+      low.card.vars <- names(which(is.low.card))
+      warning(
+        "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
+        toString(low.card.vars),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+    }
+  }
 
   return(err.msg)
 }

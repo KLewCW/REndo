@@ -93,7 +93,8 @@ checkinput_copula2scopenp_formula_data <- function(formula, data) {
   return(checkinput_copulashared_modelframe(
     F.formula = F.formula,
     data = data,
-    allowed.classes = allowed.classes
+    allowed.classes = allowed.classes,
+    warn.low.card = FALSE
   ))
 }
 

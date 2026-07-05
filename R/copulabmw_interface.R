@@ -161,29 +161,20 @@ copulaBMW <- function(
 ) {
   cl <- match.call()
 
-  # check_err_msg(checkinput_copulabmw_formula(formula))
-  # check_err_msg(checkinput_copulabmw_data(data))
-  # check_err_msg(checkinput_copulabmw_dataVSformula(data = data, formula = formula))
-  # check_err_msg(checkinput_copulabmw_numboots(num.boots))
-  # check_err_msg(checkinput_copulabmw_verbose(verbose))
-  # check_err_msg(checkinput_copulabmw_cdf(cdf))
+  #Input checks
+  allowed.cdfs <- c("ecdf", "adj.ecdf", "resc.ecdf", "kde")
+  check_err_msg(checkinput_copulashared_data_basics(data))
+  check_err_msg(checkinput_copulabmw_formula_data(formula = formula, data = data))
+  check_err_msg(checkinput_copulashared_cdf(cdf = cdf, allowed.cdf = allowed.cdfs))
+  check_err_msg(checkinput_copulashared_numboots(num.boots))
+  check_err_msg(checkinput_copulashared_verbose(verbose))
 
-  cdf <- match.arg(cdf, choices = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"))
+  cdf <- match.arg(cdf, choices = allowed.cdfs)
 
   F.formula <- as.Formula(formula)
   labels.main <- labels(terms(F.formula, data = data, rhs = 1))
   labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
   labels.exo <- labels.main[!(labels.main %in% labels.endo)]
-
-  #equation 2.2 & assumption A4
-  if (length(labels.endo) == 0) {
-    stop(
-      "No exogenous regressors were found. BMW method requires at least one",
-      "exogeous regressor for the first-stage regression of each endogenous regressor ",
-      "P on X.",
-      call. = FALSE
-    )
-  }
 
   if (verbose) {
     message(

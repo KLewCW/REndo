@@ -154,7 +154,8 @@ test_that("_modelframe fails on NAs, illegal classes", {
     expect_warning(checkinput_copulashared_modelframe(
       F.formula = as.Formula(y ~ log(x_num - 1000)),
       data = fixture_copula_df(),
-      allowed.classes = list("log(x_num - 1000)" = "numeric")
+      allowed.classes = list("log(x_num - 1000)" = "numeric"),
+      warn.low.card = FALSE
     )),
     regexp = "missing values"
   )
@@ -165,11 +166,13 @@ test_that("_modelframe fails on NAs, illegal classes", {
     cases = list(
       "NA already in data" = list(
         F.formula = as.Formula(y ~ x_na),
-        allowed.classes = list(x_na = "numeric")
+        allowed.classes = list(x_na = "numeric"),
+        warn.low.card = FALSE
       ),
       "given wrong class" = list(
         F.formula = as.Formula(y ~ x_fac),
-        allowed.classes = list(x_fac = "numeric")
+        allowed.classes = list(x_fac = "numeric"),
+        warn.low.card = FALSE
       )
     ),
     regexp = c(
@@ -179,17 +182,18 @@ test_that("_modelframe fails on NAs, illegal classes", {
   )
 })
 
-# test_that("_modelframe warns for low-cardinality numerics", {
-#   df <- fixture_copula_df()
-#   expect_warning(
-#     checkinput_copulashared_modelframe(
-#       F.formula = as.Formula(y ~ x_lowcard),
-#       data = df,
-#       allowed.classes = list(x_lowcard = "numeric")
-#     ),
-#     regexp = "low cardinality"
-#   )
-# })
+test_that("_modelframe warns for low-cardinality numerics", {
+  df <- fixture_copula_df()
+  expect_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_lowcard),
+      data = df,
+      allowed.classes = list(x_lowcard = "numeric"),
+      warn.low.card = TRUE
+    ),
+    regexp = "low cardinality"
+  )
+})
 
 test_that("_modelframe works for valid data", {
   expect_null(
@@ -202,7 +206,8 @@ test_that("_modelframe works for valid data", {
         "`x space`" = "numeric",
         x_fac = "factor",
         x_ord = "ordered"
-      )
+      ),
+      warn.low.card = TRUE
     )
   )
 })
