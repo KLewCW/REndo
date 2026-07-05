@@ -4,6 +4,9 @@ data("dataCopula2sCOPEnpCont")
 data("dataCopula2sCOPEnpBi")
 data("dataCopula2sCOPEnpMulti")
 
+# data from copulaCorrection for tests vs P&G
+data("dataCopCont")
+
 
 data.cont.pos <- local({
   df <- dataCopula2sCOPEnpCont
@@ -30,10 +33,11 @@ check_labelled_consistently <- function(res) {
       any(
         # continuous: plain name
         cf.names == l |
-        # ordered: <name>.<L/Q/C>
-        startsWith(cf.names, paste0(l, ".")) |
-        # factor: <name><level>
-        (startsWith(cf.names, l) & cf.names != l)),
+          # ordered: <name>.<L/Q/C>
+          startsWith(cf.names, paste0(l, ".")) |
+          # factor: <name><level>
+          (startsWith(cf.names, l) & cf.names != l)
+      ),
       info = l
     )
   }
@@ -65,7 +69,11 @@ test_that("Order in formula does not impact coefs", {
 })
 
 test_that("Dot yields same as explicitly specified regressors", {
-  res.dot <- fit_2scopenp_fast(formula = y ~ . | P, data = dataCopula2sCOPEnpCont)
+  res.dot <- fit_2scopenp_fast(
+    formula = y ~ . |
+      P,
+    data = dataCopula2sCOPEnpCont
+  )
   res.explicit <- fit_2scopenp_fast(
     formula = y ~ P + X | P,
     data = dataCopula2sCOPEnpCont
@@ -99,7 +107,11 @@ test_that("Formula edge cases: Label & residuals correct", {
 
   cases <- list(
     "plain" = list(formula = y ~ P + X | P, data = data.cont.pos),
-    "dot in rhs1" = list(formula = y ~ . | P, data = dataCopula2sCOPEnpCont),
+    "dot in rhs1" = list(
+      formula = y ~ . |
+        P,
+      data = dataCopula2sCOPEnpCont
+    ),
     "backticks in endo" = list(formula = y ~ `P 1` + X | `P 1`, data = df.bt),
     "backticks in exo" = list(
       formula = y ~ P + `X 1` | P,
@@ -142,8 +154,13 @@ test_that("Ordered and factors in endo / exo", {
 
   # fmt: skip
   res <- fit_2scopenp_fast(
-    formula = y ~ P1 + ordered(P2.char) + X1 + X2 + factor(X3.char) | P1 + ordered(P2.char),
-    npcdistbw.args = list(nmulti = 1, tol = 1, ftol = 1),
+    formula = y ~ P1 + ordered(P2.char) + X1 + X2 + factor(X3.char) |
+      P1 + ordered(P2.char),
+    npcdistbw.args = list(
+      nmulti = 1,
+      tol = 1,
+      ftol = 1
+    ),
     data = df.small
   )
   check_labelled_consistently(res)
@@ -200,6 +217,61 @@ test_that("Parameter bws is used as-is", {
   expect_false(isTRUE(all.equal(coef(res.perturbed), coef(res1))))
 })
 
+# Consistency with Park & Gupta ------------------------------------------------
+# When the endogenous regressor \eqn{P} is independent of all exogenous regressors \eqn{X},
+# the conditional CDF collapses to the marginal CDF, \eqn{\hat{F})(P|X) = \hat{F}(P)} and the
+# method then reduces to the Park and Gupta (2012) copula correction.
+
+run_parkgupta_equivalent <- function(formula.np, formula.pg, data, params.to.compare) {
+  res.np <- suppress_lowboots_warning(
+    copula2sCOPEnp(
+      formula = formula.np,
+      data = data,
+      npcdistbw.args = list(
+        nmulti = 1,
+        tol = 0.1,
+        ftol = 0.1
+      ),
+      verbose = FALSE,
+      num.boots = 100
+    )
+  )
+
+  res.cc <- suppress_lowboots_warning(copulaCorrection(
+    formula = formula.pg,
+    data = data,
+    verbose = FALSE,
+    num.boots = 2
+  ))
+
+  diff <- abs(coef(res.np)[params.to.compare] - coef(res.cc)[params.to.compare])
+  se <- sqrt(diag(vcov(res.np)))[params.to.compare]
+  expect_true(all(diff < 2 * se))
+}
+
+test_that("Collapses to P&G - single continuous", {
+  skip_on_cran()
+
+  run_parkgupta_equivalent(
+    formula.np = y ~ X1 + P | P,
+    formula.pg = y ~ X1 + P | continuous(P),
+    data = dataCopCont,
+    params.to.compare = c("(Intercept)", "X1", "P")
+  )
+})
+
+test_that("Collapses to P&G - single continuous, single discrete", {
+  skip_on_cran()
+
+  run_parkgupta_equivalent(
+    formula.np = y ~ X1 + X2 + P1 + P2 | P1 + P2,
+    formula.pg = y ~ X1 + X2 + P1 + P2 | discrete(P1) + continuous(P2),
+    data = dataCopDisCont,
+    # discrete P1 does not match and neither does intercept
+    params.to.compare = c("X1", "X2", "P2")
+  )
+})
+
 # Params recovery ------------------------------------------------------------------
 
 test_that("Recovery: Continuous endo (dataCopula2sCOPEnpCont)", {
@@ -229,7 +301,7 @@ test_that("Recovery: multiple endo (dataCopula2sCOPEnpMulti)", {
   res <- copula2sCOPEnp(
     formula = y ~ . | P1 + P2,
     data = dataCopula2sCOPEnpMulti,
-    npcdistbw.args = list(nmulti = 1, tol=0.1, ftol=0.1),
+    npcdistbw.args = list(nmulti = 1, tol=0.5, ftol=0.5),
     verbose = FALSE
   )
   # check continuous numeric params only

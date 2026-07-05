@@ -12,7 +12,7 @@ fit_2scopenp_fast <- function(
   npcdistbw.args = list(bwmethod = "normal-reference"),
   bws = NULL
 ) {
-  suppress_lowboots_warning(
+  return(suppress_lowboots_warning(
     copula2sCOPEnp(
       formula = formula,
       data = data,
@@ -21,7 +21,7 @@ fit_2scopenp_fast <- function(
       npcdistbw.args = npcdistbw.args,
       bws = bws
     )
-  )
+  ))
 }
 
 fit_2scopenp_defaults <- function(
@@ -32,7 +32,7 @@ fit_2scopenp_defaults <- function(
   npcdistbw.args = list(),
   bws = NULL
 ) {
-  suppress_lowboots_warning(
+  return(suppress_lowboots_warning(
     copula2sCOPEnp(
       formula = formula,
       data = data,
@@ -41,5 +41,5 @@ fit_2scopenp_defaults <- function(
       npcdistbw.args = npcdistbw.args,
       bws = bws
     )
-  )
+  ))
 }
