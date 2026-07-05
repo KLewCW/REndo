@@ -8,7 +8,7 @@ data("dataCopIMABinExo")
 # Works out of the box --------------------------------------------------------------
 # this also checks running with verbose=T
 test_that("Works out of the box", {
-  expect_no_failure(capture_output(
+  expect_no_error(capture_output(
     copulaIMA(
       formula = y ~ X + P - 1 | continuous(P),
       data = dataCopIMAContExo
@@ -54,16 +54,7 @@ specs <- list(
 cdfs <- c("adj.ecdf", "resc.ecdf", "ecdf", "kde")
 
 expect_no_error_ignore_boot_warn <- function(expr) {
-  expect_no_error(
-    withCallingHandlers(
-      expr,
-      warning = function(w) {
-        if (grepl("recommended to run 1000", conditionMessage(w))) {
-          invokeRestart("muffleWarning")
-        }
-      }
-    )
-  )
+  expect_no_error(suppress_lowboots_warning(expr))
 }
 
 # specs x cdf ----------------------------------------------------------------------

@@ -120,12 +120,14 @@ negligible for moderate sample sizes (around n >= 600). The estimator appears
 asymptotically unbiased.
 }
 
+\subsection{Bootstrap inference}{
 Bootstrap inference is performed by resampling the data with replacement.
 Degenerate bootstrap samples (e.g. singular design matrices or failed
 model estimation) are discarded and resampled until the requested number
 of valid bootstrap replications is obtained. The percentage of discarded
 samples is reported as a warning. Confidence intervals are computed
 using only successful bootstrap replications.
+}
 
 \subsection{Formula interface}{
 
@@ -220,8 +222,9 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \doi{10.2139/ssrn.4754776}
 }
 \seealso{
-Other copula-based methods: 
-\code{\link{copula2sCOPE}()},
-\code{\link{copulaCorrection}()}
+Other copula-based methods:
+\code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaCorrection]{copulaCorrection()}}
 }
 \concept{copula-based methods}
