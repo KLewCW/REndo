@@ -54,7 +54,10 @@ checkinput_copulabmw_formula_data <- function(formula, data) {
 
   #equation 2.2 & assumption A4
   if (length(exo.labels) == 0) {
-    err.msg <- c(err.msg,"At least one exogenous regressor is required for the first-stage regression of each endogenous regressor P on X.")
+    err.msg <- c(
+      err.msg,
+      "At least one exogenous regressor is required for the first-stage regression of each endogenous regressor P on X."
+    )
   }
 
   # Endo terms (RHS2) must also be in structural model (RHS1)
