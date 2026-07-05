@@ -8,7 +8,7 @@ data("dataCopIMABinExo")
 # Works out of the box --------------------------------------------------------------
 # this also checks running with verbose=T
 test_that("Works out of the box", {
-  expect_success(capture_output(
+  expect_no_error(capture_output(
     copulaIMA(
       formula = y ~ X + P - 1 | continuous(P),
       data = dataCopIMAContExo
