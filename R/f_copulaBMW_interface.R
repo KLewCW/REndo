@@ -1,7 +1,7 @@
 #' Copula-based Endogeneity Correction with Asymptotic properties (BMW)
 #'
 #' @description
-#' Fits a linear model with endogenous regressors by using the nonparametric
+#' Fits a linear model with continuous endogenous regressors by using the nonparametric
 #' control function approach of Breitung, Meyer and Wied (2024). This method
 #' corrects endogeneity without any external instrumental variables. It is a
 #' copula-based method with asymptotic theory. The method does not require a
@@ -155,65 +155,62 @@ copulaBMW <- function(
 
   cdf <- match.arg(cdf, choices = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"))
 
-  F.formula <- Formula::as.Formula(formula)
-  names.endo.regs <- formula_readout_special(
-    F.formula = F.formula,
-    name.special = "continuous",
-    from.rhs = 2,
-    params.as.chars.only = TRUE
-  )
+  F.formula <- as.Formula(formula)
+  labels.main <- labels(terms(F.formula, data = data, rhs = 1))
+  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+  labels.exo <- labels.main[!(labels.main %in% labels.endo)]
 
-  rhs1.vars <- all.vars(formula(F.formula, rhs = 1, lhs = 0))
-  exo.vars <- rhs1.vars[!rhs1.vars %in% names.endo.regs]
-
-  if (length(exo.vars) == 0) {
+  #equation 2.2 & assumption A4
+  if (length(labels.endo) == 0) {
     stop(
       "No exogenous regressors were found. BMW method requires at least one",
       "exogeous regressor for the first-stage regression of each endogenous regressor ",
       "P on X.",
       call. = FALSE
-    ) #equation 2.2 & assumption A4
+    )
   }
 
   if (verbose) {
     message(
       "Fitting BMW copula model with",
-      length(names.endo.regs),
-      "endogenous regressors."
+      length(labels.endo),
+      "endogenous regressor(s)."
     )
   }
 
   fit <- copulaBMW_fit(
     F.formula = F.formula,
     data = data,
-    names.endo.regs = names.endo.regs,
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
     cdf = cdf
   )
 
   # Bootstrapping ----------------------------------------------------------------------
 
   fn.fit.boots <- function(data.b) {
-    return(copulaBMW_fit(
+    fit.b <- copulaBMW_fit(
       F.formula = F.formula,
       data = data.b,
-      names.endo.regs = names.endo.regs,
+      labels.endo = labels.endo,
+      labels.exo = labels.exo,
       cdf = cdf
-    ))
+    )
+    return(fit.b$res.augmented)
   }
 
   res.boots <- bootstrap_skip_degenerates(
     fn.fit = fn.fit.boots,
     data = data,
     num.boots = num.boots,
-    coef.names = names(coef(fit)),
+    coef.names = names(coef(fit$res.augmented)),
     verbose = verbose
   )
 
   # Structural residuals --------------------------------------------------------------
-
   l.fitted.resid <- copula_compute_structural_fitted_residuals(
-    res.lm.aug = fit,
-    names.aux.regs = grep("_cop$", names(coef(fit)), value = TRUE)
+    res.lm.aug = fit$res.augmented,
+    names.aux.regs = fit$labels.pcop
   )
 
   # Return object ----------------------------------------------------------------------
@@ -221,13 +218,15 @@ copulaBMW <- function(
   return(new_rendo_copulaBMW(
     call = cl,
     F.formula = F.formula,
-    res.lm.augmented = fit,
+    res.lm.augmented = fit$res.augmented,
     fitted.values = l.fitted.resid$fitted.values,
     residuals = l.fitted.resid$residuals,
     boots.params = res.boots$boots.params,
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
     cdf = cdf,
-    names.endo.regs = names.endo.regs
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
+    labels.pcop = fit$labels.pcop
   ))
 }

@@ -8,17 +8,10 @@ copula2scopenp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   # Computing conditional CDF correction term nonparametrically (via helper) C_p
   # from equation 21 of Hu et al. 2025
 
-  cop.term <- matrix(NA_real_, nrow = nrow(data), ncol = length(labels.endo))
-  # Make labels plain strings before using as colnames (ie strips backticks) because
-  # they need to feed into reformulate() later
-  raw.labels <- vapply(
-    labels.endo,
-    FUN = function(x) {
-      return(deparse1(str2lang(x), backtick = FALSE))
-    },
-    FUN.VALUE = character(1)
+  cop.term <- copula_create_1ststage_copdata_matrix(
+    n = nrow(data),
+    labels.endo = labels.endo
   )
-  colnames(cop.term) <- paste0(raw.labels, "_cop")
 
   condists <- list()
   mfs <- list()
@@ -27,15 +20,8 @@ copula2scopenp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
     p.label <- labels.endo[k]
 
     if (verbose) {
-      message(
-        "Computing conditional CDF for endogenous regressor '",
-        p.label,
-        "' (",
-        k,
-        " of ",
-        length(labels.endo),
-        ") ..."
-      )
+      msg.k <- paste0(p.label, "' (",k," of ",length(labels.endo),") ...")
+      message("Computing conditional CDF for endogenous regressor '",msg.k)
     }
 
     # exo column is everything that is non-intercept and non-endo col
@@ -96,39 +82,19 @@ copula2scopenp_fit <- function(F.formula, data, labels.endo, labels.exo, bws, ve
   }
 
   # Second stage: augmented OLS ----------------------------------------------------
-  # Adding the correction term to the structural model and estimate by OLS
   # using equation 20: Y = mu + sum_{k=1} ^ {K} ( P_{i,k} * alpha_k + beta' X_i + sum_{k=1}^{K} C_{i,pk} * gamma_k + epsilon_i
 
-  # Get labels separately because needed to read-out coefs(lm)
-  labels.pcop <- vapply(
-    colnames(cop.term),
-    FUN = function(x) {
-      deparse1(as.name(x), backtick = TRUE)
-    },
-    FUN.VALUE = character(1),
-    USE.NAMES = FALSE
+  res.2nd.stage <- copula_fit_2ndstage(
+    F.formula = F.formula,
+    data = data,
+    cop.terms = cop.term
   )
 
-  f.pcop <- reformulate(
-    termlabels = c(".", labels.pcop),
-    response = NULL,
-    intercept = TRUE
-  )
-
-  # update requires dot-expanded formula (may not contain a dot `.` in `old`)
-  f.main <- terms(F.formula, data = data, lhs = 1, rhs = 1)
-  f.final <- update(old = f.main, new = f.pcop)
-  res.augmented <- lm(formula = f.final, data = cbind(data, cop.term))
-
-  # TODO: Does cbind() work if non-continuous variables? - Yes because will always dispatch to cbind.data.frame() if it contains any data.frame
   return(list(
-    res.augmented = res.augmented,
+    res.augmented = res.2nd.stage$res.augmented,
+    labels.pcop = res.2nd.stage$labels.pcop,
     condists = condists,
-    mfs = mfs,
-    # because cop.term is only numeric, coef() (actually model.matrix() used in lm())
-    # preserves the terms as they are in the formula. For f.pcop these may be backticked
-    # or not, depending if necessary.
-    labels.pcop = labels.pcop
+    mfs = mfs
   ))
 }
 

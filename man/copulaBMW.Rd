@@ -37,7 +37,7 @@ used for standard error estimation. A minimum of 1000 is recommended.}
 \item{verbose}{Show details about the running of the function.}
 }
 \description{
-Fits a linear model with endogenous regressors by using the nonparametric
+Fits a linear model with continuous endogenous regressors by using the nonparametric
 control function approach of Breitung, Meyer and Wied (2024). This method
 corrects endogeneity without any external instrumental variables. It is a
 copula-based method with asymptotic theory. The method does not require a
@@ -123,12 +123,14 @@ The second part identifies the continuous endogenous regressors using \code{cont
 \preformatted{y ~ X + P | continuous(P)                  #one endogenous regressor}
 \preformatted{y ~ X + P1 + P2 | continuous(P1) + continuous(P2) #two endogenous regressors}
 
+\subsection{Bootstrap inference}{
 Bootstrap inference is performed by resampling the data with replacement.
 Degenerate bootstrap samples (e.g. singular design matrices or failed
 model estimation) are discarded and resampled until the requested number
 of valid bootstrap replications is obtained. The percentage of discarded
 samples is reported as a warning. Confidence intervals are computed
 using only successful bootstrap replications.
+}
 }
 \examples{
 #------------------------------------------------------------------------

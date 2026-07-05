@@ -1,52 +1,62 @@
-#' @importFrom Formula as.Formula
-#' @importFrom stats lm model.frame model.matrix formula update reformulate
-#'
+#' @importFrom stats lm reformulate
+copulaBMW_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
 
-copulaBMW_fit <- function(F.formula, data, names.endo.regs, cdf) {
-  mf <- model.frame(F.formula, data = data, rhs = 1, lhs = 1)
-  f.main <- formula(mf)
-
-  X.main <- model.matrix(F.formula, data = mf, rhs = 1, lhs = 1)
-  endogenous.cols <- colnames(X.main)[colnames(X.main) %in% names.endo.regs]
-
-  if (length(endogenous.cols) == 0) {
-    stop("No endogenous regressors found in design matrix.")
-  }
-  if (length(endogenous.cols) < length(names.endo.regs)) {
-    stop(
-      "Bootstrap sample dropped at least one endogenous regressor. ",
-      "This can happen when a regressor becomes constant in a resample."
-    )
-  }
-
-  # Exogenous columns
-  #exo.cols <- setdiff(
-    #colnames(X.main)[colnames(X.main) != "(Intercept)"],
-    ##endogenous.cols
-  #)
-  rhs1.vars <- all.vars(formula(F.formula, rhs = 1, lhs = 0))
-  exo.cols  <- rhs1.vars[!rhs1.vars %in% endogenous.cols]
-
+  # Stage 1 --------------------------------------------------------------------
   # BMW correction
   # step 1: first-stage in the original space
   # step 2: CDF on residuals
-  #step 3: then apply qnorm
-  cop.terms <- copulaBMW_correction(
+  # step 3: apply qnorm
+
+  cop.terms <- copula_create_1ststage_copdata_matrix(
+    n = nrow(data),
+    labels.endo = labels.endo
+  )
+
+  for (k in seq_along(labels.endo)) {
+    p.label <- labels.endo[k]
+
+    #case no exo regressors
+    #e hat = z - mean(z)
+    # first stage with intercept
+    # if (length(exo.cols) == 0) {
+    # if required, would use formula approach:
+    # f.Z <- reformulate(termlabels = p.label, response = NULL, intercept = FALSE)
+    # mf.z <- model.frame(f.Z, data=data)
+    # Z <- mf.z[, 1, drop=TRUE]
+    #   e.hat <- Z - mean(Z)
+    # } else {
+    #first-stage OLS of Z on X in original space
+    #BMW (2024) eq. 2.2, Z = delta'x + e
+
+    # Regress endo ~ (all exo), where (all exo) excludes the intercept
+    f.endo.k.on.all.exo <- reformulate(
+      response = p.label,
+      termlabels = labels.exo,
+      intercept = FALSE
+    )
+
+    res.lm.first <- lm(formula = f.endo.k.on.all.exo, data = data)
+    e.hat <- residuals(res.lm.first)
+    # }
+
+    #Apply CDF now, then qnorm to residuals e hat
+    P.star <- copulaBMW_pstar(e.hat = e.hat, cdf = cdf)
+
+    #Apply qnorm from eq. 2.3, eta hat =  phi^{-1} (F hat_{e hat} (e hat))
+    P.cop <- apply(P.star, 2, qnorm) #eta hat is P_cop
+
+    cop.terms[, k] <- as.vector(P.cop)
+  }
+
+  # Stage 2 --------------------------------------------------------------------
+  res.2nd.stage <- copula_fit_2ndstage(
+    F.formula = F.formula,
     data = data,
-    endo.cols = endogenous.cols,
-    exo.cols = exo.cols,
-    cdf = cdf
+    cop.terms = cop.terms
   )
 
-  f.pcop <- reformulate(
-    termlabels = c(".", colnames(cop.terms)),
-    response = NULL,
-    intercept = TRUE
-  )
-  f.final <- update(old = f.main, new = f.pcop)
-
-  return(lm(
-    formula = f.final,
-    data = cbind(data, cop.terms)
+  return(list(
+    res.augmented = res.2nd.stage$res.augmented,
+    labels.pcop = res.2nd.stage$labels.pcop
   ))
 }

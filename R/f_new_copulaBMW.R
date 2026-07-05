@@ -26,16 +26,18 @@ doc_rendocopulaBMW_return <- function() {
 
 #' @importFrom stats coef model.frame
 new_rendo_copulaBMW <- function(
-  call,
-  F.formula,
-  fitted.values,
-  residuals,
-  res.lm.augmented,
-  boots.params,
-  n.boots.attempted,
-  n.boots.failed,
-  cdf,
-  names.endo.regs
+    call,
+    F.formula,
+    res.lm.augmented,
+    fitted.values,
+    residuals,
+    boots.params,
+    n.boots.attempted,
+    n.boots.failed,
+    cdf,
+    labels.endo,
+    labels.exo,
+    labels.pcop
 ) {
   return(.new_rendo_boots_degenerates_removed(
     # Stuff for rendo.boots.degenerates.removed class
@@ -54,6 +56,8 @@ new_rendo_copulaBMW <- function(
     subclass = "rendo.copula.BMW",
     res.lm.augmented = res.lm.augmented,
     cdf = cdf,
-    names.endo.regs = names.endo.regs
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
+    labels.pcop = labels.pcop
   ))
 }

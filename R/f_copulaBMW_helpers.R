@@ -62,38 +62,6 @@ copulaBMW_pstar <- function(e.hat, cdf) {
     colnames(P.star) <- colnames(e.hat)
   }
 
-  #Apply qnorm from eq. 2.3, eta hat =  phi^{-1} (F hat_{e hat} (e hat))
-  P.cop <- apply(P.star, 2, qnorm) #eta hat is P_cop
-
-  return(P.cop)
+  return(P.star)
 }
 
-#' @importFrom stats lm residuals
-copulaBMW_correction <- function(data, endo.cols, exo.cols, cdf) {
-  res <- matrix(NA, nrow = nrow(data), ncol = length(endo.cols))
-  colnames(res) <- paste0(endo.cols, "_cop")
-
-  for (i in seq_along(endo.cols)) {
-    Z <- data[[endo.cols[i]]]
-
-    #case no exo regressors
-    #e hat = z - mean(z)
-    # first stage with intercept
-    if (length(exo.cols) == 0) {
-      e.hat <- Z - mean(Z)
-    } else {
-      #first-stage OLS of Z on X in original space
-      #BMW (2024) eq. 2.2, Z = delta'x + e
-
-      df.first <- data.frame(Z = Z, data[, exo.cols, drop = FALSE])
-      lm.first <- lm(Z ~ ., data = df.first)
-      e.hat <- residuals(lm.first)
-    }
-
-    #Apply CDF now, then qnorm to residuals e hat
-    P.cop <- copulaBMW_pstar(e.hat = e.hat, cdf = cdf)
-    res[, i] <- as.vector(P.cop)
-  }
-
-  return(res)
-}
