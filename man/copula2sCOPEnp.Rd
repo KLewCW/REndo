@@ -50,7 +50,10 @@ An object of class \code{rendo.copula.2scope.np} which is a list that contains:
 \item{\code{bws}}{A named list with one \code{np::condbandwidth} object per endogenous
     regressor (named accordingly), each used to estimate the conditional CDF
     \eqn{\hat{F}(P_k \mid X)}.}
-\item{\code{names.endo.regs}}{The names of the endogenous regressors.}
+\item{\code{labels.endo}}{The term labels of the endogenous regressors.}
+\item{\code{labels.exo}}{The term labels of the exogenous regressors.}
+\item{\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}
+\item{\code{first.stage.frames}}{List of first-stage model frames, one per endogenous regressor (named after the respective endo regressor).}
 \item{\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}
 \item{\code{condists}}{A named list with one \code{np::condistribution}
     object per endogenous regressor (named accordingly).

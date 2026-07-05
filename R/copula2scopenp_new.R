@@ -10,7 +10,10 @@ doc_rendocopula2scopenp_return_list <- function() {
     bws = "\\item{\\code{bws}}{A named list with one \\code{np::condbandwidth} object per endogenous
     regressor (named accordingly), each used to estimate the conditional CDF
     \\eqn{\\hat{F}(P_k \\mid X)}.}",
-    names.endo.regs = "\\item{\\code{names.endo.regs}}{The names of the endogenous regressors.}",
+    labels.endo = "\\item{\\code{labels.endo}}{The term labels of the endogenous regressors.}",
+    labels.exo = "\\item{\\code{labels.exo}}{The term labels of the exogenous regressors.}",
+    labels.pcop = "\\item{\\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}",
+    first.stage.frames = "\\item{\\code{first.stage.frames}}{List of first-stage model frames, one per endogenous regressor (named after the respective endo regressor).}",
     res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}",
     condists = "\\item{\\code{condists}}{A named list with one \\code{np::condistribution}
     object per endogenous regressor (named accordingly).
@@ -42,7 +45,6 @@ new_rendo_copula2scopenp <- function(
     labels.endo,
     labels.exo,
     labels.pcop,
-    names.endo.regs,
     first.stage.frames,
     bws,
     condists
@@ -63,7 +65,6 @@ new_rendo_copula2scopenp <- function(
     # 2sCOPEnp-specific
     subclass = "rendo.copula.2scope.np",
     res.lm.augmented = res.lm.augmented,
-    names.endo.regs = names.endo.regs,
     labels.endo = labels.endo,
     labels.exo = labels.exo,
     labels.pcop = labels.pcop,
