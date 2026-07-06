@@ -361,10 +361,10 @@ Hayfield, T. and Racine, J. S. (2008). Nonparametric econometrics: The np packag
 \link[REndo:dataCopula2sCOPEnpMulti]{dataCopula2sCOPEnpMulti}} for detailed
 information about the simulated datasets
 
-Other copula-based methods:
-\code{\link[=copula2sCOPE]{copula2sCOPE()}},
-\code{\link[=copulaBMW]{copulaBMW()}},
-\code{\link[=copulaCorrection]{copulaCorrection()}},
-\code{\link[=copulaIMA]{copulaIMA()}}
+Other copula-based methods: 
+\code{\link{copula2sCOPE}()},
+\code{\link{copulaBMW}()},
+\code{\link{copulaCorrection}()},
+\code{\link{copulaIMA}()}
 }
 \concept{copula-based methods}

@@ -231,10 +231,10 @@ Petrin A, Train K (2010). "A Control Function Approach to Endogeneity in Consume
 
 \code{\link[optimx]{optimx}} for possible elements of parameter \code{optimx.arg}
 
-Other copula-based methods:
-\code{\link[=copula2sCOPE]{copula2sCOPE()}},
-\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
-\code{\link[=copulaBMW]{copulaBMW()}},
-\code{\link[=copulaIMA]{copulaIMA()}}
+Other copula-based methods: 
+\code{\link{copula2sCOPE}()},
+\code{\link{copula2sCOPEnp}()},
+\code{\link{copulaBMW}()},
+\code{\link{copulaIMA}()}
 }
 \concept{copula-based methods}
