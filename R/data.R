@@ -305,6 +305,9 @@
 #' the true relationship is linear in the ordered levels — this is an expected behaviour of the augmented
 #' regression separating the structural \code{P2} coefficients from the discrete correction term
 #' at stronger endogeneity levels (\eqn{\rho = 0.7}).
+#' The true intercept in the is \code{mu =1}. However, due to having ordered factors \code{P2} and \code{X3}, R
+#' may apply the orthogonal polynoial contrasts centered at the grand mean of each variable. The intercept may therefore
+#' absorbs the mean contributions.
 #' @docType data
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
 "dataCopula2sCOPEnpMulti"
