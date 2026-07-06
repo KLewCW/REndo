@@ -153,11 +153,11 @@ using only successful bootstrap replications.
 # DGP1 with delta = 1 (correlation between x and P), rho = 0.5 (endogeneity),
 # x ~ Gamma(1,1), e ~ Gamma(1,1) first stage error)
 # n = 1000
-# True Paramaters: mu = 1 (intercept), beta = -1 (x), alpha = 1 (P).
+# True Paramaters: mu = 1 (intercept), beta = -1 (X), alpha = 1 (P).
 #------------------------------------------------------------------------
 data("dataCopBMW")
 res_bmw <- copulaBMW(
-  y ~ x + P | P,
+  y ~ X + P | P,
   data      = dataCopBMW,
   cdf       = "ecdf",
   num.boots = 1000
@@ -168,13 +168,14 @@ summary(res_bmw)
 # Example 2: BMW with 2 endogenous regressors
 # (Extension of DGP1 per Remark 2.1)
 #
-# True parameters: mu = 1 (intercept), beta = -1 (x),
+# e1, e2 ~ Gamma(3,2), DGP being closer to normal than Gamma(1,1)
+# True parameters: mu = 1 (intercept), beta = -1 (X),
 #              alpha1 = 1 (P1), alpha2 = 1 (P2).
 # n = 5000
 #------------------------------------------------------------------------
 data("dataCopBMWMultiEndo")
 res_bmw_multi <- copulaBMW(
-  y ~ x + P1 + P2 | P1 + P2,
+  y ~ X + P1 + P2 | P1 + P2,
   data      = dataCopBMWMultiEndo,
   cdf       = "ecdf",
   num.boots = 1000
