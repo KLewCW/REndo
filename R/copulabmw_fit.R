@@ -18,11 +18,11 @@ copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
     #first-stage OLS of Z on X in original space
     #BMW (2024) eq. 2.2, Z = delta'x + e
 
-    # Regress endo ~ (all exo), where (all exo) excludes the intercept
-    f.endo.k.on.all.exo <- reformulate(
+    # Regress endo ~ (all exo), intercept should be included because of assumption A4 from Breitrung et al.
+    f.endo.k.on.all.exo <- reformulate( #page 367
       response = p.label,
       termlabels = labels.exo,
-      intercept = FALSE
+      intercept = TRUE
     )
 
     res.lm.first <- lm(formula = f.endo.k.on.all.exo, data = data)
