@@ -21,6 +21,7 @@ copula_adj_ecdf <- function(x) {
 #' @importFrom ks kcde
 #' @importFrom stats ecdf predict
 copula_pstar <- function(P, cdf) {
+  stopifnot(is.matrix(P))
   if (cdf == "kde") {
     P.star <- apply(P, 2, function(x) {
       Fhat <- ks::kcde(x)
@@ -30,7 +31,7 @@ copula_pstar <- function(P, cdf) {
     P.star <- apply(P, 2, copula::pobs)
   } else if (cdf == "adj.ecdf") {
     P.star <- apply(P, 2, copula_adj_ecdf)
-  } else {
+  } else if (cdf == "ecdf") {
     ecdf0 <- apply(P, 2, ecdf)
     P.star <- sapply(seq_along(ecdf0), function(i) {
       u <- ecdf0[[i]](P[, i])
@@ -39,6 +40,8 @@ copula_pstar <- function(P, cdf) {
       u
     })
     P.star <- as.matrix(P.star)
+  } else {
+    stop("Invalid `cdf` to copula_pstar!")
   }
 
   colnames(P.star) <- colnames(P)
@@ -87,7 +90,7 @@ copula_compute_structural_fitted_residuals <- function(
   return(list(fitted.values = fitted.values, residuals = residuals))
 }
 
-copula_create_1ststage_copdata_matrix <- function(n, labels.endo){
+copula_create_1ststage_copdata_matrix <- function(n, labels.endo) {
   m <- matrix(NA_real_, nrow = n, ncol = length(labels.endo))
   # Make labels plain strings before using as colnames (ie strips backticks) because
   # they need to feed into reformulate() later
@@ -102,7 +105,7 @@ copula_create_1ststage_copdata_matrix <- function(n, labels.endo){
   return(m)
 }
 
-copula_fit_2ndstage <- function(F.formula, data, cop.terms){
+copula_fit_2ndstage <- function(F.formula, data, cop.terms) {
   stopifnot(!is.null(colnames(cop.terms)))
 
   # Second stage: augmented OLS ----------------------------------------------------
