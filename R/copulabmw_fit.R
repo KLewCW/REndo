@@ -15,16 +15,7 @@ copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
   for (k in seq_along(labels.endo)) {
     p.label <- labels.endo[k]
 
-    #case no exo regressors
-    #e hat = z - mean(z)
-    # first stage with intercept
-    # if (length(exo.cols) == 0) {
-    # if required, would use formula approach:
-    # f.Z <- reformulate(termlabels = p.label, response = NULL, intercept = FALSE)
-    # mf.z <- model.frame(f.Z, data=data)
-    # Z <- mf.z[, 1, drop=TRUE]
-    #   e.hat <- Z - mean(Z)
-    # } else {
+    # Step 1: Original space --------------------------------------------------------
     #first-stage OLS of Z on X in original space
     #BMW (2024) eq. 2.2, Z = delta'x + e
 
@@ -37,12 +28,15 @@ copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
 
     res.lm.first <- lm(formula = f.endo.k.on.all.exo, data = data)
     e.hat <- residuals(res.lm.first)
-    # }
 
+    # Step 2: CDF on residuals ------------------------------------------------------
     #Apply CDF now, then qnorm to residuals e hat
+
     P.star <- copulabmw_pstar(e.hat = e.hat, cdf = cdf)
 
+    # Step 3: Apply qnorm ----------------------------------------------------------
     #Apply qnorm from eq. 2.3, eta hat =  phi^{-1} (F hat_{e hat} (e hat))
+
     P.cop <- apply(P.star, 2, qnorm) #eta hat is P_cop
 
     cop.terms[, k] <- as.vector(P.cop)
