@@ -5,14 +5,6 @@ data("dataCopula2sCOPEnpCont")
 data("dataCopula2sCOPEnpBi")
 data("dataCopula2sCOPEnpMulti")
 
-check_clean_fit <- function(res) {
-  expect_false(anyNA(fitted(res)))
-  expect_false(anyNA(residuals(res)))
-  expect_false(anyNA(coef(res)))
-  expect_false(anyNA(vcov(res)))
-  expect_false(anyNA(res$boots.params))
-}
-
 
 # Out of the box --------------------------------------------------------------------
 test_that("works out of the box with default params", {

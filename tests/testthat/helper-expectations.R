@@ -21,6 +21,14 @@ check_errmsg_empty <- function(fn, base.args = list(), cases) {
   }
 }
 
+# check_clean_fit -------------------------------------------------------------------
+check_clean_fit <- function(res) {
+  expect_false(anyNA(fitted(res)))
+  expect_false(anyNA(residuals(res)))
+  expect_false(anyNA(coef(res)))
+  expect_false(anyNA(vcov(res)))
+  expect_false(anyNA(res$boots.params))
+}
 # Suppress boots warning -----------------
 # Suppress 1000 num.boots warning but lets all other warnings propagate
 suppress_lowboots_warning <- function(expr) {
