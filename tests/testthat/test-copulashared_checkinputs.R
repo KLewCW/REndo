@@ -134,16 +134,16 @@ test_that("_response_not_in_rhs works when response not in rhs", {
 })
 
 
-# canonical_colname -------------------------------------------------------------------
-test_that("canonical_colname normalizes labels to col names", {
+# label_to_colname -------------------------------------------------------------------
+test_that("label_to_colname normalizes labels to col names", {
   # plain
-  expect_equal(canonical_colname(lab = "x_num"), "x_num")
+  expect_equal(label_to_colname(lab = "x_num"), "x_num")
   # backticks (space)
-  expect_equal(canonical_colname(lab = "`x space`"), "x space")
+  expect_equal(label_to_colname(lab = "`x space`"), "x space")
   # cannot have space in label (requires backticks)
-  # expect_equal(canonical_colname(lab = "x space"), "x space")
+  # expect_equal(label_to_colname(lab = "x space"), "x space")
   # transformation
-  expect_equal(canonical_colname(lab = "log(P)"), "log(P)")
+  expect_equal(label_to_colname(lab = "log(P)"), "log(P)")
 })
 
 

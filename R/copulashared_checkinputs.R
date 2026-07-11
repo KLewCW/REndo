@@ -260,7 +260,7 @@ checkinput_copulashared_response_not_in_rhs <- function(F.formula, rhs1.terms) {
 }
 
 # Normalizes a term label to column names (as in model.frame())
-canonical_colname <- function(lab) {
+label_to_colname <- function(lab) {
   # strips backticks from non-syntactic names
   return(deparse1(parse(text = lab)[[1]]))
 }
@@ -301,7 +301,7 @@ checkinput_copulashared_modelframe <- function(
 
   # For each column: Check if is allowed class
   for (lab in names(allowed.classes)) {
-    col <- canonical_colname(lab)
+    col <- label_to_colname(lab)
 
     # Should not happen: Previous check should verify already that all formula labels
     # are in data
@@ -319,7 +319,7 @@ checkinput_copulashared_modelframe <- function(
 
   # only for given labels: warn about low-cardinality numeric variable
   if (length(labels.warn.low.card) > 0) {
-    colnames.low.card <- vapply(labels.warn.low.card, canonical_colname, character(1))
+    colnames.low.card <- vapply(labels.warn.low.card, label_to_colname, character(1))
     stopifnot(all(colnames.low.card %in% mf.cols))
 
     is.low.card <- sapply(mf[colnames.low.card], function(x) {
