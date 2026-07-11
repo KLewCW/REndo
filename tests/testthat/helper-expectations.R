@@ -51,7 +51,9 @@ check_clean_fit <- function(res) {
 #' @importFrom utils modifyList
 run_cases <- function(fn, base.args = list(), cases, check) {
   results <- lapply(names(cases), function(nm) {
-    res <- do.call(what = fn, args = modifyList(base.args, cases[[nm]]))
+    # upsert base.args with `cases`
+    args <- c(cases[[nm]], base.args[!names(base.args) %in% names(cases[[nm]])])
+    res <- do.call(what = fn, args = args)
     withCallingHandlers(
       check(res),
       # catch thrown testthat expectation failures
