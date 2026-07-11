@@ -13,7 +13,7 @@ test_that("interface has methods wired in", {
   cases <- list(
     "formula_data" = list(formula = y ~ P + X),
     "data_basics" = list(data = NULL),
-    "modelframe NA" = list(data = df.na),
+    "modelframe" = list(data = df.na),
     "npcdistbwargs" = list(npcdistbw.args = list(xdat = 1)),
     "bws" = list(bws = list(P = 1)),
     "num.boots" = list(num.boots = -1),
