@@ -47,6 +47,7 @@ check_clean_fit <- function(res) {
 
 # run_cases ------------------------------------------------------------------
 # run `fn` method with `cases` + `base.args` and then apply `check` as a test
+# return the fitted object in list named after cases
 #' @importFrom utils modifyList
 run_cases <- function(fn, base.args = list(), cases, check) {
   results <- lapply(names(cases), function(nm) {
@@ -63,19 +64,6 @@ run_cases <- function(fn, base.args = list(), cases, check) {
   })
   names(results) <- names(cases)
   return(invisible(results))
-}
-
-# Suppress boots warning -----------------------------------------------------------
-# Suppress 1000 num.boots warning but lets all other warnings propagate
-suppress_lowboots_warning <- function(expr) {
-  withCallingHandlers(
-    expr,
-    warning = function(w) {
-      if (grepl(pattern = "recommended to run 1000", x = conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      }
-    }
-  )
 }
 
 # check_param_recovery -------------------------------------------------------------

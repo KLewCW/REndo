@@ -2,6 +2,20 @@
 #   fit_<method>_fast
 #   fit_<method>_cv
 
+
+# Suppress boots warning -----------------------------------------------------------
+# Suppress 1000 num.boots warning but lets all other warnings propagate
+suppress_lowboots_warning <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (grepl(pattern = "recommended to run 1000", x = conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
 # copula2sCOPEnp -----------------------------------------------------------------------
 fit_2scopenp_fast <- function(
   formula,
