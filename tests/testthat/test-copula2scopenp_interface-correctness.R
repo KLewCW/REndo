@@ -222,7 +222,7 @@ test_that("Parameter bws is used as-is", {
 # the conditional CDF collapses to the marginal CDF, \eqn{\hat{F})(P|X) = \hat{F}(P)} and the
 # method then reduces to the Park and Gupta (2012) copula correction.
 
-run_parkgupta_equivalent <- function(formula.np, formula.pg, data, params.to.compare) {
+run_2scopenp_parkgupta_equivalent <- function(formula.np, formula.pg, data, params.to.compare) {
   res.np <- suppress_lowboots_warning(
     copula2sCOPEnp(
       formula = formula.np,
@@ -237,22 +237,18 @@ run_parkgupta_equivalent <- function(formula.np, formula.pg, data, params.to.com
     )
   )
 
-  res.cc <- suppress_lowboots_warning(copulaCorrection(
-    formula = formula.pg,
-    data = data,
-    verbose = FALSE,
-    num.boots = 2
-  ))
+  res.cc <- fit_copulacorrection_fast(formula = formula.pg, data = data)
 
-  diff <- abs(coef(res.np)[params.to.compare] - coef(res.cc)[params.to.compare])
-  se <- sqrt(diag(vcov(res.np)))[params.to.compare]
-  expect_true(all(diff < 2 * se))
+  check_param_recovery(
+    res = res.np,
+    true_vals = coef(res.cc)[params.to.compare]
+  )
 }
 
 test_that("Collapses to P&G - single continuous", {
   skip_on_cran()
 
-  run_parkgupta_equivalent(
+  run_2scopenp_parkgupta_equivalent(
     formula.np = y ~ X1 + P | P,
     formula.pg = y ~ X1 + P | continuous(P),
     data = dataCopCont,
@@ -263,7 +259,7 @@ test_that("Collapses to P&G - single continuous", {
 test_that("Collapses to P&G - single continuous, single discrete", {
   skip_on_cran()
 
-  run_parkgupta_equivalent(
+  run_2scopenp_parkgupta_equivalent(
     formula.np = y ~ X1 + X2 + P1 + P2 | P1 + P2,
     formula.pg = y ~ X1 + X2 + P1 + P2 | discrete(P1) + continuous(P2),
     data = dataCopDisCont,

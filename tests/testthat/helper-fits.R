@@ -2,7 +2,6 @@
 #   fit_<method>_fast
 #   fit_<method>_cv
 
-
 # Suppress boots warning -----------------------------------------------------------
 # Suppress 1000 num.boots warning but lets all other warnings propagate
 suppress_lowboots_warning <- function(expr) {
@@ -60,17 +59,34 @@ fit_2scopenp_defaults <- function(
 
 # copulaBMW ----------------------------------------------------------------------------
 fit_bmw_fast <- function(
-    formula,
-    data,
-    cdf = "adj.ecdf",
-    num.boots = 2,
-    verbose = FALSE
+  formula,
+  data,
+  cdf = "adj.ecdf",
+  num.boots = 2,
+  verbose = FALSE
 ) {
   return(suppress_lowboots_warning(
     copulaBMW(
       formula = formula,
       data = data,
       cdf = cdf,
+      num.boots = num.boots,
+      verbose = verbose
+    )
+  ))
+}
+
+# copulaCorrection --------------------------------------------------------------------
+fit_copulacorrection_fast <- function(
+  formula,
+  data,
+  num.boots = 2,
+  verbose = FALSE
+) {
+  return(suppress_lowboots_warning(
+    copulaCorrection(
+      formula = formula,
+      data = data,
       num.boots = num.boots,
       verbose = verbose
     )
