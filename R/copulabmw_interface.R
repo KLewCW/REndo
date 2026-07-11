@@ -179,9 +179,9 @@ copulaBMW <- function(
 
   if (verbose) {
     message(
-      "Fitting BMW copula model with",
+      "Fitting BMW copula model with ",
       length(labels.endo),
-      "endogenous regressor(s)."
+      " endogenous regressor(s)."
     )
   }
 
