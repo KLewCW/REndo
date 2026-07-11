@@ -184,14 +184,46 @@ test_that("_modelframe fails on NAs, illegal classes", {
 
 test_that("_modelframe warns for low-cardinality numerics", {
   df <- fixture_copula_df()
+
+  # warns for given labels
   expect_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_lowcard + x_num),
+      data = df,
+      allowed.classes = list(x_lowcard = "numeric", x_num = "numeric"),
+      labels.warn.low.card = "x_lowcard"
+    ),
+    regexp = "low cardinality"
+  )
+
+  # dont warn if col is not numeric (factors are low card)
+  expect_no_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_fac),
+      data = df,
+      allowed.classes = list(x_fac = "factor"),
+      labels.warn.low.card = "x_fac"
+    )
+  )
+
+  # dont warn if another column is low cardinality (not all columns in mf!)
+  expect_no_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_lowcard + x_num),
+      data = df,
+      allowed.classes = list(x_lowcard = "numeric", x_num = "numeric"),
+      labels.warn.low.card = "x_num"
+    )
+  )
+
+  # works if no low card cols are specified
+  expect_no_warning(
     checkinput_copulashared_modelframe(
       F.formula = as.Formula(y ~ x_lowcard),
       data = df,
       allowed.classes = list(x_lowcard = "numeric"),
-      warn.low.card = TRUE
-    ),
-    regexp = "low cardinality"
+      labels.warn.low.card = NULL
+    )
   )
 })
 
