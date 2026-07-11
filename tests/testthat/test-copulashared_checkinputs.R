@@ -155,7 +155,7 @@ test_that("_modelframe fails on NAs, illegal classes", {
       F.formula = as.Formula(y ~ log(x_num - 1000)),
       data = fixture_copula_df(),
       allowed.classes = list("log(x_num - 1000)" = "numeric"),
-      warn.low.card = FALSE
+      labels.warn.low.card = NULL
     )),
     regexp = "missing values"
   )
@@ -167,12 +167,12 @@ test_that("_modelframe fails on NAs, illegal classes", {
       "NA already in data" = list(
         F.formula = as.Formula(y ~ x_na),
         allowed.classes = list(x_na = "numeric"),
-        warn.low.card = FALSE
+        labels.warn.low.card = NULL
       ),
       "given wrong class" = list(
         F.formula = as.Formula(y ~ x_fac),
         allowed.classes = list(x_fac = "numeric"),
-        warn.low.card = FALSE
+        labels.warn.low.card = NULL
       )
     ),
     regexp = c(
@@ -239,7 +239,7 @@ test_that("_modelframe works for valid data", {
         x_fac = "factor",
         x_ord = "ordered"
       ),
-      warn.low.card = TRUE
+      labels.warn.low.card = NULL
     )
   )
 })

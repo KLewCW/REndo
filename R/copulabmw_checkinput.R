@@ -81,6 +81,6 @@ checkinput_copulabmw_formula_data <- function(formula, data) {
     F.formula = F.formula,
     data = data,
     allowed.classes = allowed.classes,
-    warn.low.card = TRUE
+    labels.warn.low.card = endo.labels
   ))
 }

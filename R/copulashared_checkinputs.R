@@ -274,7 +274,6 @@ label_to_colname <- function(lab) {
 # - warn about low cardinality (<=10) numeric variables
 #
 #' @importFrom stats model.frame na.fail .MFclass
-
 checkinput_copulashared_modelframe <- function(
   F.formula,
   data,
