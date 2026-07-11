@@ -8,20 +8,31 @@ check_errmsg <- function(fn, base.args = list(), cases, regexp) {
   if (length(regexp) == 1) {
     regexp <- rep(regexp, length(cases))
   }
-  for (i in seq_along(cases)) {
-    nm <- names(cases)[i]
-    args <- c(base.args, cases[[i]])
-    res <- do.call(what = fn, args = args)
-    expect_true(length(res) > 0, label = nm)
-    expect_match(paste(res, collapse = " "), regexp[i], info = nm)
-  }
+  # for printing labels on failure
+  names(regexp) <- names(cases)
+  case.i <- 0
+
+  run_cases(
+    fn = fn,
+    base.args = base.args,
+    cases = cases,
+    check = function(res) {
+      # `<<-` to manipulate up the call stack (counter in enclosing method)
+      case.i <<- case.i + 1
+      expect_true(length(res) > 0)
+      expect_match(paste(res, collapse = " "), regexp[[case.i]])
+    }
+  )
 }
 
 # Expect no error message returned
 check_errmsg_empty <- function(fn, base.args = list(), cases) {
-  for (nm in names(cases)) {
-    expect_null(do.call(what = fn, args = c(base.args, cases[[nm]])))
-  }
+  run_cases(
+    fn = fn,
+    base.args = base.args,
+    cases = cases,
+    check = expect_null
+  )
 }
 
 # check_clean_fit -------------------------------------------------------------------
