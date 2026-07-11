@@ -3,7 +3,6 @@
 #   fit_<method>_cv
 
 # copula2sCOPEnp -----------------------------------------------------------------------
-
 fit_2scopenp_fast <- function(
   formula,
   data,
@@ -40,6 +39,26 @@ fit_2scopenp_defaults <- function(
       verbose = verbose,
       npcdistbw.args = npcdistbw.args,
       bws = bws
+    )
+  ))
+}
+
+
+# copulaBMW ----------------------------------------------------------------------------
+fit_bmw_fast <- function(
+    formula,
+    data,
+    cdf = "adj.ecdf",
+    num.boots = 2,
+    verbose = FALSE
+) {
+  return(suppress_lowboots_warning(
+    copulaBMW(
+      formula = formula,
+      data = data,
+      cdf = cdf,
+      num.boots = num.boots,
+      verbose = verbose
     )
   ))
 }
