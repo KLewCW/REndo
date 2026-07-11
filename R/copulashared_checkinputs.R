@@ -274,11 +274,12 @@ canonical_colname <- function(lab) {
 # - warn about low cardinality (<=10) numeric variables
 #
 #' @importFrom stats model.frame na.fail .MFclass
+
 checkinput_copulashared_modelframe <- function(
   F.formula,
   data,
   allowed.classes,
-  warn.low.card
+  labels.warn.low.card
 ) {
   # Expose build failures to user (bad transformations, generated NAs,...)
   mf <- tryCatch(
@@ -316,15 +317,18 @@ checkinput_copulashared_modelframe <- function(
     }
   }
 
-  # warn about low-cardinality numeric variables
-  if (warn.low.card) {
-    is.low.card <- sapply(mf, function(x) {
+  # only for given labels: warn about low-cardinality numeric variable
+  if (length(labels.warn.low.card) > 0) {
+    colnames.low.card <- vapply(labels.warn.low.card, canonical_colname, character(1))
+    stopifnot(all(colnames.low.card %in% mf.cols))
+
+    is.low.card <- sapply(mf[colnames.low.card], function(x) {
       # no NAs at this point
       is.numeric(x) && length(unique(x)) <= 10
     })
 
     if (any(is.low.card)) {
-      low.card.vars <- names(which(is.low.card))
+      low.card.vars <- labels.warn.low.card[is.low.card]
       warning(
         "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
         toString(low.card.vars),
