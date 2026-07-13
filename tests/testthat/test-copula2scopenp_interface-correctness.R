@@ -194,6 +194,7 @@ test_that("Parameter bws is used as-is", {
 })
 
 # Consistency with Park & Gupta ------------------------------------------------
+# According to Kimberly:
 # When the endogenous regressor \eqn{P} is independent of all exogenous regressors \eqn{X},
 # the conditional CDF collapses to the marginal CDF, \eqn{\hat{F})(P|X) = \hat{F}(P)} and the
 # method then reduces to the Park and Gupta (2012) copula correction.

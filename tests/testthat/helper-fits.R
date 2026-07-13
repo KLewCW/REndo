@@ -76,6 +76,24 @@ fit_bmw_fast <- function(
   ))
 }
 
+fit_bmw_defaults <- function(
+  formula,
+  data,
+  cdf = "adj.ecdf",
+  num.boots = 1000,
+  verbose = FALSE
+) {
+  return(suppress_lowboots_warning(
+    copulaBMW(
+      formula = formula,
+      data = data,
+      cdf = cdf,
+      num.boots = num.boots,
+      verbose = verbose
+    )
+  ))
+}
+
 # copulaCorrection --------------------------------------------------------------------
 fit_copulacorrection_fast <- function(
   formula,

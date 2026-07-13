@@ -173,6 +173,7 @@ test_that("structural residuals & fitted values are calculated correctly", {
 })
 
 # Single endo + 0 exo: Collapses to copulaCorrection case 1 (continuous only) ---------
+# (equivalent according to the paper)
 # data case 3: need non-normally distributed exogenous
 
 run_2scope_parkgupta_equivalent <- function(data) {
