@@ -104,6 +104,8 @@
 #'
 #' @template template_param_cdf_references
 #'
+#' @eval doc_rendocopulabmw_return()
+#'
 #' @family copula-based methods
 #'
 #' @seealso \code{\link[REndo:dataCopBMW]{dataCopBMW},

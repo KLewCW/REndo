@@ -8,8 +8,10 @@ doc_rendocopulabmw_return_list <- function() {
 
   doc_copulabmw <- c(
     cdf = "\\item{\\code{cdf}}{The used cdf function.}",
-    names.endo.regs = "\\item{\\code{names.endo.regs}}{The names of the continuous endogenous regressors.}",
-    res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}"
+    res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}",
+    labels.endo = "\\item{\\code{labels.endo}}{The term labels of the endogenous regressors.}",
+    labels.exo = "\\item{\\code{labels.exo}}{The term labels of the exogenous regressors.}",
+    labels.pcop = "\\item{\\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}"
   )
 
   return(c(doc_boots, doc_copulabmw))
