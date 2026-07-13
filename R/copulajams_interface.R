@@ -169,12 +169,12 @@ copulaJAMS <- function(
 ) {
   cl <- match.call()
 
-  # check_err_msg(checkinput_copulaJAMS_formula(formula))
-  # check_err_msg(checkinput_copulaJAMS_data(data))
-  # check_err_msg(checkinput_copulaJAMS_dataVSformula(data = data, formula = formula))
-  # check_err_msg(checkinput_copulaJAMS_numboots(num.boots))
-  # check_err_msg(checkinput_copulaJAMS_verbose(verbose))
-  # check_err_msg(checkinput_copulaJAMS_cdf(cdf))
+  # check_err_msg(checkinput_copulajams_formula(formula))
+  # check_err_msg(checkinput_copulajams_data(data))
+  # check_err_msg(checkinput_copulajams_dataVSformula(data = data, formula = formula))
+  # check_err_msg(checkinput_copulajams_numboots(num.boots))
+  # check_err_msg(checkinput_copulajams_verbose(verbose))
+  # check_err_msg(checkinput_copulajams_cdf(cdf))
 
   cdf <- match.arg(cdf, choices = c("adj.ecdf", "resc.ecdf", "ecdf", "kde"))
 
@@ -201,7 +201,7 @@ copulaJAMS <- function(
     )
   }
 
-  fit <- copulaJAMS_fit(
+  fit <- copulajams_fit(
     f.main = f.main,
     data = data,
     names.endo.regs = names.endo.regs,
@@ -213,7 +213,7 @@ copulaJAMS <- function(
 
   fn.fit.boots <- function(data.b) {
     return(
-      copulaJAMS_fit(
+      copulajams_fit(
         f.main = f.main,
         data = data.b,
         names.endo.regs = names.endo.regs,
@@ -240,7 +240,7 @@ copulaJAMS <- function(
 
   # Return object ----------------------------------------------------------------------
 
-  return(new_rendo_copulaJAMS(
+  return(new_rendo_copulajams(
     call = cl,
     F.formula = F.formula,
     res.lm.augmented = fit,

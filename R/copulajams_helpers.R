@@ -11,7 +11,7 @@ pobs_adj <- function(x) {
   return(U)
 }
 
-copulaJAMS_pstar <- function(P, cdf) {
+copulajams_pstar <- function(P, cdf) {
   if (!is.matrix(P)) {
     P <- as.matrix(P)
   }
@@ -40,7 +40,7 @@ copulaJAMS_pstar <- function(P, cdf) {
   return(P.star)
 }
 
-copulaJAMS_correction_cont <- function(P.all, names.endo.regs, cdf) {
+copulajams_correction_cont <- function(P.all, names.endo.regs, cdf) {
   #computing the copula correction terms - continuous exogenous case
   # equation 17 : C(P_i, W_i), sigma_(C(P), C(W)} is the variance-covariance matrix
   #of (C(P), W(P)) (not the correlation matrix)
@@ -48,7 +48,7 @@ copulaJAMS_correction_cont <- function(P.all, names.endo.regs, cdf) {
   #regressors and giving one copula term per endo regressors
 
   #step 1: applying CDF to all regressors (P&W)
-  P.star <- copulaJAMS_pstar(P = P.all, cdf = cdf)
+  P.star <- copulajams_pstar(P = P.all, cdf = cdf)
 
   #step 2: applying qnorm to obtain normal scores C(P) and C(W)
   C.all <- apply(P.star, 2, qnorm) #using equation C(P_i) = Phi^{-1}(F_hat(P_i)) for each regressor
@@ -76,7 +76,7 @@ copulaJAMS_correction_cont <- function(P.all, names.endo.regs, cdf) {
 #Copula correction terms in case of factor or discrete exo case
 #' @ importFrom stats cov qnorm
 
-copulaJAMS_correction_dis <- function(
+copulajams_correction_dis <- function(
   data,
   names.endo.regs,
   names.exo.regs,
@@ -127,7 +127,7 @@ copulaJAMS_correction_dis <- function(
 
       #Using the steps from equation 21 again:
 
-      P.star <- copulaJAMS_pstar(P = subdat2, cdf = cdf)
+      P.star <- copulajams_pstar(P = subdat2, cdf = cdf)
 
       C.sub <- apply(P.star, 2, qnorm)
 

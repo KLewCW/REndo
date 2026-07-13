@@ -1,4 +1,4 @@
-doc_rendocopulaJAMS_return_list <- function() {
+doc_rendocopulajams_return_list <- function() {
   doc_boots <- doc_rendobootsdegeneratesremoved_return_list()
 
   doc_boots[['residuals']] <- "\\item{\\code{residuals}}{The structural residuals.}"
@@ -6,26 +6,26 @@ doc_rendocopulaJAMS_return_list <- function() {
     'fitted.values'
   ]] <- "\\item{\\code{fitted.values}}{Fitted values of the structural model.}"
 
-  doc_copulaJAMS <- c(
+  doc_copulajams <- c(
     cdf = "\\item{\\code{cdf}}{The used cdf function.}",
     names.endo.regs = "\\item{\\code{names.endo.regs}}{The names of the continuous endogenous regressors.}",
     res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}"
   )
 
-  return(c(doc_boots, doc_copulaJAMS))
+  return(c(doc_boots, doc_copulajams))
 }
 
 
-doc_rendocopulaJAMS_return <- function() {
+doc_rendocopulajams_return <- function() {
   doc_intro <- c(
-    return = "@return An object of class \\code{rendo.copula.JAMS} which is a list that contains:"
+    return = "@return An object of class \\code{rendo.copula.jams} which is a list that contains:"
   )
 
-  return(c(doc_intro, doc_rendocopulaJAMS_return_list()))
+  return(c(doc_intro, doc_rendocopulajams_return_list()))
 }
 
 #' @importFrom stats coef model.frame
-new_rendo_copulaJAMS <- function(
+new_rendo_copulajams <- function(
   call,
   F.formula,
   fitted.values,
@@ -51,7 +51,7 @@ new_rendo_copulaJAMS <- function(
     n.boots.failed = n.boots.failed,
 
     # Stuff specific to JAMS
-    subclass = "rendo.copula.JAMS",
+    subclass = "rendo.copula.jams",
     res.lm.augmented = res.lm.augmented,
     cdf = cdf,
     names.endo.regs = names.endo.regs

@@ -2,7 +2,7 @@
 #' @importFrom stats lm model.frame model.matrix formula update reformulate terms cor
 #'
 #'
-copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
+copulajams_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
   mf <- model.frame(f.main, data = data)
   X.main <- model.matrix(f.main, data = mf)
 
@@ -38,7 +38,7 @@ copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
 
   if (length(factor.vars) == 0) {
     #case no Z
-    cop.terms <- copulaJAMS_correction_cont(
+    cop.terms <- copulajams_correction_cont(
       P.all = P.all,
       names.endo.regs = endogenous.cols,
       cdf = cdf
@@ -46,7 +46,7 @@ copulaJAMS_fit <- function(f.main, data, names.endo.regs, names.exo.regs, cdf) {
   } else {
     #case where Z is present
 
-    cop.terms <- copulaJAMS_correction_dis(
+    cop.terms <- copulajams_correction_dis(
       data = data,
       names.endo.regs = endogenous.cols,
       names.exo.regs = names.exo.regs,
