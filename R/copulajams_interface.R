@@ -168,14 +168,15 @@ copulaJAMS <- function(
 ) {
   cl <- match.call()
 
-  # check_err_msg(checkinput_copulajams_formula(formula))
-  # check_err_msg(checkinput_copulajams_data(data))
-  # check_err_msg(checkinput_copulajams_dataVSformula(data = data, formula = formula))
-  # check_err_msg(checkinput_copulajams_numboots(num.boots))
-  # check_err_msg(checkinput_copulajams_verbose(verbose))
-  # check_err_msg(checkinput_copulajams_cdf(cdf))
+  #Input checks
+  allowed.cdfs <- c("adj.ecdf", "resc.ecdf", "ecdf", "kde")
+  check_err_msg(checkinput_copulashared_data_basics(data))
+  # check_err_msg(checkinput_copulajams_formula_data(formula = formula, data = data))
+  check_err_msg(checkinput_copulashared_cdf(cdf = cdf, allowed.cdf = allowed.cdfs))
+  check_err_msg(checkinput_copulashared_numboots(num.boots))
+  check_err_msg(checkinput_copulashared_verbose(verbose))
 
-  cdf <- match.arg(cdf, choices = c("adj.ecdf", "resc.ecdf", "ecdf", "kde"))
+  cdf <- match.arg(cdf, choices = allowed.cdfs)
 
   F.formula <- Formula::as.Formula(formula)
   f.main <- formula(F.formula, lhs = 1, rhs = 1)
