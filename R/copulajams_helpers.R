@@ -73,9 +73,8 @@ copulajams_correction_cont <- function(P.all, names.endo.regs, cdf) {
 }
 
 
-#Copula correction terms in case of factor or discrete exo case
-#' @ importFrom stats cov qnorm
 
+#' @importFrom stats cov qnorm
 copulajams_correction_dis <- function(
   data,
   names.endo.regs,

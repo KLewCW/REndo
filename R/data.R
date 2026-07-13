@@ -500,7 +500,6 @@
 #'   \eqn{\rho = 0.5}.}
 #' }
 #' @docType data
-#' @references
 #' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
 "dataCopJAMSSingle"
 

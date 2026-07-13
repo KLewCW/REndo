@@ -18,7 +18,8 @@
 #' @template template_param_cdf
 #'
 #' @details
-#' \strong{Model}
+#'
+#' ## Model
 #'
 #' let's consider the following structural regression model (Liengaard et al. 2024)
 #' \deqn{Y_i = g(P_i, W_i, Z_i) + \varepsilon_i}
@@ -45,44 +46,42 @@
 #' \eqn{\mu, \alpha_k, \beta_W, \beta_Z} are the structural model
 #' parameters.
 #'
-#' \strong{Methodology}
+#' ## Methodology
 #' The JAMS method is an augmented ordinary least-squares estimator in three steps:
 #'
-#' \enumerate{
-#' \item First step: For each value \eqn{z} of the discrete exogenous
-#' \eqn{Z_i} (or unconditionally if no \eqn{Z_i} is present), the CDF estimator
-#' is applied to all continuous regressors \eqn{P_i} and \eqn{W_i}
-#' to obtain normal scores: \deqn{C(P_i) = \Phi^{-1}(\hat{F}_P(P_i)),
-#' \quad C(W_i) = \Phi^{-1}(\hat{F}_W(W_i))}}
-#' \item{Second step: The copula correction terms are constructed through the
-#' inverse variance-covariance matrix transformation:
-#' \deqn{\hat{C}^z(P_i, W_i) = (\hat{C}^z(P_i)', \hat{C}^z(W_i)')
+#' 1. First step: For each value \eqn{z} of the discrete exogenous
+#'    \eqn{Z_i} (or unconditionally if no \eqn{Z_i} is present), the CDF estimator
+#'    is applied to all continuous regressors \eqn{P_i} and \eqn{W_i}
+#'    to obtain normal scores: \deqn{C(P_i) = \Phi^{-1}(\hat{F}_P(P_i)),
+#'    \quad C(W_i) = \Phi^{-1}(\hat{F}_W(W_i))}
+#'
+#' 2. Second step: The copula correction terms are constructed through the
+#'    inverse variance-covariance matrix transformation:
+#'    \deqn{\hat{C}^z(P_i, W_i) = (\hat{C}^z(P_i)', \hat{C}^z(W_i)')
 #'       \hat{\Sigma}^{-1}_{\hat{C}^z(P), \hat{C}^z(W)}
 #'       \begin{pmatrix} I_{d_P} \\ 0_{d_W \times d_P} \end{pmatrix}}
-#' where
-#' \eqn{\hat{\Sigma}} is the estimated variance-covariance matrix
-#' of the normal scores \eqn{(\hat{C}(P), \hat{C}(W))} and the projection
-#' \eqn{(I_{d_P}, 0_{d_W \times d_P})'} only keeps the \eqn{d_P} columns
-#' corresponding to the endogenous regressors which provides  one correction term
-#' per endogenous regressor.
-#' If there is discrete \eqn{Z_i}, it is estimated separately within each subset
-#' where \eqn{Z_i = z}.
-#'  }
-#'\item{Third step: The structural model is then augmented with the estimated
-#'correction tersm and estimated using the ordinary least-squares.
-#'If there is \eqn{Z_i} the equation is:
-#' \deqn{Y_i = g(P_i, W_i, Z_i) + \sum_{z=z_1}^{z_J} \sum_{k=1}^{d_P}
-#'       \gamma_k^z \hat{C}_k^z(P_i, W_i) \mathbf{1}(Z_i = z) + u_i}
-#' If there is no \eqn{Z_i}:
-#' \deqn{Y_i = g(P_i, W_i) + \sum_{k=1}^{d_P} \gamma_k \hat{C}_k(P_i, W_i) + u_i}
-#'  }
-#' }
+#'    where
+#'    \eqn{\hat{\Sigma}} is the estimated variance-covariance matrix
+#'    of the normal scores \eqn{(\hat{C}(P), \hat{C}(W))} and the projection
+#'    \eqn{(I_{d_P}, 0_{d_W \times d_P})'} only keeps the \eqn{d_P} columns
+#'    corresponding to the endogenous regressors which provides  one correction term
+#'    per endogenous regressor.
+#'    If there is discrete \eqn{Z_i}, it is estimated separately within each subset
+#'    where \eqn{Z_i = z}.
 #'
-#' \stron{Note on the choice of the \code{cdf}}
+#' 3. Third step: The structural model is then augmented with the estimated
+#'    correction tersm and estimated using the ordinary least-squares.
+#'    If there is \eqn{Z_i} the equation is:
+#'    \deqn{Y_i = g(P_i, W_i, Z_i) + \sum_{z=z_1}^{z_J} \sum_{k=1}^{d_P}
+#'       \gamma_k^z \hat{C}_k^z(P_i, W_i) \mathbf{1}(Z_i = z) + u_i}
+#'    If there is no \eqn{Z_i}:
+#'    \deqn{Y_i = g(P_i, W_i) + \sum_{k=1}^{d_P} \gamma_k \hat{C}_k(P_i, W_i) + u_i}
+#'
+#' ## Note on the choice of the \code{cdf}
 #' The \code{adj.ecdf} is the recommended default of Liengaard et al. (2024). It
 #' helps to reduce finite-sample bias, especially in models with an intercept.
 #'
-#' \strong{Formula interface}
+#' ## Formula interface
 #' The \code{formula} argument follows a two-part notation which is separated by a
 #' \code{|}. The first part shows the structural model and may also include interactions
 #' and transformations, while the second part determines the continuous endogenous
@@ -154,12 +153,12 @@
 #'   num.boots = 1000
 #' )
 #' summary(res2)
-#' }
 #'
+#'
+#' @md
 #'
 #' @export
-#' @importFrom stats coef model.response model.frame model.matrix
-#'
+#' @importFrom stats coef
 copulaJAMS <- function(
   formula,
   data,
