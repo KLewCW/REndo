@@ -227,10 +227,10 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \link[REndo:dataCopBMWMultiEndo]{dataCopBMWMultiEndo}} for detailed
 information about the simulated datasets
 
-Other copula-based methods: 
-\code{\link{copula2sCOPE}()},
-\code{\link{copula2sCOPEnp}()},
-\code{\link{copulaCorrection}()},
-\code{\link{copulaIMA}()}
+Other copula-based methods:
+\code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaCorrection]{copulaCorrection()}},
+\code{\link[=copulaIMA]{copulaIMA()}}
 }
 \concept{copula-based methods}

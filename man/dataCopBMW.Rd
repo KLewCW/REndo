@@ -10,7 +10,7 @@ A data frame with 1000 observations on 3 variables:
   \item{\code{y}}{a numeric vector representing the dependent variable.}
   \item{\code{x}}{a numeric vector, Gamma(1,1) distributed and exogenous.}
   \item{\code{P}}{a numeric vector, continuous and endogenous, constructed
-    as \code{P = x + e} where \code{e ~ Gamma(1,1)} is independent of
+    as \code{P = X + e} where \code{e ~ Gamma(1,1)} is independent of
     \code{x}.}
 }
 }
@@ -19,12 +19,12 @@ data("dataCopBMW")
 }
 \description{
 A dataset with one exogenous regressor \code{x} and one
-  endogenous, continuous regressor \code{P}, generated according to DGP1
+  continuous endogenous regressor \code{P}, generated according to DGP1
   of Breitung, Meyer, and Wied (2024), Section 4, with correlated regressors
   (\code{delta = 1}) and endogeneity (\code{rho = 0.5}).
   The dependent variable is \code{y}.
   The true parameter values are: \code{mu = 1} (intercept),
-  \code{beta = -1} (\code{x}), and \code{alpha = 1} (\code{P}).
+  \code{beta = -1} (\code{X}), and \code{alpha = 1} (\code{P}).
 }
 \author{
 Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@gmail.com}
