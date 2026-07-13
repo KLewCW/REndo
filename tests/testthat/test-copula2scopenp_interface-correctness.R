@@ -15,35 +15,11 @@ data.cont.pos <- local({
   return(df)
 })
 
-check_labelled_consistently <- function(res) {
-  # aux terms in coefs
-  expect_true(all(res$labels.pcop %in% names(coef(res))))
-  # one aux term per endo
-  expect_equal(length(res$labels.pcop), length(res$labels.endo))
+check_labelled_consistently_2scopenp <- function(res) {
+  check_labelled_consistently(res)
+
   # one bw per endo, named after endo
   expect_setequal(names(res$bws), res$labels.endo)
-
-  # all names of main coefs preserved (numeric, factors, ordered)
-  labels.structural <- c(res$labels.exo, res$labels.endo)
-  cf.names <- names(coef(res))
-  # check each label separately
-  for (l in labels.structural) {
-    expect_true(
-      # fmt: skip
-      any(
-        # continuous: plain name
-        cf.names == l |
-          # ordered: <name>.<L/Q/C>
-          startsWith(cf.names, paste0(l, ".")) |
-          # factor: <name><level>
-          (startsWith(cf.names, l) & cf.names != l)
-      ),
-      info = l
-    )
-  }
-
-  # coefs in summary named same as coefs
-  expect_setequal(rownames(coef(summary(res))), names(coef(res)))
 }
 
 
@@ -130,7 +106,7 @@ test_that("Formula edge cases: Label & residuals correct", {
 
   for (nm in names(cases)) {
     res <- fit_2scopenp_fast(formula = cases[[nm]]$formula, data = cases[[nm]]$data)
-    check_labelled_consistently(res)
+    check_labelled_consistently_2scopenp(res)
     check_struct_residuals(res = res, aux.names = res$labels.pcop)
   }
 })
@@ -163,7 +139,7 @@ test_that("Ordered and factors in endo / exo", {
     ),
     data = df.small
   )
-  check_labelled_consistently(res)
+  check_labelled_consistently_2scopenp(res)
   check_struct_residuals(res = res, aux.names = res$labels.pcop)
 
   # correct param names
@@ -222,7 +198,12 @@ test_that("Parameter bws is used as-is", {
 # the conditional CDF collapses to the marginal CDF, \eqn{\hat{F})(P|X) = \hat{F}(P)} and the
 # method then reduces to the Park and Gupta (2012) copula correction.
 
-run_2scopenp_parkgupta_equivalent <- function(formula.np, formula.pg, data, params.to.compare) {
+run_2scopenp_parkgupta_equivalent <- function(
+  formula.np,
+  formula.pg,
+  data,
+  params.to.compare
+) {
   res.np <- suppress_lowboots_warning(
     copula2sCOPEnp(
       formula = formula.np,
@@ -275,7 +256,7 @@ test_that("Recovery: Continuous endo (dataCopula2sCOPEnpCont)", {
   res <- suppress_lowboots_warning(copula2sCOPEnp(
     formula = y ~ P + X | P,
     data = dataCopula2sCOPEnpCont,
-    npcdistbw.args = list(nmulti = 1, tol=0.1, ftol=0.1),
+    npcdistbw.args = list(nmulti = 1, tol = 0.1, ftol = 0.1),
     num.boots = 100,
     verbose = FALSE
   ))

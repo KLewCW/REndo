@@ -45,6 +45,38 @@ check_clean_fit <- function(res) {
   expect_false(anyNA(res$boots.params))
 }
 
+# check_labelled_consistently --------------------------------------------------------
+
+check_labelled_consistently <- function(res) {
+  # aux terms in coefs
+  expect_true(all(res$labels.pcop %in% names(coef(res))))
+  # one aux term per endo
+  expect_equal(length(res$labels.pcop), length(res$labels.endo))
+
+  # all names of main coefs preserved (numeric, factors, ordered)
+  labels.structural <- c(res$labels.exo, res$labels.endo)
+  cf.names <- names(coef(res))
+  # check each label separately
+  for (l in labels.structural) {
+    expect_true(
+      # fmt: skip
+      any(
+        # continuous: plain name
+        cf.names == l |
+          # ordered: <name>.<L/Q/C>
+          startsWith(cf.names, paste0(l, ".")) |
+          # factor: <name><level>
+          (startsWith(cf.names, l) & cf.names != l)
+      ),
+      info = l
+    )
+  }
+
+  # coefs in summary named same as coefs
+  expect_setequal(rownames(coef(summary(res))), names(coef(res)))
+}
+
+
 # run_cases ------------------------------------------------------------------
 # run `fn` method with `cases` + `base.args` and then apply `check` as a test
 # return the fitted object in list named after cases
