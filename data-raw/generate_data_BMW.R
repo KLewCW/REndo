@@ -21,18 +21,19 @@ mu <- 1
 beta <- -1
 alpha <- 1
 delta <- 1
-rho <- 0.5
+rho <- 0.9
 
 
 #Non-normal exogenous regressor X ~ Gamma(1,1)
 X <- rgamma(n, shape=1, rate =1)
 
-# non-normal first stage error e ~ Gamma(1,1)
-e <- rgamma(n, shape = 1, rate = 1) #must be nonnormal as per assumption A5
+# non-normal first stage error e ~ lognormal(0,1)
+#making it more non-normal
+e <- rlnorm(n, meanlog = 0, sdlog = 1) #must be nonnormal as per assumption A5
 
 #eta = phi^{-1} (F_e (e)), where F_e is Gamma(1,1) CDF
 #the control function from eq. 2.2
-eta <- qnorm(pgamma(e, shape = 1, rate = 1))
+eta <- qnorm(plnorm(e, meanlog = 0, sdlog = 1))
 
 # endogenous regressor correlated with X
 #P = delta*X + e (Assumption A4)
