@@ -1,8 +1,6 @@
 #' @importFrom stats lm residuals var runif rnorm rgamma
 #' @importFrom mvtnorm rmvnorm
 #' @importFrom MCMCpack riwish rdirichlet
-#'
-
 # MCMC sampler of the copula model from Appendix D
 
 #sampler cycles through 4 blocks per iteration (eq.11):
@@ -23,7 +21,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
   N <- length(y)
   K <- ncol(z)
   L <- ncol(x)
-  dim <- K + L + 1L  #copula dimension = K endogenous + L exogenous + error
+  cop.dim <- K + L + 1L  #copula dimension = K endogenous + L exogenous + error
 
 
   #building margin structures per regressor (from Appendix D step 2)
@@ -42,17 +40,17 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
 
   alpha.cur <- coef.ols["(Intercept)"]
   delta.cur <- coef.ols[1L + seq_len(K)]
-  beta.cur <- if( L >0L){
-    coef.ols[1L + K + seq_len(L)]
+  if( L > 0L){
+    beta.cur <- coef.ols[1L + K + seq_len(L)]
   } else {
-    numeric(0L)
+    beta.cur <- numeric(0L)
   }
 
   sigma2.cur <- var(residuals(mod.ols))
 
   # setting sigma^[0] = identiy matrix (I)
   # Here we start with no correlation assumed.
-  Phi.cur <- diag(dim)
+  Phi.cur <- diag(cop.dim)
 
   #initial lambda from Dir(1,...,1) are drawn
   lambdaz.list <- lapply(mgz.list, function(mg) as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m))))
@@ -70,16 +68,17 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
 
   # Chain storage: one row per iteration.
   # Column layout (fixed throughout)
-  n.rho <- dim * (dim - 1L)/2L
+  n.rho <- cop.dim * (cop.dim - 1L)/2L
   n.hyper <- 1L + K + L
   n.coef <- 1L + K + L  #alpha + delta+ beta
 
   col.alpha <- 1L #intercept alpha
   col.delta <- 1L + seq_len(K) #delta_1,...,delta_K (endo coefficients)
-  col.beta <- if (L > 0 ){
-    1L + K + seq_len(L)
-  } else{ # exo coefficients beta_1,...,beta_L. Empty if L=0
-    integer (0L)
+
+  if (L > 0){
+    col.beta <- 1L + K + seq_len(L)
+  } else{
+    col.beta <- integer(0L)  # exo coefficients beta_1,...,beta_L. Empty if L=0
   }
 
   col.sigma2 <- 1L + K + L + 1L #error variance sigma^2
@@ -106,9 +105,14 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
   if ( L > 0L ) chain[1L, col.beta] <- beta.cur
   chain [1L, col.sigma2] <- sigma2.cur
   chain[1L, col.rho] <-copulaBayesMatrixtoVector(Phi.cur)
+
   chain[1L, col.sa] <- 1000
   chain[1L, col.sb.d] <- rep (1000, K)
   if (L > 0L ) chain[1L, col.sb.b] <- rep(1000, L)
+
+  tune <- 1.0
+  n.accepted <- 0L
+
 
   #MCMC loop
 
@@ -123,11 +127,12 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
     #Retrieving current hyperprior variances from chain
     sa.cur <- chain[i, col.sa]
     sb.d.cur <- chain[i, col.sb.d]
-    sb.b.cur <- if (L >0){
-      chain[i, col.sb.b]
-    } else {
-      numeric(0L)
-    }
+
+    if (L > 0L) {
+      sb.b.cur <- chain[i, col.sb.b]
+    } else{
+        sb.b.cur <- numeric(0L)
+      }
 
     #Step 1 and 2 of the iteration: random walk mH for alpha, delta, beta, log sigma^2
     #Using the MCMCpack metropolis principle: propose, then evalute ratio and accept.
@@ -146,12 +151,18 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
 
     if(log(runif(1L)) < log.mh){
       theta.cur <- theta.prop
-      n.acccepted <- n.accepted + 1L
+      n.accepted <- n.accepted + 1L
     }
 
     alpha.cur  <- theta.cur[1L]
     delta.cur  <- theta.cur[seq(2L, 1L + K)]
-    beta.cur   <- if (L > 0L) theta.cur[seq(2L + K, 1L + K + L)] else numeric(0L)
+
+    if(L > 0L){
+      beta.cur <- theta.cur[seq(2L + K, 1L + K + L)]
+    } else{
+      beta.cur <- numeric(0L)
+    }
+
     sigma2.cur <- exp(theta.cur[1L + K + L + 1L])
 
     chain[i + 1L, col.alpha]  <- alpha.cur
@@ -171,15 +182,15 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
     xi.e <- pmin(pmax(qnorm(pnorm(as.vector(e.cur) /sqrt(sigma2.cur))), -8), 8)
     xi.all <- cbind(xi.z, xi.x, xi.e)
 
-    W.new <- MCMCpack::riwish(N + dim, diag(dim) + crossprod(xi.all))
+    W.new <- MCMCpack::riwish(N + cop.dim, diag(cop.dim) + crossprod(xi.all))
     sds <- sqrt(diag(W.new))
     D.inv <- diag(1/sds)
     Phi.cur <- D.inv %*% W.new %*% D.inv
 
     # Enforce exogeneity
     for (l in seq_len(L)) {
-      Phi.cur[K + l, dim] <- 0  #zero out (x_l, e) correlations
-      Phi.cur[dim, K + l] <- 0
+      Phi.cur[K + l, cop.dim] <- 0  #zero out (x_l, e) correlations
+      Phi.cur[cop.dim, K + l] <- 0
     }
 
     chain[i + 1L , col.rho] <- copulaBayesMatrixtoVector(Phi.cur)
@@ -188,7 +199,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
     #Drawing correlated normals from current phi, then copulaBayesDrawLambda updates
     #each variable's mass vector
 
-    eps <- mvtnorm::rmvnorm(N,mean = rep(0,dim), sigma = Phi.cur)
+    eps <- mvtnorm::rmvnorm(N,mean = rep(0,cop.dim), sigma = Phi.cur)
 
     for (k in seq_len(K)) {
       lambdaz.list[[k]] <- copulaBayesDrawLambda(pnorm(eps[, k]),mgz.list[[k]])
@@ -199,7 +210,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
       xi.x[, l] <- copulaBayesConverter(lambdax.list[[l]], mgx.list[[l]])
     }
 
-    #'Horseshoe hyperprior updates (From equation 5 of Haschka 2025)
+    #Horseshoe hyperprior updates (From equation 5 of Haschka 2025)
 
     chain[i + 1L, col.sa] <- 1 / rgamma(1L, shape = 0.501, rate = (alpha.cur^2 + 0.002) / 2)
 
@@ -221,7 +232,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose){
   attr(chain, "col.rho")    <- col.rho
   attr(chain, "K")          <- K
   attr(chain, "L")          <- L
-  attr(chain, "dim")        <- dim
+  attr(chain, "cop.dim")        <- cop.dim
 
   chain
 }

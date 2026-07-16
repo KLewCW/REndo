@@ -63,7 +63,7 @@
 #' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534
 #' \doi{10.1111/obes.70023}
 #'
-#' @example
+#' @examples
 #' # Example: Bayesian Gaussian copula endogeneity correction
 #' # based on Section 4.1, eq. (12) to (16)
 #' # N = 1000
@@ -145,6 +145,9 @@ copulaBayes <- function(
   z       <- X.main[, is.endo,  drop = FALSE]   # N x K endogenous
   x       <- X.main[, !is.endo, drop = FALSE]   # N x L exogenous (N x 0 if L=0)
 
+  if (is.null(colnames(z))) colnames(z) <- paste0("z", seq_len(ncol(z)))
+  if (is.null(colnames(x))) colnames(x) <- paste0("x", seq_len(ncol(x)))
+
   if (ncol(z) < length(names.endo.regs))
     stop(
       "Could not match all declared endogenous regressors in the ",
@@ -170,15 +173,17 @@ copulaBayes <- function(
   )
 
   # Burn-in and thinning
-  idx.keep     <- seq(burnin + 2, num.iterations + 1, by = thin)
+  idx.keep     <- seq(burnin + 2L, num.iterations + 1L, by = thin)
   chain        <- chain.full[idx.keep, , drop = FALSE]
 
   col.alpha    <- attr(chain.full, "col.alpha")
   col.delta    <- attr(chain.full, "col.delta")
   col.beta     <- attr(chain.full, "col.beta")
+  col.rho      <- attr(chain.full, "col.rho")
   col.sigma2   <- attr(chain.full, "col.sigma2")
   K            <- attr(chain.full, "K")
   L            <- attr(chain.full, "L")
+  cop.dim      <- attr(chain.full, "cop.dim")
 
   coef.names   <- c( "(Intercept)", paste0(colnames(z), "_endo"), if (L > 0) paste0(colnames(x), "_exo") else character(0),
     "sigma2"
@@ -187,6 +192,12 @@ copulaBayes <- function(
 
   chain.struct <- chain[, structure.cols, drop = FALSE]
   colnames(chain.struct) <- coef.names
+
+  #endogenous and error copula correction draws
+
+  idx.rho.endo <- (cop.dim - 1L) * (cop.dim - 2L) / 2L + seq_len(K)
+  chain.rho    <- chain[, col.rho[idx.rho.endo], drop = FALSE]
+  colnames(chain.rho) <- paste0("rho_", colnames(z))
 
   # Posterior summaries
   post.mean <- colMeans(chain.struct)
@@ -208,6 +219,7 @@ copulaBayes <- function(
     F.formula       = F.formula,
     chain           = chain,
     chain.struct    = chain.struct,
+    chain.rho = chain.rho,
     post.mean       = post.mean,
     post.sd         = post.sd,
     post.lo         = post.lo,

@@ -50,7 +50,7 @@ xi_x <- eps[,3]
 x <- qnorm(pnorm(xi_x)) #normally distributed exo regressor
 
 #eq. 15:
-e <- qnorm(pnorm(xi_e, sd = sqrt(sigma2))) #normally distributed streuctural error
+e <- qnorm(pnorm(xi_e), sd = sqrt(sigma2)) #normally distributed streuctural error
 
 #q.16 z ~ lognormal(0,1)
 z <- qlnorm(pnorm(xi_z)) #nonnormal for identification (page 520 as per chapter 2)

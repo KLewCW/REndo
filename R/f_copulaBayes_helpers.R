@@ -1,13 +1,14 @@
-#' @importFrom stats qnorm pnorm qgamma rgamma dnorm dgamma lgamma
-#' @importFrom MCMCpack rdirichlet
-
-#building margin structure for one variable
-
-#First step: building per-unique-value margin structure for 1 regressor variable
-#This is called once per regressor before the MCMC loop:
-#This implements the categorial variable structure assumed in section 3 of Haschka 2025
-# page 522, 'assume that vs exhibit categorical distribution, i.e., v_varpi ~ Cat (m_{varpi}, lambda_{varpi})
+#' @importFrom stats qnorm pnorm qgamma rgamma dnorm dgamma
+#' @importFrom MCMCpack riwish rdirichlet
 copulaBayesMargin <- function(v){
+
+  #building margin structure for one variable
+
+  #First step: building per-unique-value margin structure for 1 regressor variable
+  #This is called once per regressor before the MCMC loop:
+  #This implements the categorial variable structure assumed in section 3 of Haschka 2025
+  # page 522, 'assume that vs exhibit categorical distribution, i.e., v_varpi ~ Cat (m_{varpi}, lambda_{varpi})
+
   uv <- sort(unique(v)) #sorted unique values (UV)
   grp <- match(v, uv) # integer index per observation into UV
   m <- length(uv) #number of UV
@@ -106,10 +107,10 @@ copulaBayeslogpost <- function(alpha, delta, beta, sigma2, Phi, xi.z, xi.x, sa, 
   log.a <- dnorm(alpha, mean =0, sd = sqrt(sa), log = TRUE)
   log.d<- sum(dnorm(delta, mean = 0, sd = sqrt(sb.delta), log = TRUE))
 
-  log.b <-if (length(beta) >0){
-    sum(dnorm(beta, mean = 0, sd = sqrt(sb.beta), log = TRUE))
+  if (length(beta) > 0){
+    log.b <- sum(dnorm(beta, mean = 0, sd = sqrt(sb.beta), log = TRUE))
   } else{
-    0
+    log.b <- 0
   }
 
   log.c + log.e + log.s + log.a + log.d + log.b
@@ -118,20 +119,22 @@ copulaBayeslogpost <- function(alpha, delta, beta, sigma2, Phi, xi.z, xi.x, sa, 
 #Reparametrising the logposterior for the random walk MH step
 #theta = c(alpha, delta_1,.., delta_K, beta_1,..., beta_L, log(sigma^2))
 #log jacobian log(sigma^2) = log.sig2 converting from log-scale to natural scale
-copulaBayeslogpostparam <- function(theta, phi, xi.z, xi.x, sa, sb.delta, sb.beta, y,z,x, K,L){
+copulaBayeslogpostparam <- function(theta, Phi.cur, xi.z, xi.x, sa, sb.delta, sb.beta, y,z,x, K,L){
   alpha <- theta[1L]
   delta <- theta[seq(2L, 1L + K)]
-  beta < - if (L > 0L){
-    theta[seq(2L + K, 1L + K +L)]
+
+  if ( L > 0L){
+    beta <- theta[seq(2L + K, 1L + K + L)]
   } else{
-    numeric(0L)
+    beta <- numeric(0L)
   }
+
 
   log.s2 <- theta[1L + K + L + 1L]
   sigma2 <- exp(log.s2)
 
   #Jacobian = delta sigma^2/ delta log(sigma^2)
-  copulaBayeslogpost(alpha,delta, beta, sigma2, Phi, xi.z, xi.x, sa, sb.delta, sb.beta, y, z, x) + log.s2
+  copulaBayeslogpost(alpha,delta, beta, sigma2, Phi.cur, xi.z, xi.x, sa, sb.delta, sb.beta, y, z, x) + log.s2
 
 }
 

@@ -8,8 +8,8 @@ new_rendo_copula_bayes <- function(
     chain.rho,#endo-error copula correlation draws: rho_1,...,rho_K
     post.mean,
     post.sd,
-    post.low,
-    post.high,
+    post.lo,
+    post.hi,
     fitted.values,
     residuals,
     names.endo.regs,
@@ -17,7 +17,8 @@ new_rendo_copula_bayes <- function(
     burnin,
     thin,
     n.draws
-   ) {structure(
+   ) {
+  structure(
       list(
       call = call,
       F.formula = F.formula,
@@ -26,8 +27,8 @@ new_rendo_copula_bayes <- function(
       chain.rho  = chain.rho,
       post.mean = post.mean,
       post.sd = post.sd,
-      post.low = post.low,
-      post.high = post.high,
+      post.lo = post.lo,
+      post.hi = post.hi,
       fitted.values = fitted.values,
       residuals = residuals,
       names.endo.regs = names.endo.regs,
@@ -42,7 +43,7 @@ new_rendo_copula_bayes <- function(
 
 #' @export
 print.rendo.copula.bayes <- function(x, ...) {
-  cat("Bayesian Gaussian Copula Endogeneity Correction")
+  cat("Bayesian Gaussian Copula Endogeneity Correction \n")
   cat(rep("-", 60), "\n", sep = "")
 
   cat("\nCall:\n")
@@ -97,17 +98,17 @@ summary.rendo.copula.bayes <- function(object, ...) { #summary method: full post
     ESS = ess.rho,
     `Geweke z` = gw.rho)
 
-  return <- list(
+  output <- list(
     call = object$call,
-    tab.struct = tab.struct,
-    tab.rho  = tab.rho,
+    table.struct = table.struct,
+    table.rho  = table.rho,
     n.draws = object$n.draws,
     n.iterations = object$n.iterations,
     burnin = object$burnin,
     thin = object$thin
     )
-  class(return) <- "summary.rendo.copula.bayes"
-  return
+  class(output) <- "summary.rendo.copula.bayes"
+  output
   }
 
 #' @export
@@ -130,13 +131,13 @@ print.summary.rendo.copula.bayes <- function(x, ...) {
 
   # Structural parameters
   cat("\nStructural parameters:\n")
-  print(x$tab.struct, quote = FALSE)
+  print(x$table.struct, quote = FALSE)
 
   #Endogeneity strength
   cat("\nEndogeneity strength (copula correlation with structural error):\n")
   cat("rho > 0: positive endogeneity bias; rho < 0: negative bias.\n")
   cat("if the 95% credible interval excludes 0, endogeneity is significant.\n\n")
-  print(x$tab.rho, quote = FALSE)
+  print(x$table.rho, quote = FALSE)
 
   # Convergence guidance
   cat("\nConvergence guidance:\n")
