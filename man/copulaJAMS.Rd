@@ -157,7 +157,7 @@ using only successful bootstrap replications.
 #------------------------------------------------------------------------
 data("dataCopJAMSSingle")
 res1 <- copulaJAMS(
-  y ~ P | continuous(P),
+  y ~ P | P,
   data      = dataCopJAMSSingle,
   cdf       = "adj.ecdf",
   num.boots = 1000
@@ -185,7 +185,7 @@ dat        <- dataCopJAMS
 dat$Z      <- as.factor(dat$Z)  # Z must be factor for stratification
 
 res2 <- copulaJAMS(
-  y ~ P1 + P2 + W + Z + P1:P2 + P1:W + P2:Z | continuous(P1) + continuous(P2),
+  y ~ P1 + P2 + W + Z + P1:P2 + P1:W + P2:Z | P1 + P2,
   data      = dat,
   cdf       = "adj.ecdf",
   num.boots = 1000

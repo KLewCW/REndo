@@ -119,7 +119,7 @@
 #' #------------------------------------------------------------------------
 #' data("dataCopJAMSSingle")
 #' res1 <- copulaJAMS(
-#'   y ~ P | continuous(P),
+#'   y ~ P | P,
 #'   data      = dataCopJAMSSingle,
 #'   cdf       = "adj.ecdf",
 #'   num.boots = 1000
@@ -147,7 +147,7 @@
 #' dat$Z      <- as.factor(dat$Z)  # Z must be factor for stratification
 #'
 #' res2 <- copulaJAMS(
-#'   y ~ P1 + P2 + W + Z + P1:P2 + P1:W + P2:Z | continuous(P1) + continuous(P2),
+#'   y ~ P1 + P2 + W + Z + P1:P2 + P1:W + P2:Z | P1 + P2,
 #'   data      = dat,
 #'   cdf       = "adj.ecdf",
 #'   num.boots = 1000
@@ -178,35 +178,26 @@ copulaJAMS <- function(
 
   cdf <- match.arg(cdf, choices = allowed.cdfs)
 
-  F.formula <- Formula::as.Formula(formula)
-  f.main <- formula(F.formula, lhs = 1, rhs = 1)
-
-  names.endo.regs <- formula_readout_special(
-    F.formula = F.formula,
-    name.special = "continuous",
-    from.rhs = 2,
-    params.as.chars.only = TRUE
-  )
-
-  #deriving exo regressor names from RHS1 - endo
-  rhs.vars <- all.vars(formula(F.formula, rhs = 1, lhs = 0))
-  names.exo.regs <- rhs.vars[!rhs.vars %in% names.endo.regs]
+  F.formula <- as.Formula(formula)
+  labels.main <- labels(terms(F.formula, data = data, rhs = 1))
+  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+  labels.exo <- labels.main[!(labels.main %in% labels.endo)]
 
   #fitting the original data
   if (verbose) {
     message(
-      "Fitting JAMS copula model for",
-      length(names.endo.regs),
-      "continuous endogenous regressor(s)."
+      "Fitting JAMS copula model for ",
+      length(labels.endo),
+      " continuous endogenous regressor(s)."
     )
   }
 
   fit <- copulajams_fit(
-    f.main = f.main,
+    F.formula = F.formula,
     data = data,
-    names.endo.regs = names.endo.regs,
-    names.exo.regs = names.exo.regs,
-    cdf = cdf
+    cdf = cdf,
+    labels.endo = labels.endo,
+    labels.exo = labels.exo
   )
 
   # Bootstrapping ----------------------------------------------------------------------
@@ -214,11 +205,11 @@ copulaJAMS <- function(
   fn.fit.boots <- function(data.b) {
     return(
       copulajams_fit(
-        f.main = f.main,
+        F.formula = F.formula,
         data = data.b,
-        names.endo.regs = names.endo.regs,
-        names.exo.regs = names.exo.regs,
-        cdf = cdf
+        cdf = cdf,
+        labels.endo = labels.endo,
+        labels.exo = labels.exo
       )
     )
   }
@@ -250,6 +241,6 @@ copulaJAMS <- function(
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
     cdf = cdf,
-    names.endo.regs = names.endo.regs
+    names.endo.regs = labels.endo
   ))
 }
