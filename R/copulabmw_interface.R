@@ -158,6 +158,9 @@
 copulaBMW <- function(
   formula,
   data,
+  # Kimberly: "using ecdf as default as it is specifically mentioned in the paper that
+  # they adopted this rescaled ecdf. The adj.ecdf comes later from the JAMS method
+  # research paper"
   cdf = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"),
   num.boots = 1000,
   verbose = TRUE
