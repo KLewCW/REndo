@@ -10,6 +10,7 @@
 #' heteroskedasticity of the structural error.
 #'
 #' @template template_param_formuladataverbose
+#' @templateVar ecdf.text The theoretical recommendation of Breitung et al. (2024)
 #' @template template_param_cdf
 #' @template template_param_numboots
 #'

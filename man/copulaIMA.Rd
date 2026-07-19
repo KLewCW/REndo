@@ -25,8 +25,7 @@ copulaIMA(
       (Liengaard et al., 2024). Keeps values strictly inside (0,1).}
     \item{\code{"resc.ecdf"}}{Rescaled empirical CDF via
       \code{copula::pobs} (Qian et al., 2024).}
-    \item{\code{"ecdf"}}{Empirical CDF with boundary replacement
-      (Becker et al., 2022).}
+     \item{\code{"ecdf"}}{Empirical CDF with boundary replacement (Becker et al., 2022).}
     \item{\code{"kde"}}{Integral of a density estimator via \code{ks::kcde}
       used in (Park and Gupta, 2012).}
   }}
