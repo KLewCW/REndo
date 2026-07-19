@@ -116,10 +116,10 @@
 #' @examples
 #' \donttest{
 #' #------------------------------------------------------------------------
-#' # Example 1: BMW DGP1 — single endogenous regressor, correlated with
+#' # Example 1: Single endogenous regressor, correlated with
 #' # exogenous regressor (Breitung, Meyer, Wied 2024, Section 4,
-#' # DGP1 with delta = 1 (correlation between x and P), rho = 0.5 (endogeneity),
-#' # x ~ Gamma(1,1), e ~ Gamma(1,1) first stage error)
+#' # Inspired by DGP1 with delta = 1 (correlation between x and P), rho = 0.5 (endogeneity),
+#' # x ~ Gamma(1,1), e ~ lognormal(0,1) first stage error)
 #' # n = 1000
 #' # True Paramaters: mu = 1 (intercept), beta = -1 (X), alpha = 1 (P).
 #' #------------------------------------------------------------------------
