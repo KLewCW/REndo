@@ -10,6 +10,7 @@
 #' heteroskedasticity of the structural error.
 #'
 #' @template template_param_formuladataverbose
+#' @templateVar ecdf.text The theoretical recommendation of Breitung et al. (2024)
 #' @template template_param_cdf
 #' @template template_param_numboots
 #'
@@ -158,6 +159,9 @@
 copulaBMW <- function(
   formula,
   data,
+  # Kimberly: "using ecdf as default as it is specifically mentioned in the paper that
+  # they adopted this rescaled ecdf. The adj.ecdf comes later from the JAMS method
+  # research paper"
   cdf = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"),
   num.boots = 1000,
   verbose = TRUE
