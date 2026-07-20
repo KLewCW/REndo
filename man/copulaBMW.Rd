@@ -22,9 +22,17 @@ copulaBMW(
   One of the following:
 \describe{
     \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction
-      (Liengaard et al., 2024). Keeps values strictly inside (0,1).}
+      (Liengaard et al., 2024).
+      \deqn{\hat{F}(x_i) = \frac{1}{2n} + \frac{n-1}{n^2} \sum_{i=1}^{n} \mathbf{1}(P_i \leq x)}
+      where n is the sample size, \eqn{P_i} is the endogenous regressor for observation i = 1,..,n and \eqn{\mathbf{1} (.)} is the
+      indicator function.
+      This is a sample size-dependent adjustment of the ECDF. Correction term is acquired by minimising
+      the true CDF's MSE, using the standard ECDF as a predictor in a linear regression.
+      Keeps values strictly inside \eqn{(0,1)} but retains the ECDF's desirable large sample properties.}
     \item{\code{"resc.ecdf"}}{Rescaled empirical CDF via
-      \code{copula::pobs} (Qian et al., 2024).}
+      \code{copula::pobs}. \deqn{\hat{F}(x_i) = \frac{\text{rank}(x_i)}{n + 1}}
+       Keeps values strictly inside \eqn{(0,1)} without an arbitrary boundary constant.
+      Breitung et al. (2024) adopts this as their theoretical recommendation.}
      \item{\code{"ecdf"}}{The theoretical recommendation of Breitung et al. (2024)}
     \item{\code{"kde"}}{Integral of a density estimator via \code{ks::kcde}
       used in (Park and Gupta, 2012).}
@@ -165,10 +173,10 @@ using only successful bootstrap replications.
 \examples{
 \donttest{
 #------------------------------------------------------------------------
-# Example 1: BMW DGP1 — single endogenous regressor, correlated with
+# Example 1: Single endogenous regressor, correlated with
 # exogenous regressor (Breitung, Meyer, Wied 2024, Section 4,
-# DGP1 with delta = 1 (correlation between x and P), rho = 0.5 (endogeneity),
-# x ~ Gamma(1,1), e ~ Gamma(1,1) first stage error)
+# Inspired by DGP1 with delta = 1 (correlation between x and P), rho = 0.5 (endogeneity),
+# x ~ Gamma(1,1), e ~ lognormal(0,1) first stage error)
 # n = 1000
 # True Paramaters: mu = 1 (intercept), beta = -1 (X), alpha = 1 (P).
 #------------------------------------------------------------------------
@@ -226,10 +234,10 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \link[REndo:dataCopBMWMultiEndo]{dataCopBMWMultiEndo}} for detailed
 information about the simulated datasets
 
-Other copula-based methods:
-\code{\link[=copula2sCOPE]{copula2sCOPE()}},
-\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
-\code{\link[=copulaCorrection]{copulaCorrection()}},
-\code{\link[=copulaIMA]{copulaIMA()}}
+Other copula-based methods: 
+\code{\link{copula2sCOPE}()},
+\code{\link{copula2sCOPEnp}()},
+\code{\link{copulaCorrection}()},
+\code{\link{copulaIMA}()}
 }
 \concept{copula-based methods}

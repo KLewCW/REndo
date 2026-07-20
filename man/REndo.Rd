@@ -52,7 +52,6 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Raluca Gui \email{raluca.gui@gmail.com}
   \item Markus Meierer \email{markus.meierer@business.uzh.ch}
   \item Rene Algesheimer \email{market-research@business.uzh.ch}
   \item Patrik Schilter \email{patrik.schilter@gmail.com}
