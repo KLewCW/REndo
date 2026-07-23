@@ -163,9 +163,18 @@ copulajams_correction_discrete <- function(
       # find where data with this level is
       idx.rows <- Z.i == lvl.i
 
+      # skip if too few observations or no variation in endogenous regressors
+      #
+      # usually need at least p+1 observations to estimate a pxp cov matrix
+      # more generally, instead of '3', we could have tried the most conservative minimum of
+      # max(10, 2*p) for reliable estimation
+
+      fn.warn.skip <- function(not.enough){
+        warning("Skipping: The factor level `", lvl.i, "` of variable `", label.Z.i,"` does not have enough ",not.enough," for a reliable covariance estimation.", call. = FALSE)
+      }
       # check num obs before doing expensive data subset
       if (sum(idx.rows) <= 3) {
-        # message("Has less than 3 obs")
+        fn.warn.skip("observations")
         # 3 is number checked by Haschka's repo line 190.
         #did not find paper backing this up ?
         next
@@ -193,7 +202,7 @@ copulajams_correction_discrete <- function(
       # if (nrow(subdat1) <= 3 || !has.variation) {
       has.variation <- any(apply(P.sub, 2, function(col) length(unique(col)) > 1))
       if (!has.variation) {
-        # message("Has no variation")
+        fn.warn.skip("variation")
         next
       }
 
@@ -241,9 +250,9 @@ copulajams_correction_discrete <- function(
         }
       )
 
-      # there was an issue (with inverting the matrix)
+      # there was an issue with inverting the matrix
       if (is.null(cop.terms.sub)) {
-        # message("singular matrix inversion")
+        warning("Skipping: Matrix inversion failed for the factor level `", lvl.i, "` of variable `", label.Z.i,"`", call. = FALSE)
         next
       }
 
