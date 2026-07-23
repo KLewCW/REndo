@@ -90,7 +90,7 @@ epsilon <- epsilon.star  # epsilon ~ N(0,1) (Gaussian copula requirement)
 y <- mu + alpha1 * P1 + alpha2 * P2 + beta1 * W + beta2 * Z + delta1 * P1 * P2 +
   delta2 * P1 * W + delta3 * P2 * Z + epsilon
 
-dataCopJAMS <- data.frame( y  = y, P1 = P1, P2 = P2, W  = W, Z  = as.integer(Z))
+dataCopJAMS <- data.frame( y  = y, P1 = P1, P2 = P2, W  = W, Z  = as.factor(as.integer(Z)))
 usethis::use_data(dataCopJAMS, overwrite = TRUE)
 
 
