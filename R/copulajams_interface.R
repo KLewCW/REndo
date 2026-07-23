@@ -81,6 +81,9 @@
 #' The \code{adj.ecdf} is the recommended default of Liengaard et al. (2024). It
 #' helps to reduce finite-sample bias, especially in models with an intercept.
 #'
+#' @template template_text_details_cdfmethods
+#'
+#' @details
 #' ## Formula interface
 #' The \code{formula} argument follows a two-part notation which is separated by a
 #' \code{|}. The first part shows the structural model and may also include interactions
@@ -128,13 +131,13 @@
 #' dat        <- dataCopJAMS
 #' dat$Z      <- as.factor(dat$Z)  # Z must be factor for stratification
 #'
-#' res2 <- copulaJAMS(
+#' res <- copulaJAMS(
 #'   y ~ P1 + P2 + W + Z + P1:P2 + P1:W + P2:Z | P1 + P2,
 #'   data      = dat,
 #'   cdf       = "adj.ecdf",
 #'   num.boots = 1000
 #' )
-#' summary(res2)
+#' summary(res)
 #'
 #'
 #' @md
