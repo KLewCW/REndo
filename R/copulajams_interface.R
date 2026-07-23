@@ -85,20 +85,18 @@
 #'
 #' @details
 #' ## Formula interface
-#' The \code{formula} argument follows a two-part notation which is separated by a
-#' \code{|}. The first part shows the structural model and may also include interactions
-#' and transformations, while the second part determines the continuous endogenous
-#' regressors using \code{continuous()}:
+#' The \code{formula} argument follows a two part notation separated by \code{|}.
+#' The first part specifies the structural model (e.g \code{y ~ X + P}).
+#' The second part identifies the continuous endogenous regressors:
 #'
-#' \preformatted{y ~ X + P | continuous(P)                          # one endo}
-#' \preformatted{y ~ X + P1 + P2 | continuous(P1) + continuous(P2)  # two endo}
-#' \preformatted{y ~ W + Z + P + P:W | continuous(P)                # interaction}
+#' \preformatted{y ~ X + P | P                          # one endo}
+#' \preformatted{y ~ X + P1 + log(P2) | P1 + log(P2)    # two endo}
+#' \preformatted{y ~ W + Z + P + P:W | P                # interaction}
 #'
 #' Continuous exogenous regressors \eqn{W} enter the variance-covariance matrix
 #' computation. The discrete exogenous regressors \eqn{Z} activate stratification
-#' and must be of class \code{factor} or \code{integer} in the data.
-#' Please note that if \eqn{Z} is stored as numeric, it should be converted:
-#' \code{data$Z <- as.factor(data$Z)}.
+#' and must be of class \code{factor}. If  \eqn{Z} is numeric, it first needs to be
+#' converted to factor: \code{data$Z <- as.factor(data$Z)}.
 #'
 #' @template template_text_details_bootsdegenerates
 #'

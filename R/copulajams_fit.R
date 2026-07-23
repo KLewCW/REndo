@@ -44,7 +44,7 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbos
   # str(mm.assign)
   # message("X.endo")
   # str(X.endo)
-  # message("labels.exo.cont: ", labels.exo.cont)
+  # message("labels.exo.cont: ", toString(labels.exo.cont))
   # message("X.exo.cont")
   # str(X.exo.cont)
 
