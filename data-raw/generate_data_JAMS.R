@@ -1,40 +1,7 @@
 ## code to prepare `generate_data_JAMS` dataset goes here
 library(MASS)
-##Generating dataCOPJAMSSingle
-#this dataset is to show how adj.ecdf is more advantageous
-#compared to standard exdf in models with an intercept
-# From Liengaard et al. 2024, eq. 10-11 : simulation of study 1 DGP
-# y = mu + alpha * P + epsilon, where (epsilon, P*) ~ N(0, Sigma)
-# sigma = [[1, 0.5], [0.5,1]]
-#P = Phi(P*) ~ U(0,1)
 
-set.seed(123)
-
-#true parameters: mu = 3 (intercept), alpha = -1 (P) , rho = 0.5 (moderate endogeneity)
-n <- 1000
-mu <- 3
-alpha <- -1
-
-
-#joint distribution of (epsilon, P*) with endogeneity rho = 0.5
-Sigma <- matrix(c(1, 0.5,
-                0.5, 1),
-                nrow = 2, ncol =2)
-
-latent  <- MASS::mvrnorm(n = n, mu = c(0, 0), Sigma = Sigma)
-epsilon <- latent[, 1]
-P.star  <- latent[, 2]
-
-# P = Phi(P*) ~ U(0,1): non-normal endogenous regressor
-P <- pnorm(P.star)
-
-#outcome equation (eq. 10): y = mu + alpha * P + epsilon
-y <- mu + alpha * P + epsilon
-
-dataCopJAMSSingle <- data.frame(y = y, P = P)
-usethis::use_data(dataCopJAMSSingle, overwrite = TRUE)
-
-## dataset 2: dataCopJAMS
+## dataset 1: dataCopJAMS
 #based on the simulation study 2 DGP of Liengaard et al. 2024, eq. 23 & 24
 
 #DGP : y = mu + alpha1*P1 + alpha2*P2 + beta1*W + beta2*Z +

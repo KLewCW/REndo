@@ -520,43 +520,6 @@
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
 "dataCopIMAMultiEndo"
 
-#' @title Simulated Dataset for copulaJAMS — Single Endogenous Regressor
-#'   with Intercept
-#' @description A dataset simulated following the DGP of Simulation Study 1
-#'   in Liengaard et al. (2024), Equations (10)-(11).
-#'
-#'   The structural model is given as follows:
-#'   \deqn{y_i = \mu + \alpha P_i + \varepsilon_i}
-#'   where
-#'   \eqn{(\varepsilon_i, P^*_i) \sim N(0, \Sigma)} with
-#'   \eqn{\rho = 0.5} and \eqn{P_i = \Phi(P^*_i) \sim U(0,1)}.
-#'
-#'   This dataset is used to demonstrate the key advantage of the adjusted
-#'   ECDF estimator \eqn{\hat{F}_4} (\code{adj.ecdf}) over the standard
-#'   ECDF (\code{ecdf}) in regression models with an intercept.
-#'   \eqn{\hat{F}_4} reaches less than 5\% relative bias at \eqn{n = 200},
-#'   while the standard ECDF requires \eqn{n = 3{,}200} for the same level
-#'   of bias reduction (Liengaard et al. 2024, Figure 1).
-#'
-#'   The uniform distribution of \eqn{P} ensures strong non-normality which is
-#'   the identification requirement for all Gaussian copula methods.
-#'
-#'   The true parameter values are \code{mu = 3} (intercept) and
-#'   \code{alpha = -1} (\code{P}).
-#' @name dataCopJAMSSingle
-#' @usage data("dataCopJAMSSingle")
-#' @format A data frame with 1000 observations on 2 variables:
-#' \describe{
-#' \item{\code{y}}{a numeric vector representing the dependent variable.}
-#' \item{\code{P}}{a numeric vector continuous and endogenous which is uniformly
-#'   distributed \eqn{U(0,1)} and obtained through \eqn{P_i = \Phi(P^*_i)} where
-#'   \eqn{P^*_i \sim N(0,1)} is correlated with the structural error with
-#'   \eqn{\rho = 0.5}.}
-#' }
-#' @docType data
-#' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
-"dataCopJAMSSingle"
-
 
 #' @title Simulated Dataset for copulaJAMS — Multiple Endogenous Regressors,
 #'   Mixed Exogenous Regressors, Interactions, and Varying Copula Structure

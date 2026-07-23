@@ -19,16 +19,12 @@ copulaJAMS(
 
 \item{cdf}{Character string specifying the method used to estimate the
   marginal distribution functions of the endogenous regressors.
-  One of \code{"adj.ecdf"}, \code{"resc.ecdf"}, \code{"ecdf"}, or \code{"kde"}.
+  See details section.
 \describe{
-    \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction
-      (Liengaard et al., 2024). Keeps values strictly inside (0,1).}
-    \item{\code{"resc.ecdf"}}{Rescaled empirical CDF via
-      \code{copula::pobs} (Qian et al., 2024).}
-    \item{\code{"ecdf"}}{Empirical CDF with boundary replacement
-      (Becker et al., 2022).}
-    \item{\code{"kde"}}{Integral of a density estimator via \code{ks::kcde}
-      used in (Park and Gupta, 2012).}
+   \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction (Liengaard et al., 2024)}
+   \item{\code{"resc.ecdf"}}{Rescaled empirical CDF=rank(x)/(n+1). }
+   \item{\code{"ecdf"}}{Empirical CDF with boundary replacement (Becker et al., 2022).}
+   \item{\code{"kde"}}{Integral of a density estimator via \code{ks::kcde} used in (Park and Gupta, 2012).}
   }}
 
 \item{num.boots}{Positive integer giving the number of bootstrap replications
@@ -145,27 +141,9 @@ using only successful bootstrap replications.
 }
 }
 \examples{
-#------------------------------------------------------------------------
-# Example 1: Single endogenous regressor with intercept
-# (Liengaard et al. 2024, Simulation Study 1)
-#
-# Demonstrates the key advantage of adj.ecdf (F4) over ecdf (F3):
-# To note that: F4 reaches < 5\% relative bias at n = 200 while F3 needs n = 3200.
-# P ~ U(0,1) ensures strong non-normality for identification.
-#
-# True values: mu = 3 (intercept), alpha = -1 (P).
-#------------------------------------------------------------------------
-data("dataCopJAMSSingle")
-res1 <- copulaJAMS(
-  y ~ P | P,
-  data      = dataCopJAMSSingle,
-  cdf       = "adj.ecdf",
-  num.boots = 1000
-)
-summary(res1)
 
 #------------------------------------------------------------------------
-# Example 2: Two endogenous regressors, continuous and binary exogenous,
+# Example 1: Two endogenous regressors, continuous and binary exogenous,
 # interactions, and varying copula structure by Z
 # (Liengaard et al. 2024, Simulation Study 2)
 #

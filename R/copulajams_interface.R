@@ -107,27 +107,9 @@
 #'  \doi{10.1007/s11747-024-01055-4}
 #'
 #' @examples
-#' #------------------------------------------------------------------------
-#' # Example 1: Single endogenous regressor with intercept
-#' # (Liengaard et al. 2024, Simulation Study 1)
-#' #
-#' # Demonstrates the key advantage of adj.ecdf (F4) over ecdf (F3):
-#' # To note that: F4 reaches < 5% relative bias at n = 200 while F3 needs n = 3200.
-#' # P ~ U(0,1) ensures strong non-normality for identification.
-#' #
-#' # True values: mu = 3 (intercept), alpha = -1 (P).
-#' #------------------------------------------------------------------------
-#' data("dataCopJAMSSingle")
-#' res1 <- copulaJAMS(
-#'   y ~ P | P,
-#'   data      = dataCopJAMSSingle,
-#'   cdf       = "adj.ecdf",
-#'   num.boots = 1000
-#' )
-#' summary(res1)
 #'
 #' #------------------------------------------------------------------------
-#' # Example 2: Two endogenous regressors, continuous and binary exogenous,
+#' # Example 1: Two endogenous regressors, continuous and binary exogenous,
 #' # interactions, and varying copula structure by Z
 #' # (Liengaard et al. 2024, Simulation Study 2)
 #' #
