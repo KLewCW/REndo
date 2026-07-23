@@ -1,6 +1,6 @@
 #' @importFrom Formula as.Formula
 #' @importFrom stats lm model.frame model.matrix terms formula update reformulate
-copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf) {
+copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbose) {
   # Build a single model.frame/matrix from which all parts (W,P,Z) are read from to
   # guarantee they share row and col order
   mf.main <- model.frame(F.formula, lhs = 1, rhs = 1, data = data, na.action = na.fail)
@@ -61,6 +61,11 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf) {
   # if there is no factor Z, variance-covariance correction (eq. 17 to 19)
   if (length(labels.exo.factor) == 0) {
     # case no Z
+    if (verbose) {
+      message(
+        "No discrete (`factor`) exogenous variable(s) present: Estimating on full data."
+      )
+    }
     cop.terms <- copulajams_correction_continuous(
       P = X.endo,
       W = X.exo.cont,
@@ -69,6 +74,14 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf) {
   } else {
     # case where Z is present
     # Z is only used to apply-by-factor: Has to remain factors and not made to dummies
+
+    if (verbose) {
+      message(
+        "Discrete (`factor`) exogenous variable(s) present: ",
+        toString(labels.exo.factor),
+        ". Estimating separately within each subset."
+      )
+    }
     colnames.exo.factors <- vapply(
       labels.exo.factor,
       FUN = label_to_colname,

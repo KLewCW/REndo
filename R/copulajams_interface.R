@@ -182,7 +182,8 @@ copulaJAMS <- function(
     data = data,
     cdf = cdf,
     labels.endo = labels.endo,
-    labels.exo = labels.exo
+    labels.exo = labels.exo,
+    verbose = verbose
   )
 
   # Bootstrapping ----------------------------------------------------------------------
@@ -193,7 +194,8 @@ copulaJAMS <- function(
       data = data.b,
       cdf = cdf,
       labels.endo = labels.endo,
-      labels.exo = labels.exo
+      labels.exo = labels.exo,
+      verbose = FALSE
     )
     return(fit.b$res.augmented)
   }
