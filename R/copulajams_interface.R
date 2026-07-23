@@ -156,7 +156,7 @@ copulaJAMS <- function(
   #Input checks
   allowed.cdfs <- c("adj.ecdf", "resc.ecdf", "ecdf", "kde")
   check_err_msg(checkinput_copulashared_data_basics(data))
-  # check_err_msg(checkinput_copulajams_formula_data(formula = formula, data = data))
+  check_err_msg(checkinput_copulajams_formula_data(formula = formula, data = data))
   check_err_msg(checkinput_copulashared_cdf(cdf = cdf, allowed.cdf = allowed.cdfs))
   check_err_msg(checkinput_copulashared_numboots(num.boots))
   check_err_msg(checkinput_copulashared_verbose(verbose))
