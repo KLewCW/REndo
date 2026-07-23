@@ -19,7 +19,7 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf) {
     labels.exo,
     FUN = function(lbl.exo) {
       dc <- attr(tr.main, "dataClasses")
-      return(dc[canonical_colname(lbl.exo)] %in% c("factor", "ordered"))
+      return(dc[label_to_colname(lbl.exo)] %in% c("factor", "ordered"))
     },
     FUN.VALUE = logical(1)
   )
@@ -71,7 +71,7 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf) {
     # Z is only used to apply-by-factor: Has to remain factors and not made to dummies
     colnames.exo.factors <- vapply(
       labels.exo.factor,
-      FUN = canonical_colname,
+      FUN = label_to_colname,
       FUN.VALUE = character(1)
     )
     df.Z <- mf.main[, colnames.exo.factors, drop = FALSE]
