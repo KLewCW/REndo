@@ -7,7 +7,7 @@
 copulaBMW(
   formula,
   data,
-  cdf = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"),
+  cdf = c("resc.ecdf", "adj.ecdf", "ecdf", "kde"),
   num.boots = 1000,
   verbose = TRUE
 )
@@ -19,23 +19,12 @@ copulaBMW(
 
 \item{cdf}{Character string specifying the method used to estimate the
   marginal distribution functions of the endogenous regressors.
-  One of the following:
+  See details section.
 \describe{
-    \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction
-      (Liengaard et al., 2024).
-      \deqn{\hat{F}(x_i) = \frac{1}{2n} + \frac{n-1}{n^2} \sum_{i=1}^{n} \mathbf{1}(P_i \leq x)}
-      where n is the sample size, \eqn{P_i} is the endogenous regressor for observation i = 1,..,n and \eqn{\mathbf{1} (.)} is the
-      indicator function.
-      This is a sample size-dependent adjustment of the ECDF. Correction term is acquired by minimising
-      the true CDF's MSE, using the standard ECDF as a predictor in a linear regression.
-      Keeps values strictly inside \eqn{(0,1)} but retains the ECDF's desirable large sample properties.}
-    \item{\code{"resc.ecdf"}}{Rescaled empirical CDF via
-      \code{copula::pobs}. \deqn{\hat{F}(x_i) = \frac{\text{rank}(x_i)}{n + 1}}
-       Keeps values strictly inside \eqn{(0,1)} without an arbitrary boundary constant.
-      Breitung et al. (2024) adopts this as their theoretical recommendation.}
-     \item{\code{"ecdf"}}{The theoretical recommendation of Breitung et al. (2024)}
-    \item{\code{"kde"}}{Integral of a density estimator via \code{ks::kcde}
-      used in (Park and Gupta, 2012).}
+   \item{\code{"adj.ecdf"}}{Adjusted empirical CDF with midrank correction (Liengaard et al., 2024)}
+   \item{\code{"resc.ecdf"}}{Rescaled empirical CDF=rank(x)/(n+1). The theoretical recommendation of Breitung et al. (2024), Eq 2.3.}
+   \item{\code{"ecdf"}}{Empirical CDF with boundary replacement (Becker et al., 2022).}
+   \item{\code{"kde"}}{Integral of a density estimator via \code{ks::kcde} used in (Park and Gupta, 2012).}
   }}
 
 \item{num.boots}{Positive integer giving the number of bootstrap replications
@@ -130,25 +119,39 @@ residuals.
 }
 }
 
-\subsection{Note on the \code{cdf = "ecdf"}}{
+\subsection{CDF Methods}{
+\describe{
+\item{cdf="adj.ecdf"}{Adjusted empirical CDF with midrank correction (Liengaard et al., 2024).
+   \deqn{\hat{F}(x_i) = \frac{1}{2n} + \frac{n-1}{n^2} \sum_{i=1}^{n} \mathbf{1}(P_i \leq x)}
+   where n is the sample size, \eqn{P_i} is the endogenous regressor for
+   observation i = 1,..,n and \eqn{\mathbf{1} (.)} is the indicator function.
+   This is a sample size-dependent adjustment of the ECDF. Correction term is acquired by minimising
+   the true CDF's MSE, using the standard ECDF as a predictor in a linear regression.
+   Keeps values strictly inside \eqn{(0,1)} but retains the ECDF's desirable large sample properties.
+   }
 
-The \code{"ecdf"} option in \code{copulaBMW} implements the theoretical
-recommendation of Breitung et al. (2024), Equation (2.3):
-\deqn{\hat{F}(\hat{e}_i) = \frac{\text{rank}(\hat{e}_i)}{n+1}}
-This differs from the other "ecdf" cdf options of the other copula methods in
-REndo (See copulaIMA, 2sCOPE) which use the standard empirical CDF with
-\eqn{10^{-7}} boundary replacement, giving \eqn{\Phi^{-1}(10^{-7}) = \pm 5.2}
-for the boundary observations. With \code{rank/(n+1)}, the maximum value is
-\eqn{\Phi^{-1}(n/(n+1))}, which is considerably smaller in small
-samples (e.g., \eqn{\pm 2.8} for \eqn{n=400}).
+\item{cdf="resc.ecdf"}{Rescaled empirical cdf \deqn{\hat{F}(x_i) = \frac{\text{rank}(x_i)}{n + 1}}.
+   Keeps values strictly inside \eqn{(0,1)} without an arbitrary boundary constant.
+   Breitung et al. (2024) adopts this as their theoretical recommendation.
+   Compared to "ecdf", the maximum value is  \eqn{\Phi^{-1}(n/(n+1))},
+   which is considerably smaller in small samples (e.g., \eqn{\pm 2.8} for \eqn{n=400}).
+   For their method (\code{copulaBMW()}), the point estimates may
+   vary significantly when the sample size is small (e.g., n < 1000) because the
+   boundary observations exert high leverage in the augmented OLS regression.
+   They explain this finite-sample bias through their tail decay condition
+   (copulaBMW's Assumption A5).
+   }
 
-Consequently, point estimates vary significantly when the sample size is small
-(e.g., n < 1000) because the boundary observations exert high leverage in the
-augmented OLS regression. Breitung et al. (2024) explain this finite-sample
-bias through their tail decay condition (Assumption A5).
+\item{cdf="ecdf"}{Standard empirical CDF with \eqn{10^{-7}} boundary replacement,
+   giving \eqn{\Phi^{-1}(10^{-7}) = \pm 5.2} for the boundary observations.
+   }
 
-It is recommended to use \code{cdf = "adj.ecdf"} for the best finite-sample performance
-(Liengaard et al. 2025).
+\item{cdf="kde"}{Integral of a density estimator via \code{ks::kcde} used in (Park and Gupta, 2012).}
+
+}
+
+It is recommended to use \code{cdf = "adj.ecdf"} for the best finite-sample
+performance (Liengaard et al. 2025).
 }
 
 \subsection{Parameter \code{formula}}{
@@ -234,10 +237,10 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \link[REndo:dataCopBMWMultiEndo]{dataCopBMWMultiEndo}} for detailed
 information about the simulated datasets
 
-Other copula-based methods: 
-\code{\link{copula2sCOPE}()},
-\code{\link{copula2sCOPEnp}()},
-\code{\link{copulaCorrection}()},
-\code{\link{copulaIMA}()}
+Other copula-based methods:
+\code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaCorrection]{copulaCorrection()}},
+\code{\link[=copulaIMA]{copulaIMA()}}
 }
 \concept{copula-based methods}

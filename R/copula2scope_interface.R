@@ -60,6 +60,8 @@
 #'
 #' @template template_text_details_bootsdegenerates
 #'
+#' @template template_text_details_cdfmethods
+#'
 #' @details
 #' \strong{Formula interface}
 #'
