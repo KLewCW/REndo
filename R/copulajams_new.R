@@ -8,8 +8,10 @@ doc_rendocopulajams_return_list <- function() {
 
   doc_copulajams <- c(
     cdf = "\\item{\\code{cdf}}{The used cdf function.}",
-    names.endo.regs = "\\item{\\code{names.endo.regs}}{The names of the continuous endogenous regressors.}",
-    res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}"
+    res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}",
+    labels.endo = "\\item{\\code{labels.endo}}{The term labels of the endogenous regressors.}",
+    labels.exo = "\\item{\\code{labels.exo}}{The term labels of the exogenous regressors.}",
+    labels.pcop = "\\item{\\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}"
   )
 
   return(c(doc_boots, doc_copulajams))
@@ -35,7 +37,9 @@ new_rendo_copulajams <- function(
   n.boots.attempted,
   n.boots.failed,
   cdf,
-  names.endo.regs
+  labels.endo,
+  labels.exo,
+  labels.pcop
 ) {
   return(.new_rendo_boots_degenerates_removed(
     # Stuff for rendo.boots.degenerates.removed class
@@ -54,6 +58,8 @@ new_rendo_copulajams <- function(
     subclass = "rendo.copula.jams",
     res.lm.augmented = res.lm.augmented,
     cdf = cdf,
-    names.endo.regs = names.endo.regs
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
+    labels.pcop = labels.pcop
   ))
 }

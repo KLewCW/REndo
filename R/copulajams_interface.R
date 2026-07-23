@@ -222,6 +222,8 @@ copulaJAMS <- function(
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
     cdf = cdf,
-    names.endo.regs = labels.endo
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
+    labels.pcop = fit$labels.pcop
   ))
 }
