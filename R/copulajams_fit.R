@@ -243,10 +243,8 @@ copulajams_correction_discrete <- function(
 
       # there was an issue (with inverting the matrix)
       if (is.null(cop.terms.sub)) {
-        #return zero correction terms
-        # create placeholder
-        cop.terms.sub <- matrix(0, nrow = nrow(P.sub), ncol = ncol(P.sub))
-
+        # message("singular matrix inversion")
+        next
       }
 
       # naming correction terms with factor level info
@@ -256,8 +254,6 @@ copulajams_correction_discrete <- function(
 
       # Expanding back to a full dataset
       # I(Z_i = z) from eq. 20. zero attributed for observations not in this level
-
-
       # As many rows as full data (P) but only as many cols as correction applied
       cop.terms.full <- matrix(0, nrow = nrow(P), ncol = ncol(cop.terms.sub))
       cop.terms.full[idx.rows, ] <- cop.terms.sub
