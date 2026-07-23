@@ -8,23 +8,6 @@ data("dataCopBMWMultiEndo")
 data("dataCopCont")
 
 
-# copulabmw_ecdf ------------------------------------------------------------------
-# Doesnt warrant its own dedicated test file. Test according to docu
-test_that("copulabmw_ecdf: inside (0,1) & different from default ecdf", {
-  x <- matrix(rnorm(100), ncol = 1)
-  x.ecdf <- copulabmw_ecdf(x)
-
-  # values inside (0,1)
-  expect_true(all(x.ecdf > 0 & x.ecdf < 1))
-
-  # different from usual ecdf
-  expect_false(isTRUE(all.equal(
-    copulabmw_ecdf(x),
-    copula_pstar(P = x, cdf = "ecdf")
-  )))
-})
-
-
 # Invariance ---------------------------------------------------------------------------
 test_that("Differently sorted data produces same coefs", {
   res.sorted <- fit_bmw_fast(

@@ -19,7 +19,8 @@ copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
     #BMW (2024) eq. 2.2, Z = delta'x + e
 
     # Regress endo ~ (all exo), intercept should be included because of assumption A4 from Breitrung et al.
-    f.endo.k.on.all.exo <- reformulate( #page 367
+    f.endo.k.on.all.exo <- reformulate(
+      #page 367
       response = p.label,
       termlabels = labels.exo,
       intercept = TRUE
@@ -32,18 +33,15 @@ copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
     # Apply CDF to the first-stage residuals (e hat)
     # Does not apply on the original regressors
 
-    m.ehat <- matrix(e.hat, ncol=1)
+    m.ehat <- matrix(e.hat, ncol = 1)
 
-    if (cdf == "ecdf") {
-      #ecdf: using the theoretical recommendation from BMW (2024) eq. 2.3
-      #instead of ecdf() + 10e-7
-      #here we use rank/(n+1), so that no arbitary boundary constant is needed.
-      #will still keep all the values strictly in (0,1)
-      P.star <- copulabmw_ecdf(m.ehat)
-    } else {
-      # usual cdfs
-      P.star <- copula_pstar(P = m.ehat, cdf = cdf)
-    }
+    # usual cdfs
+    # According to BMW(2024), they adopt a 'common practice' and rescale by n + 1
+    # Recommendation from eq. 2.3. F hat_{e hat} (e hat_i) = rank (e hat_i)/(n+1)
+    # so that no arbitary boundary constant is needed.
+    # will still keep all the values strictly in (0,1)
+    # This is implemented in cdf=`resc.ecdf`=rank(x)/(n+1)
+    P.star <- copula_pstar(P = m.ehat, cdf = cdf)
 
     # Step 3: Apply qnorm ----------------------------------------------------------
     #Apply qnorm from eq. 2.3, eta hat =  phi^{-1} (F hat_{e hat} (e hat))
@@ -64,18 +62,4 @@ copulabmw_fit <- function(F.formula, data, cdf, labels.endo, labels.exo) {
     res.augmented = res.2nd.stage$res.augmented,
     labels.pcop = res.2nd.stage$labels.pcop
   ))
-}
-
-
-#According to BMW(2024), they adopt a 'common practice' and rescale by n + 1
-# Recommendation from eq. 2.3
-#F hat_{e hat} (e hat_i) = rank (e hat_i)/(n+1)
-copulabmw_ecdf <- function(P) {
-  stopifnot(is.matrix(P))
-
-  n <- nrow(P)
-  U <- apply(P, 2, rank, na.last = "keep", ties.method = "average") / (n + 1)
-
-  colnames(U) <- colnames(P)
-  return(U)
 }
