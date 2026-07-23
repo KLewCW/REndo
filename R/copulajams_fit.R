@@ -87,17 +87,16 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf) {
 
   # 2nd stage: OLS ---------------------------------------------------------------------
 
-  f.main <- formula(mf.main)
-  has.intercept <- attr(terms(f.main), "intercept") == 1 #equation 19 & 20
-
-  f.pcop <- reformulate(
-    termlabels = c(".", colnames(cop.terms)),
-    response = NULL,
-    intercept = has.intercept
+  res.2nd.stage <- copula_fit_2ndstage(
+    F.formula = F.formula,
+    data = data,
+    cop.terms = cop.terms
   )
 
-  f.final <- update(old = f.main, new = f.pcop)
-  return(lm(formula = f.final, data = cbind(data, cop.terms)))
+  return(list(
+    res.augmented = res.2nd.stage$res.augmented,
+    labels.pcop = res.2nd.stage$labels.pcop
+  ))
 }
 
 
