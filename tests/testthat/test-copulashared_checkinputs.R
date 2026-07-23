@@ -134,16 +134,16 @@ test_that("_response_not_in_rhs works when response not in rhs", {
 })
 
 
-# canonical_colname -------------------------------------------------------------------
-test_that("canonical_colname normalizes labels to col names", {
+# label_to_colname -------------------------------------------------------------------
+test_that("label_to_colname normalizes labels to col names", {
   # plain
-  expect_equal(canonical_colname(lab = "x_num"), "x_num")
+  expect_equal(label_to_colname(lab = "x_num"), "x_num")
   # backticks (space)
-  expect_equal(canonical_colname(lab = "`x space`"), "x space")
+  expect_equal(label_to_colname(lab = "`x space`"), "x space")
   # cannot have space in label (requires backticks)
-  # expect_equal(canonical_colname(lab = "x space"), "x space")
+  # expect_equal(label_to_colname(lab = "x space"), "x space")
   # transformation
-  expect_equal(canonical_colname(lab = "log(P)"), "log(P)")
+  expect_equal(label_to_colname(lab = "log(P)"), "log(P)")
 })
 
 
@@ -154,7 +154,8 @@ test_that("_modelframe fails on NAs, illegal classes", {
     expect_warning(checkinput_copulashared_modelframe(
       F.formula = as.Formula(y ~ log(x_num - 1000)),
       data = fixture_copula_df(),
-      allowed.classes = list("log(x_num - 1000)" = "numeric")
+      allowed.classes = list("log(x_num - 1000)" = "numeric"),
+      labels.warn.low.card = NULL
     )),
     regexp = "missing values"
   )
@@ -165,11 +166,13 @@ test_that("_modelframe fails on NAs, illegal classes", {
     cases = list(
       "NA already in data" = list(
         F.formula = as.Formula(y ~ x_na),
-        allowed.classes = list(x_na = "numeric")
+        allowed.classes = list(x_na = "numeric"),
+        labels.warn.low.card = NULL
       ),
       "given wrong class" = list(
         F.formula = as.Formula(y ~ x_fac),
-        allowed.classes = list(x_fac = "numeric")
+        allowed.classes = list(x_fac = "numeric"),
+        labels.warn.low.card = NULL
       )
     ),
     regexp = c(
@@ -179,17 +182,50 @@ test_that("_modelframe fails on NAs, illegal classes", {
   )
 })
 
-# test_that("_modelframe warns for low-cardinality numerics", {
-#   df <- fixture_copula_df()
-#   expect_warning(
-#     checkinput_copulashared_modelframe(
-#       F.formula = as.Formula(y ~ x_lowcard),
-#       data = df,
-#       allowed.classes = list(x_lowcard = "numeric")
-#     ),
-#     regexp = "low cardinality"
-#   )
-# })
+test_that("_modelframe warns for low-cardinality numerics", {
+  df <- fixture_copula_df()
+
+  # warns for given labels
+  expect_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_lowcard + x_num),
+      data = df,
+      allowed.classes = list(x_lowcard = "numeric", x_num = "numeric"),
+      labels.warn.low.card = "x_lowcard"
+    ),
+    regexp = "low cardinality"
+  )
+
+  # dont warn if col is not numeric (factors are low card)
+  expect_no_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_fac),
+      data = df,
+      allowed.classes = list(x_fac = "factor"),
+      labels.warn.low.card = "x_fac"
+    )
+  )
+
+  # dont warn if another column is low cardinality (not all columns in mf!)
+  expect_no_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_lowcard + x_num),
+      data = df,
+      allowed.classes = list(x_lowcard = "numeric", x_num = "numeric"),
+      labels.warn.low.card = "x_num"
+    )
+  )
+
+  # works if no low card cols are specified
+  expect_no_warning(
+    checkinput_copulashared_modelframe(
+      F.formula = as.Formula(y ~ x_lowcard),
+      data = df,
+      allowed.classes = list(x_lowcard = "numeric"),
+      labels.warn.low.card = NULL
+    )
+  )
+})
 
 test_that("_modelframe works for valid data", {
   expect_null(
@@ -202,7 +238,8 @@ test_that("_modelframe works for valid data", {
         "`x space`" = "numeric",
         x_fac = "factor",
         x_ord = "ordered"
-      )
+      ),
+      labels.warn.low.card = NULL
     )
   )
 })

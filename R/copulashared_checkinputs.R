@@ -160,7 +160,6 @@ checkinput_copulashared_formula <- function(formula) {
 
 # NEW INPUT CHECKS ------------------------------------------------------------------
 
-
 # Basic structure of data
 # - is data.frame
 # - has row & cols (>0)
@@ -261,7 +260,7 @@ checkinput_copulashared_response_not_in_rhs <- function(F.formula, rhs1.terms) {
 }
 
 # Normalizes a term label to column names (as in model.frame())
-canonical_colname <- function(lab) {
+label_to_colname <- function(lab) {
   # strips backticks from non-syntactic names
   return(deparse1(parse(text = lab)[[1]]))
 }
@@ -275,12 +274,19 @@ canonical_colname <- function(lab) {
 # - warn about low cardinality (<=10) numeric variables
 #
 #' @importFrom stats model.frame na.fail .MFclass
-checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes) {
+checkinput_copulashared_modelframe <- function(
+  F.formula,
+  data,
+  allowed.classes,
+  labels.warn.low.card
+) {
   # Expose build failures to user (bad transformations, generated NAs,...)
   mf <- tryCatch(
     # Making model.frame with rhs=1 also verifies that rhs=2 regressors are fine
     model.frame(formula(F.formula, lhs = 1, rhs = 1), data = data, na.action = na.fail),
-    error = function(e) {return(conditionMessage(e))}
+    error = function(e) {
+      return(conditionMessage(e))
+    }
   )
   if (!is.data.frame(mf)) {
     return(paste0(
@@ -294,7 +300,7 @@ checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes)
 
   # For each column: Check if is allowed class
   for (lab in names(allowed.classes)) {
-    col <- canonical_colname(lab)
+    col <- label_to_colname(lab)
 
     # Should not happen: Previous check should verify already that all formula labels
     # are in data
@@ -310,27 +316,26 @@ checkinput_copulashared_modelframe <- function(F.formula, data, allowed.classes)
     }
   }
 
-  # # warn about low-cardinality numeric variables
-  # is.low.card <- sapply(mf, function(x){
-  #   # no NAs at this point
-  #   is.numeric(x) && length(unique(x)) <= 10
-  #   })
-  #
-  # if(any(is.low.card)){
-  #
-  #   low.card.vars <- names(which(is.low.card))
-  #
-  #   warning(
-  #     "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
-  #     toString(low.card.vars),
-  #     "\nTreating them as numeric instead of (ordered) factors may yield wrong results as the method depend on correctly classed data. ",
-  #     "Consider converting them with `factor()` or `ordered()`, if appropriate.",
-  #     call. = FALSE,
-  #     immediate. = TRUE
-  #   )
-  # }
+  # only for given labels: warn about low-cardinality numeric variable
+  if (length(labels.warn.low.card) > 0) {
+    colnames.low.card <- vapply(labels.warn.low.card, label_to_colname, character(1))
+    stopifnot(all(colnames.low.card %in% mf.cols))
+
+    is.low.card <- sapply(mf[colnames.low.card], function(x) {
+      # no NAs at this point
+      is.numeric(x) && length(unique(x)) <= 10
+    })
+
+    if (any(is.low.card)) {
+      low.card.vars <- labels.warn.low.card[is.low.card]
+      warning(
+        "The following numeric regressors have low cardinality (<= 10 distinct values) and may be non-continuous: ",
+        toString(low.card.vars),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+    }
+  }
 
   return(err.msg)
 }
-
-

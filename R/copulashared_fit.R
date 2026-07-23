@@ -17,28 +17,31 @@ copula_adj_ecdf <- function(x) {
 }
 
 
-#' @importFrom copula pobs
 #' @importFrom ks kcde
 #' @importFrom stats ecdf predict
 copula_pstar <- function(P, cdf) {
+  stopifnot(is.matrix(P))
   if (cdf == "kde") {
     P.star <- apply(P, 2, function(x) {
       Fhat <- ks::kcde(x)
       predict(Fhat, x = x)
     })
   } else if (cdf == "resc.ecdf") {
-    P.star <- apply(P, 2, copula::pobs)
+    # same as copula::pobs()
+    P.star <- apply(P, 2, rank, ties.method = "average")/(nrow(P) + 1)
   } else if (cdf == "adj.ecdf") {
     P.star <- apply(P, 2, copula_adj_ecdf)
-  } else {
+  } else if (cdf == "ecdf") {
     ecdf0 <- apply(P, 2, ecdf)
     P.star <- sapply(seq_along(ecdf0), function(i) {
       u <- ecdf0[[i]](P[, i])
       u[u == min(u)] <- 10e-7
       u[u == max(u)] <- 1 - 10e-7
-      u
+      return(u)
     })
     P.star <- as.matrix(P.star)
+  } else {
+    stop("Invalid `cdf` to copula_pstar!")
   }
 
   colnames(P.star) <- colnames(P)
@@ -85,4 +88,58 @@ copula_compute_structural_fitted_residuals <- function(
   names(residuals) <- names(fitted.values)
 
   return(list(fitted.values = fitted.values, residuals = residuals))
+}
+
+copula_create_1ststage_copdata_matrix <- function(n, labels.endo) {
+  m <- matrix(NA_real_, nrow = n, ncol = length(labels.endo))
+  # Make labels plain strings before using as colnames (ie strips backticks) because
+  # they need to feed into reformulate() later
+  raw.labels <- vapply(
+    labels.endo,
+    FUN = function(x) {
+      return(deparse1(str2lang(x), backtick = FALSE))
+    },
+    FUN.VALUE = character(1)
+  )
+  colnames(m) <- paste0(raw.labels, "_cop")
+  return(m)
+}
+
+copula_fit_2ndstage <- function(F.formula, data, cop.terms) {
+  stopifnot(!is.null(colnames(cop.terms)))
+
+  # Second stage: augmented OLS ----------------------------------------------------
+  # Adding the correction term to the structural model and estimate by OLS
+
+  # Get labels separately because needed to read-out coefs(lm)
+  labels.pcop <- vapply(
+    colnames(cop.terms),
+    FUN = function(x) {
+      deparse1(as.name(x), backtick = TRUE)
+    },
+    FUN.VALUE = character(1),
+    USE.NAMES = FALSE
+  )
+
+  f.pcop <- reformulate(
+    termlabels = c(".", labels.pcop),
+    response = NULL,
+    intercept = TRUE
+  )
+
+  # update requires dot-expanded formula (may not contain a dot `.` in `old`)
+  f.main <- terms(F.formula, data = data, lhs = 1, rhs = 1)
+  f.final <- update(old = f.main, new = f.pcop)
+
+  # TODO: Does cbind() work if non-continuous variables?
+  # - Yes because will always dispatch to cbind.data.frame() if it contains any data.frame
+  res.augmented <- lm(formula = f.final, data = cbind(data, cop.terms))
+
+  return(list(
+    res.augmented = res.augmented,
+    # because cop.term is only numeric, coef() (actually model.matrix() used in lm())
+    # preserves the terms as they are in the formula. For f.pcop these may be backticked
+    # or not, depending if necessary.
+    labels.pcop = labels.pcop
+  ))
 }

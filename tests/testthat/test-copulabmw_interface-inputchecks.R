@@ -1,30 +1,27 @@
-# Method-level parameter verification at the public interface
-# the input checkers are unit-tested separately. Only check that they are being used
+# Method-level parameter verification at the public interface - just check if
+# parameter tests are wired in
 
 skip_on_cran()
 set.seed(42)
-data("dataCopula2sCOPEnpCont")
+data("dataCopBMW")
 
 
 test_that("interface has methods wired in", {
-  df.na <- dataCopula2sCOPEnpCont
+  df.na <- dataCopBMW
   df.na$P[1] <- NA
 
   cases <- list(
-    "formula_data" = list(formula = y ~ P + X),
     "data_basics" = list(data = NULL),
+    "formula_data" = list(formula = y ~ P + X),
     "modelframe" = list(data = df.na),
-    "npcdistbwargs" = list(npcdistbw.args = list(xdat = 1)),
-    "bws" = list(bws = list(P = 1)),
+    "cdf" = list(cdf = "cdf"),
     "num.boots" = list(num.boots = -1),
     "verbose" = list(verbose = NULL)
   )
 
   base.args <- list(
     formula = y ~ P + X | P,
-    data = dataCopula2sCOPEnpCont,
-    npcdistbw.args = list(bwmethod = "normal-reference"),
-    bws = NULL,
+    data = dataCopBMW,
     num.boots = 1000,
     verbose = FALSE
   )
@@ -33,7 +30,7 @@ test_that("interface has methods wired in", {
     # all from base.args except the one being tested
     args <- c(cases[[nm]], base.args[!names(base.args) %in% names(cases[[nm]])])
     expect_error(
-      object = do.call(what = copula2sCOPEnp, args = args),
+      object = do.call(what = copulaBMW, args = args),
       regexp = "The above errors",
       info = nm
     )

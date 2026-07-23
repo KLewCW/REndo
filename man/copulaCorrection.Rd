@@ -234,6 +234,7 @@ Petrin A, Train K (2010). "A Control Function Approach to Endogeneity in Consume
 Other copula-based methods:
 \code{\link[=copula2sCOPE]{copula2sCOPE()}},
 \code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaBMW]{copulaBMW()}},
 \code{\link[=copulaIMA]{copulaIMA()}}
 }
 \concept{copula-based methods}
