@@ -163,7 +163,6 @@ copulajams_correction_discrete <- function(
 
     # levels() also applies for ordered factors
     for (lvl.i in levels(Z.i)) {
-
       # find where data with this level is
       idx.rows <- Z.i == lvl.i
 
@@ -173,8 +172,17 @@ copulajams_correction_discrete <- function(
       # more generally, instead of '3', we could have tried the most conservative minimum of
       # max(10, 2*p) for reliable estimation
 
-      fn.warn.skip <- function(not.enough){
-        warning("Skipping: The factor level `", lvl.i, "` of variable `", label.Z.i,"` does not have enough ",not.enough," for a reliable covariance estimation.", call. = FALSE)
+      fn.warn.skip <- function(not.enough) {
+        warning(
+          "Skipping: The factor level `",
+          lvl.i,
+          "` of variable `",
+          label.Z.i,
+          "` does not have enough ",
+          not.enough,
+          " for a reliable covariance estimation.",
+          call. = FALSE
+        )
       }
       #min.observation.needed <- max(10L, 2L * length(cols.use))
       #if(nrow(subdat1) <= min.observation.needed || !has.variation){
@@ -207,7 +215,6 @@ copulajams_correction_discrete <- function(
         next
       }
 
-
       # now use non-factor columns only for the CDF transformation.
       # factor variables cannot enter the CDF transformation as they are discrete with
       # no meaningful continuous CDF
@@ -223,7 +230,7 @@ copulajams_correction_discrete <- function(
         copulajams_correction_continuous(P = P.sub, W = W.sub, cdf = cdf),
         error = function(e) {
           # non-invertible signals an error containing "singular"
-          if(grepl("singular", conditionMessage(e), ignore.case = TRUE)){
+          if (grepl("singular", conditionMessage(e), ignore.case = TRUE)) {
             # print(e)
             return(NULL)
           }
@@ -234,7 +241,14 @@ copulajams_correction_discrete <- function(
 
       # there was an issue with inverting the matrix
       if (is.null(cop.terms.sub)) {
-        warning("Skipping: Matrix inversion failed for the factor level `", lvl.i, "` of variable `", label.Z.i,"`", call. = FALSE)
+        warning(
+          "Skipping: Matrix inversion failed for the factor level `",
+          lvl.i,
+          "` of variable `",
+          label.Z.i,
+          "`",
+          call. = FALSE
+        )
         next
       }
 
@@ -246,7 +260,11 @@ copulajams_correction_discrete <- function(
 
       # name columns according to strata (name) and factor level info
       name.strata <- paste(label.Z.i, lvl.i, sep = "_")
-      colnames(cop.terms.full) <- make.names(paste0(name.strata, "_", colnames(cop.terms.sub)))
+      colnames(cop.terms.full) <- make.names(paste0(
+        name.strata,
+        "_",
+        colnames(cop.terms.sub)
+      ))
       l.results[[name.strata]] <- cop.terms.full
     }
   }
