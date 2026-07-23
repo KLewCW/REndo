@@ -173,9 +173,10 @@ test_that("structural residuals & fitted values are calculated correctly", {
 })
 
 # Single endo + 0 exo: Collapses to copulaCorrection case 1 (continuous only) ---------
+# (equivalent according to the paper)
 # data case 3: need non-normally distributed exogenous
 
-run_parkgupta_equivalent <- function(data) {
+run_2scope_parkgupta_equivalent <- function(data) {
   # Need SE: With boots=1000
   expect_warning(
     res.2scope <- copula2sCOPE(
@@ -187,25 +188,21 @@ run_parkgupta_equivalent <- function(data) {
     regexp = "No exogenous regressors found"
   )
 
-  expect_warning(
-    res.cc <- copulaCorrection(
-      formula = y ~ P | continuous(P),
-      data = data,
-      verbose = FALSE,
-      num.boots = 3
-    ),
-    regexp = "It is recommended to run"
+  res.cc <- fit_copulacorrection_fast(
+    formula = y ~ P | continuous(P),
+    data = data
   )
 
-  nms <- c("(Intercept)", "P")
-  diff <- abs(coef(res.2scope)[nms] - coef(res.cc)[nms])
-  expect_true(all(diff < sqrt(diag(vcov(res.2scope)))[nms]))
+  check_param_recovery(
+    res = res.2scope,
+    true_vals = coef(res.cc)[c("(Intercept)", "P")]
+  )
 }
 
 test_that("Single endo + NO exo: Same result as PG copulaCorrection (LL case 1) - data case 1", {
-  run_parkgupta_equivalent(dataCopula2sCOPECase1)
+  run_2scope_parkgupta_equivalent(dataCopula2sCOPECase1)
 })
 
 test_that("Single endo + NO exo: Same result as PG copulaCorrection (LL case 1) - data case 2", {
-  run_parkgupta_equivalent(dataCopula2sCOPECase2)
+  run_2scope_parkgupta_equivalent(dataCopula2sCOPECase2)
 })

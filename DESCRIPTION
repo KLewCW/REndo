@@ -10,11 +10,15 @@ Authors@R: c(
     person(given="Patrik", family="Schilter",    email = "patrik.schilter@gmail.com",       role = "aut"),
     person(given="Kimberly-Anne", family="Lew Chuk Wai", email="kimberlylew12@gmail.com",   role = "aut"))
 Description: Fits linear models with endogenous regressor using latent instrumental variable approaches. 
-    The methods included in the package are Lewbel's (1997) <doi:10.2307/2171884> higher moments approach as well as 
-    Lewbel's (2012) <doi:10.1080/07350015.2012.643126> heteroscedasticity approach, Park and Gupta's (2012) <doi:10.1287/mksc.1120.0718>, 
-    Yang et al.'s (2025) <doi:10.1177/00222437241296453> a two-stage copula correction joint estimation method that uses Gaussian copula, Hu et al.'s (2025) 
-    (NBER Working Paper No. 33607) <http://www.nber.org/papers/w33607> a two-stage nonparametric copula control function approach that supports both continuous and 
-    discrete endogenous regressors without assuming a Gaussian copula structure and Kim and Frees's (2007) <doi:10.1007/s11336-007-9008-1> multilevel generalized method 
+    The methods included in the package are 
+    Lewbel's (1997) <doi:10.2307/2171884> higher moments approach as well as Lewbel's (2012) <doi:10.1080/07350015.2012.643126> heteroscedasticity approach, 
+    Park and Gupta's (2012) <doi:10.1287/mksc.1120.0718>, 
+    Yang et al.'s (2025) <doi:10.1177/00222437241296453> a two-stage copula correction joint estimation method that uses Gaussian copula,
+    Hu et al.'s (2025) (NBER Working Paper No. 33607) <http://www.nber.org/papers/w33607> a two-stage nonparametric copula control function approach that supports both continuous and 
+    discrete endogenous regressors without assuming a Gaussian copula structure,
+    Breitung et al.'s (2024) <doi:10.1093/ectj/utae002> nonparametric control function approach which does not
+    require a Gaussian copula assumption
+    and Kim and Frees's (2007) <doi:10.1007/s11336-007-9008-1> multilevel generalized method 
     of moment approach that deals with endogeneity in a multilevel setting.
     These are statistical techniques to address the endogeneity problem where no external instrumental variables are needed.
     See the publication related to this package in the Journal of Statistical Software for more details: <doi:10.18637/jss.v107.i03>.
@@ -41,7 +45,6 @@ Imports:
     Rcpp (>= 1.0.3), 
     lmtest (>= 0.9-35),
     np (>= 0.60-18),
-    copula (>= 1.0-0),
     ks (>= 1.10.0)
 Suggests:
     testthat,
@@ -52,3 +55,4 @@ Encoding: UTF-8
 VignetteBuilder: R.rsp
 LazyData: true
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

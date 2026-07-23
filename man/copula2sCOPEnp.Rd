@@ -363,6 +363,7 @@ information about the simulated datasets
 
 Other copula-based methods:
 \code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copulaBMW]{copulaBMW()}},
 \code{\link[=copulaCorrection]{copulaCorrection()}},
 \code{\link[=copulaIMA]{copulaIMA()}}
 }
