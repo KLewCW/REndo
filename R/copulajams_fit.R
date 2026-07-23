@@ -150,6 +150,9 @@ copulajams_correction_discrete <- function(
   df.Z, # has to be factors, not dummies
   cdf
 ) {
+  # str(df.Z)
+  # str(W)
+  # str(P)
   stopifnot(!is.null(colnames(df.Z)))
   l.results <- list()
 
@@ -160,6 +163,7 @@ copulajams_correction_discrete <- function(
 
     # levels() also applies for ordered factors
     for (lvl.i in levels(Z.i)) {
+
       # find where data with this level is
       idx.rows <- Z.i == lvl.i
 
@@ -172,6 +176,9 @@ copulajams_correction_discrete <- function(
       fn.warn.skip <- function(not.enough){
         warning("Skipping: The factor level `", lvl.i, "` of variable `", label.Z.i,"` does not have enough ",not.enough," for a reliable covariance estimation.", call. = FALSE)
       }
+      #min.observation.needed <- max(10L, 2L * length(cols.use))
+      #if(nrow(subdat1) <= min.observation.needed || !has.variation){
+
       # check num obs before doing expensive data subset
       if (sum(idx.rows) <= 3) {
         fn.warn.skip("observations")
@@ -194,42 +201,16 @@ copulajams_correction_discrete <- function(
       # message("has variation")
       # str(apply(P.sub, 2, function(col) length(unique(col)) > 1))
 
-      #skip if too few observations or no variation in endogenous regressors
-      # has.variation <- any(sapply(
-      #   subdat1[, names.endo.regs, drop = FALSE],
-      #   function(col) length(unique(col)) > 1
-      # ))
-      # if (nrow(subdat1) <= 3 || !has.variation) {
       has.variation <- any(apply(P.sub, 2, function(col) length(unique(col)) > 1))
       if (!has.variation) {
         fn.warn.skip("variation")
         next
       }
 
-      ##usually need at least p+1 observations to estimate a pxp cov matrix
-      # more generally, instead of '3', we could have tried the most conservative minimum of
-      # max(10, 2*p) for reliable estimation
-      #min.observation.needed <- max(10L, 2L * length(cols.use))
-      #if(nrow(subdat1) <= min.observation.needed || !has.variation){
-      # then maybe issue a warning here... saying that the factor level 'lvl' of the variable 'var'
-      # does not have enough observation for a reliable covariance estimation and we are skipping this level.
 
-      #now use non-factor columns only for the CDF transformation.
-      #factor vairables cannot enter the CDF transformation as they are discrete with no meaningful continuous CDF
-
-      # cols.use <- setdiff(c(names.endo.regs, names.exo.regs), factor.vars)
-      # subdat2 <- as.matrix(subdat1[, cols.use, drop = FALSE])
-      #
-      # subdat2 <- subdat2[,
-      #                    apply(subdat2, 2, function(x) length(unique(x)) > 1),
-      #                    drop = FALSE
-      # ] #keeping only columns with variation with subset
-      #
-      # if (ncol(subdat2) == 0) {
-      #   next
-      # }
-
-      #Using the steps from equation 21 again:
+      # now use non-factor columns only for the CDF transformation.
+      # factor variables cannot enter the CDF transformation as they are discrete with
+      # no meaningful continuous CDF
 
       # Other than for the continuous-only case, we do not want an error (like
       # non-invertible matrix) in a single strata to derail the whole pcop generation
@@ -243,6 +224,7 @@ copulajams_correction_discrete <- function(
         error = function(e) {
           # non-invertible signals an error containing "singular"
           if(grepl("singular", conditionMessage(e), ignore.case = TRUE)){
+            # print(e)
             return(NULL)
           }
           # fail / "re-throw" any other error
@@ -256,19 +238,13 @@ copulajams_correction_discrete <- function(
         next
       }
 
-      # naming correction terms with factor level info
-      # K.actual <- ncol(P.cop)
-      # endo.for.names <- names.endo.regs[seq_len(K.actual)]
-      # colnames(P.cop) <- paste0(endo.for.names, "_", var, "_", lvl, "_cop")
-
       # Expanding back to a full dataset
       # I(Z_i = z) from eq. 20. zero attributed for observations not in this level
       # As many rows as full data (P) but only as many cols as correction applied
       cop.terms.full <- matrix(0, nrow = nrow(P), ncol = ncol(cop.terms.sub))
       cop.terms.full[idx.rows, ] <- cop.terms.sub
 
-
-      # name columns according to strata (name)
+      # name columns according to strata (name) and factor level info
       name.strata <- paste(label.Z.i, lvl.i, sep = "_")
       colnames(cop.terms.full) <- make.names(paste0(name.strata, "_", colnames(cop.terms.sub)))
       l.results[[name.strata]] <- cop.terms.full
