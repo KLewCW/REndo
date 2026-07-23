@@ -159,17 +159,17 @@
 copulaBMW <- function(
   formula,
   data,
-  # Kimberly: "using ecdf as default as it is specifically mentioned in the paper that
-  # they adopted this rescaled ecdf. The adj.ecdf comes later from the JAMS method
-  # research paper"
-  cdf = c("ecdf", "adj.ecdf", "resc.ecdf", "kde"),
+  # Kimberly: resc.ecdf=rank(x)/(n+1) "as default as it is specifically mentioned in
+  # the paper that they adopted this rescaled ecdf. The adj.ecdf comes later from the
+  # JAMS method research paper"
+  cdf = c("resc.ecdf", "adj.ecdf", "ecdf", "kde"),
   num.boots = 1000,
   verbose = TRUE
 ) {
   cl <- match.call()
 
   #Input checks
-  allowed.cdfs <- c("ecdf", "adj.ecdf", "resc.ecdf", "kde")
+  allowed.cdfs <- c("resc.ecdf", "adj.ecdf", "ecdf", "kde")
   check_err_msg(checkinput_copulashared_data_basics(data))
   check_err_msg(checkinput_copulabmw_formula_data(formula = formula, data = data))
   check_err_msg(checkinput_copulashared_cdf(cdf = cdf, allowed.cdf = allowed.cdfs))
