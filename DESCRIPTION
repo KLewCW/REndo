@@ -45,7 +45,6 @@ Imports:
     Rcpp (>= 1.0.3), 
     lmtest (>= 0.9-35),
     np (>= 0.60-18),
-    copula (>= 1.0-0),
     ks (>= 1.10.0)
 Suggests:
     testthat,

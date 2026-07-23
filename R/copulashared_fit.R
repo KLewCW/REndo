@@ -17,7 +17,6 @@ copula_adj_ecdf <- function(x) {
 }
 
 
-#' @importFrom copula pobs
 #' @importFrom ks kcde
 #' @importFrom stats ecdf predict
 copula_pstar <- function(P, cdf) {
@@ -28,7 +27,8 @@ copula_pstar <- function(P, cdf) {
       predict(Fhat, x = x)
     })
   } else if (cdf == "resc.ecdf") {
-    P.star <- apply(P, 2, copula::pobs)
+    # same as copula::pobs()
+    P.star <- apply(P, 2, rank, ties.method = "average")/(nrow(P) + 1)
   } else if (cdf == "adj.ecdf") {
     P.star <- apply(P, 2, copula_adj_ecdf)
   } else if (cdf == "ecdf") {
@@ -37,7 +37,7 @@ copula_pstar <- function(P, cdf) {
       u <- ecdf0[[i]](P[, i])
       u[u == min(u)] <- 10e-7
       u[u == max(u)] <- 1 - 10e-7
-      u
+      return(u)
     })
     P.star <- as.matrix(P.star)
   } else {
