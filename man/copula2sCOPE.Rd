@@ -138,7 +138,12 @@ using only successful bootstrap replications.
    giving \eqn{\Phi^{-1}(10^{-7}) = \pm 5.2} for the boundary observations.
    }
 
-\item{cdf="kde"}{Integral of a density estimator via \code{ks::kcde} used in (Park and Gupta, 2012).}
+\item{cdf="kde"}{Integral of a density estimator via \code{ks::kcde} used in (Park and Gupta, 2012).
+      \deqn{ \hat{h}(p) = \frac{1}{T \cdot b} \sum_{t=1}^{T} K\!\left(\frac{p - P_t}{b}\right)}
+      The CDF is obtained by integrating a Kernel density estimator with and Epanechnikov kernel
+      \eqn{K(x) = 0.75 \cdot (1 - x^2) \cdot \mathbb{1} (|x| \leq 1)} and a Silverman (1986) bandwidth
+      \eqn{b = 0.9 \cdot T ^{-1/5} \cdot \min(s, \text{IQR}/1.34)} where IQR is the interquantile range,
+      \eqn{s} is the data sample standard deviation and \eqn{T} is the number of tme periods observed in the data.}
 
 }
 
@@ -244,10 +249,10 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \doi{10.2139/ssrn.4754776}
 }
 \seealso{
-Other copula-based methods:
-\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
-\code{\link[=copulaBMW]{copulaBMW()}},
-\code{\link[=copulaCorrection]{copulaCorrection()}},
-\code{\link[=copulaIMA]{copulaIMA()}}
+Other copula-based methods: 
+\code{\link{copula2sCOPEnp}()},
+\code{\link{copulaBMW}()},
+\code{\link{copulaCorrection}()},
+\code{\link{copulaIMA}()}
 }
 \concept{copula-based methods}
