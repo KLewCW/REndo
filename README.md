@@ -7,7 +7,7 @@ checks](https://github.com/mmeierer/REndo/workflows/R-CMD-check/badge.svg?branch
 [![Coverage
 Status](https://img.shields.io/codecov/c/github/mmeierer/REndo/development.svg)](https://app.codecov.io/github/mmeierer/REndo?branch=development)
 [![CRAN
-Status](https://www.r-pkg.org/badges/version/REndo)](https://cran.r-project.org/package=REndo)
+Status](http://www.r-pkg.org/badges/version/REndo)](https://cran.r-project.org/package=REndo)
 [![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/REndo)](https://cran.r-project.org/package=REndo)
 [![Repo
@@ -43,7 +43,9 @@ REndo implements the following instrument-free methods:
 
 4)  joint estimation using copula (Park and Gupta 2012)
 
-5)  multilevel GMM (Kim and Frees 2007)
+5)  copula instrumental model (Haschka 2025)
+
+6)  multilevel GMM (Kim and Frees 2007)
 
 ## The new version - REndo 2.0.0
 
@@ -147,6 +149,20 @@ variables is a convenient feature of the function, since it increases
 the efficiency of the estimates. Transformation of the explanatory
 variables, such as I(X), ln(X) are possible both in the model
 specification as well as in the IIV() specification.
+
+### **Copula Instrumental Model Approach**
+
+    copulaIMA(y ~ X + P - 1 | continuous(P), data, num.boots, cdf)
+
+Here, **y** is the response variable, **X + P** represents the model to
+be estimated. The **-1** in the formula suppresses the intercept as
+required by the method. The second part identifies the endogenous
+regressors via **continuous()**. The second argument is the name of the
+dataset. The optional argument **num.boots** sets the number of
+bootstrap replications used to compute standard errors. The default is
+1000. The argument **cdf** specifies the estimator used to transform
+regressors to normal scores (default is **“adj.ecdf”**; alternatives are
+**“ecdf”**, **“resc.ecdf”**, and **“kde”**).
 
 ### **Multilevel GMM**
 
