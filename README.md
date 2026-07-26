@@ -45,15 +45,15 @@ REndo implements the following instrument-free methods:
 
 5)  two-stage copula endogeneity correction (Yang et al. 2025)
 
-6)  Nonparametric control function with asymptotic theory (Breitung et
-    al. 2024)
-
-7)  two-stage nonparametric copula endogeneity correction (Hu et
+6)  two-stage nonparametric copula endogeneity correction (Hu et
     al. 2025)
+
+7)  nonparametric control function with asymptotic theory (Breitung et
+    al. 2024)
 
 8)  multilevel GMM (Kim and Frees 2007)
 
-## The new version - REndo 2.0.0
+## The new version - REndo 2.5.0
 
 The new version of **REndo** comes with a lot of improvements in terms
 of code optimization as well as different syntax for all functions.
