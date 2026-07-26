@@ -7,7 +7,7 @@ checks](https://github.com/mmeierer/REndo/workflows/R-CMD-check/badge.svg?branch
 [![Coverage
 Status](https://img.shields.io/codecov/c/github/mmeierer/REndo/development.svg)](https://app.codecov.io/github/mmeierer/REndo?branch=development)
 [![CRAN
-Status](https://www.r-pkg.org/badges/version/REndo)](https://cran.r-project.org/package=REndo)
+Status](http://www.r-pkg.org/badges/version/REndo)](https://cran.r-project.org/package=REndo)
 [![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/REndo)](https://cran.r-project.org/package=REndo)
 [![Repo
@@ -43,7 +43,12 @@ REndo implements the following instrument-free methods:
 
 4)  joint estimation using copula (Park and Gupta 2012)
 
-5)  multilevel GMM (Kim and Frees 2007)
+5)  two-stage copula endogeneity correction (Yang et al. 2025)
+
+6)  two-stage nonparametric copula endogeneity correction (Hu et
+    al. 2025)
+
+7)  multilevel GMM (Kim and Frees 2007)
 
 ## The new version - REndo 2.0.0
 
@@ -147,6 +152,43 @@ variables is a convenient feature of the function, since it increases
 the efficiency of the estimates. Transformation of the explanatory
 variables, such as I(X), ln(X) are possible both in the model
 specification as well as in the IIV() specification.
+
+### **Two-Stage Copula Endogeneity Correction**
+
+    copula2sCOPE(y ~ X + P | continuous(P), data, num.boots, cdf)
+
+Here **y** is the response variable, **X + P** represents the model to
+be estimated; the second part identifies the endogenous regressors via
+**continuous()**. The second argument is the name of the dataset.
+**num.boots** sets the number of bootstrap replications used to compute
+standard errors (default 1000). The argument **cdf** specifies the
+estimator used to transform regressors to normal scores (options are
+**“ecdf”**, **“adj.ecdf”**, **“resc.ecdf”**, and **“kde”**) and is
+applied to all regressors. For each endogenous normal score, a
+regression on the exogenous normal scores is estimated with an
+intercept, and the residuals is the correction terms in an augmented
+OLS. When no exogenous regressors are present the method reduces to Park
+and Gupta (2012). This method can be used for multiple endogenous
+regressors.
+
+### **Two-Stage Nonparametric Copula Endogeneity Correction**
+
+    copula2sCOPEnp(y ~ X + P | P, data, num.boots, npcdistbw.args)
+
+Here **y** is the response variable, **X + P** represents the model to
+be estimated; the second part lists the endogenous regressors . The
+second argument is the name of the dataset. **num.boots** sets the
+number of bootstrap replications used to compute standard errors
+(default 1000). The optional argument **npcdistbw.args** is a named list
+of arguments passed to the kernel bandwidth selector **npcdistbw** from
+the **np** package, allowing the user to control bandwidth selection.
+The method estimates the conditional CDF of each endogenous regressor
+given the exogenous regressors nonparametrically, using the
+Nadaraya-Warson kernel regression. This relaxes the Gaussian copula
+assumption. The method supports both continuous and discrete endogenous
+regressors. Bandwidths are computed once on the original data and reused
+across all bootstrap resamples. Multiple endogenous and exogenous
+regressors are also supported.
 
 ### **Multilevel GMM**
 
