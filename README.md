@@ -60,7 +60,7 @@ of code optimization as well as different syntax for all functions.
 
 ## Walk-Through
 
-Below, we present the syntax for each of the 5 implemented
+Below, we present the syntax for each of the 8 implemented
 instrument-free methods:
 
 ### **Latent Instrumental Variables**

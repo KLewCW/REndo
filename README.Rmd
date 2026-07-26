@@ -57,7 +57,7 @@ The new version of **REndo** comes with a lot of improvements in terms of code o
 
 ## Walk-Through
 
-Below, we present the syntax for each of the 5 implemented instrument-free methods:
+Below, we present the syntax for each of the 8 implemented instrument-free methods:
 
 ### **Latent Instrumental Variables** 
 
