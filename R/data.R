@@ -275,3 +275,27 @@
 #' @docType data
 #' @author Kimberly Lew \email{kimberlylew12@@gmail.com}
 "dataCopIMAMultiEndo"
+
+
+#' @title Simulated Dataset for copulaBayes
+#' @description A dataset simulated following the DGP of Section 4.1,
+#'   Equations (12) to (16) of Haschka (2025). The data has one endogenous regressor
+#'   \eqn{z_i} and one exogenous \eqn{x_i} variable, both being correlated with each other
+#'   \eqn{\rho_{xz} = 0.3}.
+#' @name dataCopBayes
+#' @usage data("dataCopBayes")
+#' @format A data frame with 1000 observations on 3 variables:
+#' \describe{
+#'   \item{\code{y}}{a numeric vector representing the dependent
+#'     variable.}
+#'   \item{\code{z}}{a numeric endogenous vector, following a lognormal(0,1) distribution
+#'     Correlated with the structural error with \eqn{\rho_{ze} = 0.7} and with \code{x} with
+#'     \eqn{\rho_{xz} = 0.3}.}
+#'   \item{\code{x}}{a numeric exogenous vector, following a normal distribution \eqn{N(0,1)}.
+#'     Correlated with \code{z} (\eqn{\rho_{xz} = 0.3}) but uncorrelated with the structural
+#'     error (\eqn{\rho_{xe} = 0}).}
+#' }
+#' @docType data
+#' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
+"dataCopulaBayes"
+
