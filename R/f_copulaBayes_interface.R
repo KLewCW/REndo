@@ -117,13 +117,13 @@
 #' res_bayes <- copulaBayes(
 #'   y ~ x + z | continuous(z),
 #'   data           = dataCopulaBayes,
-#'   num.iterations = 12000L,
-#'   burnin         = 2000L,
-#'   thin           = 10L,
+#'   num.iterations = 12000,
+#'   burnin         = 2000,
+#'   thin           = 10,
 #'   verbose        = TRUE
 #' )
 #' summary(res_bayes)
-#' plot(res_bayes)
+#' plot(res_bayes, which = "both")
 #'
 #'
 #'
@@ -134,9 +134,9 @@
 copulaBayes <- function(
     formula,
     data,
-    num.iterations = 102000L,#paper default but for quick testing 12000 iterations with 10 thin ?
-    burnin         = 2000L,
-    thin           = 100L,
+    num.iterations = 102000,#paper default but for quick testing 12000 iterations with 10 thin ?
+    burnin         = 2000,
+    thin           = 100,
     verbose        = TRUE
 ) {
   cl <- match.call()

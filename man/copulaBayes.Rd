@@ -7,9 +7,9 @@
 copulaBayes(
   formula,
   data,
-  num.iterations = 102000L,
-  burnin = 2000L,
-  thin = 100L,
+  num.iterations = 102000,
+  burnin = 2000,
+  thin = 100,
   verbose = TRUE
 )
 }
@@ -62,6 +62,10 @@ uncorrelated with \eqn{\varepsilon_i},
 The method jointly samples all unknowns in one step via MCMC
 (from Appendix D online, see algorithm 1). Each iteration would go through the
 following steps:
+
+##note: for the regression coeff and error var, since I tried to modify it and use
+other package, it is slightly different from original paper Haschka (2015) where he
+uses IWLS and Laplace. It is no more this but just a random walk MH, should this be changed ???
 
 \enumerate{
   \item {Regression coefficients} \eqn{(\alpha, \beta, \delta)} with
@@ -121,13 +125,13 @@ data("dataCopulaBayes")
 res_bayes <- copulaBayes(
   y ~ x + z | continuous(z),
   data           = dataCopulaBayes,
-  num.iterations = 12000L,
-  burnin         = 2000L,
-  thin           = 10L,
+  num.iterations = 12000,
+  burnin         = 2000,
+  thin           = 10,
   verbose        = TRUE
 )
 summary(res_bayes)
-plot(res_bayes)
+plot(res_bayes, which = "both")
 
 
 

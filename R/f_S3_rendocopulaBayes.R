@@ -154,7 +154,7 @@ print.summary.rendo.copula.bayes <- function(x, ...) {
 #' @importFrom coda as.mcmc
 plot.rendo.copula.bayes <- function(x, which = c("structural", "rho", "both"), ...) {
 
-  which <- match.arg(which)
+  which <- match.arg(which, choices = c("structural", "rho", "both"), several.ok = FALSE)
 
   if (which %in% c("structural", "both")) {
     cat("Plotting structural parameters (trace + density)...\n")
