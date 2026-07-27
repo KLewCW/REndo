@@ -18,6 +18,20 @@ copulaBayes(
 
 \item{data}{A data.frame containing the data of all parts specified in the formula parameter.}
 
+\item{num.iterations}{a positive integer giving the total number of MCMC iterations.
+From Haschka (2025), it is suggested to use 102000 as number of iterations, with a burnin of 2000
+and a thinning by 100, in order to have 1000 posterior draws. For a 'quick' exploratory run, a smaller
+value can be used for the number of iteration (e.g. 12000 with a thinning of 10). However, always check
+convergence diagnostics first.}
+
+\item{burnin}{a non-negative integer giving the number of initial MCMC draws to discard as burn-in.
+Default is 2000. Burn-in draws show the chain's dependence on the starting values and should not be used
+for inference.}
+
+\item{thin}{a positive integer giving the thinning interval. Only keep the \code{thin} th draw after burn-in.
+Default is 100 (for an iteration of 102000 and burning of 2000 in order to have 1000 posterior draws).
+Thinning is used to reduce autocorrelation between consecutive draws.}
+
 \item{verbose}{Show details about the running of the function.}
 }
 \description{
@@ -25,8 +39,8 @@ Fits the Bayesian in a one-step Gaussian copula endogeneity correction.
 The method treats the marginal distributions of all regressors, the full copula
 correlation matrix, and the regression coefficients as random variables and
 samples them jointly via Markov chain Monte Carlo (MCMC). This avoids the use
-of plug-in estimates for CDFs and correlations, enabling precise finite-sample
-inference without reliance on asymptotic arguments or bootstrap procedures.
+of plug-in estimates for CDFs and correlations which allows precise finite-sample
+inference without having to rely on asymptotic assumptions or any bootstrap procedure.
 }
 \details{
 \strong{Model}{
@@ -35,10 +49,11 @@ Consider the following linear regression model
 \deqn{Y_i = \alpha + X_i' \beta + Z_i' \delta + \varepsilon_i}
 
 where
+\eqn{i = 1, \dots, N} indexes observations,
 \eqn{Z_i} is a \eqn{(K \times 1)} vector of continuous
-endogenous regressors correlated with \eqn{\varepsilon_i}
+endogenous regressors correlated with \eqn{\varepsilon_i},
 \eqn{X_i} is an \eqn{(L \times 1)} vector of exogenous regressors
-uncorrelated with \eqn{\varepsilon_i}
+uncorrelated with \eqn{\varepsilon_i},
 \eqn{\varepsilon_i \sim N(0, \sigma^2)}.
 }
 
@@ -58,7 +73,7 @@ following steps:
   \item {Error variance} \eqn{\sigma^2 \sim \text{IG}(0.001, 0.001)} (inverse Gamma, Haschka eq. 7).
         They are updated by Metropolis-Hastings with a Laplace (second-order
         Taylor) proposal for \eqn{\log \sigma^2} (Appendix C, W12/W14).
-  \item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka eq. 8).
+  \item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka 2025, eq. 8).
         This is updated by Gibbs sampling via the inverse Wishart full conditional (Appendix A, W5):
         \eqn{W | \cdot \sim W^{-1}(\sum_i \xi_i \xi_i' + I,\, N + K + L + 1)}.
         Converted to a correlation matrix \eqn{\Sigma} via Cholesky factorisation.
@@ -70,6 +85,25 @@ following steps:
         \eqn{\lambda_\varpi | v_\varpi \sim \text{Dir}(m_\varpi, \,1 + n_1,\ldots, 1 + n_{m_\varpi})}.
         The marginal CDF is never fixed but re-estimated at every iteration.
 }
+}
+
+\subsection{Convergence diagnostics}{
+The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
+A rate between 20\% and 40\% shows that the proposal scale is well-tuned (the sampler
+adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
+diagnostics should be verified before any conclusion.
+}
+
+\subsection{Identification requirements}{
+Endogenous regressors \eqn{Z} needs to be non-normal. (otherwise the chain will fail to converge)
+Only continuous endogenous regressors are supported.
+}
+
+\subsection{Formula interface}{
+Formula follows a two-part notation:
+
+\performatted{y ~ X + Z | continuous(Z) #one endogenous regressor}
+\performatted{y ~ X + Z1 + Z2 | continuous(Z1) + continuous(Z2) #two endogenous regressors}
 }
 }
 \examples{
@@ -83,10 +117,10 @@ following steps:
 # There is only one endogenous regressor(z_i) and one exogenous regressor (x_i) correlated
 #with each other
 #------------------------------------------------------------------------
-data("dataCopBayes")
+data("dataCopulaBayes")
 res_bayes <- copulaBayes(
   y ~ x + z | continuous(z),
-  data           = dataCopBayes,
+  data           = dataCopulaBayes,
   num.iterations = 12000L,
   burnin         = 2000L,
   thin           = 10L,
