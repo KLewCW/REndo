@@ -180,10 +180,13 @@ copulajams_correction_discrete <- function(
       idx.rows <- Z.i == lvl.i
 
       # skip if too few observations or no variation in endogenous regressors
-      #
-      # usually need at least p+1 observations to estimate a pxp cov matrix
-      # more generally, instead of '3', we could have tried the most conservative minimum of
-      # max(10, 2*p) for reliable estimation
+      # More than p observations are strictly required to estimate a non-singular
+      # p x p sample covariance matrix, especially where p = ncol(PW) = endogenous regressors +
+      # continuous exogenous regressors.
+
+      # Sample covariance matrix (1/(n-1))* X'X has rank min (n-1, p).
+      #if n <= p, it is rank deficient.
+
 
       fn.warn.skip <- function(not.enough) {
         warning(
@@ -197,14 +200,10 @@ copulajams_correction_discrete <- function(
           call. = FALSE
         )
       }
-      #min.observation.needed <- max(10L, 2L * length(cols.use))
-      #if(nrow(subdat1) <= min.observation.needed || !has.variation){
 
       # check num obs before doing expensive data subset
-      if (sum(idx.rows) <= 3) {
+      if (sum(idx.rows) <= 3) { #threshold is p + 1 = 3 (for p = 1 endo reg + 1 cts exo reg)
         fn.warn.skip("observations")
-        # 3 is number checked by Haschka's repo line 190.
-        #did not find paper backing this up ?
         next
       }
 
@@ -221,6 +220,11 @@ copulajams_correction_discrete <- function(
       # str(W.sub)
       # message("has variation")
       # str(apply(P.sub, 2, function(col) length(unique(col)) > 1))
+
+      #Checking for variation in endogenous regressors per group
+      # if endo regressors are constant in a Z group, CDF have same
+      #probabiity for all obs. Cov matrix may have a zero row or column. solve()
+      #will fail
 
       has.variation <- any(apply(P.sub, 2, function(col) length(unique(col)) > 1))
       if (!has.variation) {
