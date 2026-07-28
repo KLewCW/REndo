@@ -166,6 +166,8 @@ copulaJAMS <- function(
   labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
   labels.exo <- labels.main[!(labels.main %in% labels.endo)]
 
+  labels.exo  <- labels.exo[!grepl(":", labels.exo, fixed = TRUE)]
+
   #fitting the original data
   if (verbose) {
     message(

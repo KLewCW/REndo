@@ -202,8 +202,9 @@ copulajams_correction_discrete <- function(
       }
 
       # check num obs before doing expensive data subset
-      if (sum(idx.rows) <= 3) { #threshold is p + 1 = 3 (for p = 1 endo reg + 1 cts exo reg)
-        fn.warn.skip("observations")
+      p.cov <- ncol(P) + ncol(W)
+      if (sum(idx.rows) <= p.cov) { #p.cov = K + L which is the dim of the covariance matrix.
+        fn.warn.skip(paste0("observations (need >", p.cov, ")")) #needs to be strictly more than p.cov obs. for non-singular
         next
       }
 
@@ -292,7 +293,7 @@ copulajams_correction_discrete <- function(
     stop(
       "No valid factor-level subsets found for correction term estimation. ",
       "Check that factor exogenous regressors have sufficient observations ",
-      "per level (> 3) and variation in the endogenous regressors.",
+      "per level (>", p.cov, ") and variation in the endogenous regressors.",
       call. = FALSE
     )
   }
