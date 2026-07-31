@@ -57,11 +57,6 @@ REndo implements the following instrument-free methods:
 
 10) multilevel GMM (Kim and Frees 2007)
 
-## The new version - REndo 2.5.0
-
-The new version of **REndo** comes with a lot of improvements in terms
-of code optimization as well as different syntax for all functions.
-
 ## Walk-Through
 
 Below, we present the syntax for each of the 10 implemented
