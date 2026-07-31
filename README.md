@@ -79,22 +79,6 @@ parameter values. When not indicated, the initial parameter values are
 taken to be the coefficients returned by the OLS estimator of **y** on
 **P**.
 
-### **Copula Correction**
-
-    copulaCorrection( y ~ X1 + X2 + P1 + P2 | continuous(P1) + discrete(P2), data, start.params=c(), num.boots)
-
-The first argument is a two-part formula of the model to be estimated,
-with the second part of the RHS defining the endogenous regressor, here
-**continuous(P1) + discrete(P2)**. The second argument is the name of
-the data, the third argument of the function, **start.params**, is
-optional and represents the initial parameter values supplied by the
-user (when missing, the OLS estimates are considered); while the fourth
-argument, **num.boots**, also optional, is the number of bootstraps to
-be performed (the default is 1000). Of course, defining the endogenous
-regressors depends on the number of endogenous regressors and their
-assumed distribution. Transformations of the explanatory variables, such
-as I(X), ln(X) are supported.
-
 ### **Higher Moments**
 
     higherMomentsIV(y ~ X1 + X2 + P | P | IIV(iiv = gp, g= x2, X1, X2) + IIV(iiv = yp) | Z1, data)
@@ -159,6 +143,22 @@ variables is a convenient feature of the function, since it increases
 the efficiency of the estimates. Transformation of the explanatory
 variables, such as I(X), ln(X) are possible both in the model
 specification as well as in the IIV() specification.
+
+### **Copula Correction**
+
+    copulaCorrection( y ~ X1 + X2 + P1 + P2 | continuous(P1) + discrete(P2), data, start.params=c(), num.boots)
+
+The first argument is a two-part formula of the model to be estimated,
+with the second part of the RHS defining the endogenous regressor, here
+**continuous(P1) + discrete(P2)**. The second argument is the name of
+the data, the third argument of the function, **start.params**, is
+optional and represents the initial parameter values supplied by the
+user (when missing, the OLS estimates are considered); while the fourth
+argument, **num.boots**, also optional, is the number of bootstraps to
+be performed (the default is 1000). Of course, defining the endogenous
+regressors depends on the number of endogenous regressors and their
+assumed distribution. Transformations of the explanatory variables, such
+as I(X), ln(X) are supported.
 
 ### **Copula Instrumental Model Approach**
 
