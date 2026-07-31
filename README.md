@@ -160,6 +160,20 @@ the efficiency of the estimates. Transformation of the explanatory
 variables, such as I(X), ln(X) are possible both in the model
 specification as well as in the IIV() specification.
 
+### **Copula Instrumental Model Approach**
+
+    copulaIMA(y ~ X + P - 1 | continuous(P), data, num.boots, cdf)
+
+Here, **y** is the response variable, **X + P** represents the model to
+be estimated. The **-1** in the formula suppresses the intercept as
+required by the method. The second part identifies the endogenous
+regressors via **continuous()**. The second argument is the name of the
+dataset. The optional argument **num.boots** sets the number of
+bootstrap replications used to compute standard errors. The default is
+1000. The argument **cdf** specifies the estimator used to transform
+regressors to normal scores (default is **“adj.ecdf”**; alternatives are
+**“ecdf”**, **“resc.ecdf”**, and **“kde”**).
+
 ### **Two-Stage Copula Endogeneity Correction**
 
     copula2sCOPE(y ~ X + P | continuous(P), data, num.boots, cdf)
