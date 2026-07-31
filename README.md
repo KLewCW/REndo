@@ -34,28 +34,28 @@ without external instruments have been advanced. They are called
 
 REndo implements the following instrument-free methods:
 
-1)  latent instrumental variables approach (Ebbes, Wedel, Boeckenholt,
+1)  Latent instrumental variables approach (Ebbes, Wedel, Boeckenholt,
     and Steerneman 2005)
 
-2)  higher moments estimation (Lewbel 1997)
+2)  Higher moments estimation (Lewbel 1997)
 
-3)  heteroskedastic error approach (Lewbel 2012)
+3)  Heteroskedastic error approach (Lewbel 2012)
 
-4)  joint estimation using copula (Park and Gupta 2012)
+4)  Joint estimation using copula (Park and Gupta 2012)
 
-5)  copula instrumental model (Haschka 2025)
+5)  Copula Instrumental Model (Haschka 2025)
 
-6)  two-stage copula endogeneity correction (Yang et al. 2025)
+6)  Two-stage Copula Endogeneity Correction (Yang et al. 2025)
 
 7)  Adjusted Gaussian Copula Estimator (Liengaard et al. 2025)
 
-8)  Nonparametric control function with asymptotic theory (Breitung et
+8)  Nonparametric Control Function with Asymptotic Theory (Breitung et
     al. 2024)
 
-9)  two-stage nonparametric copula endogeneity correction (Hu et
+9)  Two-stage Nonparametric Copula Endogeneity Correction (Hu et
     al. 2025)
 
-10) multilevel GMM (Kim and Frees 2007)
+10) Multilevel GMM (Kim and Frees 2007)
 
 ## Walk-Through
 
@@ -203,25 +203,6 @@ each group. This allows the endogeneity structure to vary across groups
 of the discrete variable. Discrete exogenous regressors must be stored
 as ‘factor’ in the data to activate the stratification.
 
-### **Two-Stage Nonparametric Copula Endogeneity Correction**
-
-    copula2sCOPEnp(y ~ X + P | P, data, num.boots, npcdistbw.args)
-
-Here **y** is the response variable, **X + P** represents the model to
-be estimated; the second part lists the endogenous regressors . The
-second argument is the name of the dataset. **num.boots** sets the
-number of bootstrap replications used to compute standard errors
-(default 1000). The optional argument **npcdistbw.args** is a named list
-of arguments passed to the kernel bandwidth selector **npcdistbw** from
-the **np** package, allowing the user to control bandwidth selection.
-The method estimates the conditional CDF of each endogenous regressor
-given the exogenous regressors nonparametrically, using the
-Nadaraya-Warson kernel regression. This relaxes the Gaussian copula
-assumption. The method supports both continuous and discrete endogenous
-regressors. Bandwidths are computed once on the original data and reused
-across all bootstrap resamples. Multiple endogenous and exogenous
-regressors are also supported.
-
 ### **Nonparametric Control Function (BMW method)**
 
     copulaBMW(y ~ X + P | continuous(P), data, cdf = "resc.ecdf", num.boots)
@@ -248,6 +229,25 @@ are consistent (converge to true values as
 ![n \to \infty](https://latex.codecogs.com/png.latex?n%20%5Cto%20%5Cinfty "n \to \infty")),
 asymptotically normally distributed, and that bootstrap standard errors
 are valid.
+
+### **Two-Stage Nonparametric Copula Endogeneity Correction**
+
+    copula2sCOPEnp(y ~ X + P | P, data, num.boots, npcdistbw.args)
+
+Here **y** is the response variable, **X + P** represents the model to
+be estimated; the second part lists the endogenous regressors . The
+second argument is the name of the dataset. **num.boots** sets the
+number of bootstrap replications used to compute standard errors
+(default 1000). The optional argument **npcdistbw.args** is a named list
+of arguments passed to the kernel bandwidth selector **npcdistbw** from
+the **np** package, allowing the user to control bandwidth selection.
+The method estimates the conditional CDF of each endogenous regressor
+given the exogenous regressors nonparametrically, using the
+Nadaraya-Warson kernel regression. This relaxes the Gaussian copula
+assumption. The method supports both continuous and discrete endogenous
+regressors. Bandwidths are computed once on the original data and reused
+across all bootstrap resamples. Multiple endogenous and exogenous
+regressors are also supported.
 
 ### **Multilevel GMM**
 
