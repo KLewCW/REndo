@@ -166,16 +166,14 @@ copulaJAMS <- function(
   check_err_msg(checkinput_copulashared_verbose(verbose))
 
   cdf <- match.arg(cdf, choices = allowed.cdfs)
-
   F.formula <- as.Formula(formula)
-  labels.main <- labels(terms(F.formula, data = data, rhs = 1))
-  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
-  labels.exo <- labels.main[!(labels.main %in% labels.endo)]
-
-  labels.exo  <- labels.exo[!grepl(":", labels.exo, fixed = TRUE)]
 
   #fitting the original data
   if (verbose) {
+    labels.endo <- copula_labels_endo_exo(
+      F.formula = F.formula,
+      data = data
+    )$labels.endo
     message(
       "Fitting JAMS copula model for ",
       length(labels.endo),
@@ -187,8 +185,6 @@ copulaJAMS <- function(
     F.formula = F.formula,
     data = data,
     cdf = cdf,
-    labels.endo = labels.endo,
-    labels.exo = labels.exo,
     verbose = verbose
   )
 
@@ -199,8 +195,6 @@ copulaJAMS <- function(
       F.formula = F.formula,
       data = data.b,
       cdf = cdf,
-      labels.endo = labels.endo,
-      labels.exo = labels.exo,
       verbose = FALSE
     )
     return(fit.b$res.augmented)
@@ -233,8 +227,8 @@ copulaJAMS <- function(
     n.boots.attempted = res.boots$n.attempted,
     n.boots.failed = res.boots$n.failed,
     cdf = cdf,
-    labels.endo = labels.endo,
-    labels.exo = labels.exo,
+    labels.endo = fit$labels.endo,
+    labels.exo = fit$labels.exo,
     labels.pcop = fit$labels.pcop,
     P = fit$P,
     W = fit$W,

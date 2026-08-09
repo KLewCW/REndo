@@ -1,3 +1,18 @@
+#' @importFrom Formula is.Formula
+copula_labels_endo_exo <- function(F.formula, data) {
+  stopifnot(is.Formula(F.formula))
+
+  labels.main <- labels(terms(F.formula, data = data, rhs = 1))
+  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+  labels.exo <- labels.main[!(labels.main %in% labels.endo)]
+
+  return(list(
+    labels.exo = labels.exo,
+    labels.endo = labels.endo
+  ))
+}
+
+
 copula_adj_ecdf <- function(x) {
   if (!is.matrix(x)) {
     x <- matrix(x, ncol = 1)
@@ -28,7 +43,7 @@ copula_pstar <- function(P, cdf) {
     })
   } else if (cdf == "resc.ecdf") {
     # same as copula::pobs()
-    P.star <- apply(P, 2, rank, ties.method = "average")/(nrow(P) + 1)
+    P.star <- apply(P, 2, rank, ties.method = "average") / (nrow(P) + 1)
   } else if (cdf == "adj.ecdf") {
     P.star <- apply(P, 2, copula_adj_ecdf)
   } else if (cdf == "ecdf") {

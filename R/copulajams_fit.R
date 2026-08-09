@@ -1,17 +1,11 @@
 #' @importFrom Formula as.Formula
 #' @importFrom stats lm model.frame model.matrix terms formula update reformulate
-copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbose) {
-  l.parts <- copulajams_build_model_parts(
-    F.formula = F.formula,
-    data = data,
-    labels.exo = labels.exo,
-    labels.endo = labels.endo
-  )
+copulajams_fit <- function(F.formula, data, cdf, verbose) {
+  l.parts <- copulajams_build_model_parts(F.formula = F.formula, data = data)
 
   P <- l.parts$X.endo
   W <- l.parts$X.exo.cont
   df.Z <- l.parts$df.Z
-  labels.exo.factor <- l.parts$labels.exo.factor
 
   # if (nrow(X.endo) < length(labels.endo)) {
   #   stop(
@@ -38,7 +32,7 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbos
     if (verbose) {
       message(
         "Discrete (`factor`) exogenous variable(s) present: ",
-        toString(labels.exo.factor),
+        toString(l.parts$labels.exo.factor),
         ". Estimating separately within each subset."
       )
     }
@@ -57,6 +51,8 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbos
   return(list(
     res.augmented = res.2nd.stage$res.augmented,
     labels.pcop = res.2nd.stage$labels.pcop,
+    labels.exo = l.parts$labels.exo,
+    labels.endo = l.parts$labels.endo,
     P = P,
     W = W,
     df.Z = df.Z
@@ -65,7 +61,14 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbos
 
 
 # Dont inline in fit but separate method for better testability
-copulajams_build_model_parts <- function(F.formula, data, labels.endo, labels.exo) {
+copulajams_build_model_parts <- function(F.formula, data) {
+  l.labels <- copula_labels_endo_exo(F.formula = F.formula, data = data)
+  labels.endo <- l.labels$labels.endo
+  labels.exo <- l.labels$labels.exo
+
+  # TODO: Blanket exclude all interactions?? What about interactions in endo or purely exos like W1:W2?
+  labels.exo <- labels.exo[!grepl(":", labels.exo, fixed = TRUE)]
+
   # Build a single model.frame/matrix from which all parts (W,P,Z) are read from to
   # guarantee they share row and col order
   mf.main <- model.frame(F.formula, lhs = 1, rhs = 1, data = data, na.action = na.fail)
@@ -121,6 +124,8 @@ copulajams_build_model_parts <- function(F.formula, data, labels.endo, labels.ex
     X.endo = X.endo,
     X.exo.cont = X.exo.cont,
     df.Z = df.Z,
+    labels.endo = labels.endo,
+    labels.exo = labels.exo,
     labels.exo.cont = labels.exo.cont,
     labels.exo.factor = labels.exo.factor
   ))
