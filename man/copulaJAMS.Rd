@@ -32,6 +32,27 @@ used for standard error estimation. A minimum of 1000 is recommended.}
 
 \item{verbose}{Show details about the running of the function.}
 }
+\value{
+An object of class \code{rendo.copula.jams} which is a list that contains:
+\item{\code{formula}}{The formula given to specify the fitted model.}
+\item{\code{model}}{The model.frame used for model fitting.}
+\item{\code{terms}}{The terms object used for model fitting.}
+\item{\code{coefficients}}{A named vector of all coefficients resulting from model fitting.}
+\item{\code{names.main.coefs}}{A vector specifying which coefficients are from the model. For internal usage.}
+\item{\code{fitted.values}}{Fitted values of the structural model.}
+\item{\code{residuals}}{The structural residuals.}
+\item{\code{boots.params}}{The bootstrapped coefficients.}
+\item{\code{n.boots.attempted}}{The number of bootstrap iterations that were attempted.}
+\item{\code{n.boots.failed}}{The number of bootstrap iterations resulting in a failed fit.}
+\item{\code{cdf}}{The used cdf function.}
+\item{\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}
+\item{\code{labels.endo}}{The term labels of the endogenous regressors.}
+\item{\code{labels.exo}}{The term labels of the exogenous regressors.}
+\item{\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}
+\item{\code{P}}{The matrix of (continuous) endogenous regressors.}
+\item{\code{W}}{The matrix of continuous exogenous regressors. Only main effects: Discrete (\code{factor}) regressors and interaction terms are excluded.}
+\item{\code{df.Z}}{\code{data.frame} of discrete (\code{factor}) exogenous regressors used to stratify. \code{NULL} if there are none.}
+}
 \description{
 Fitting adjusted Gaussian copula estimator to address endogeneity
 without external instruments. This method shows analytically that the quality of
@@ -220,4 +241,32 @@ and Ringle, C. M. (2025). Dealing with regression models' endogeneity by means
 of an adjusted estimator for the Gaussian copula approach.
 \emph{Journal of the Academy of Marketing Science}, 53, 279--299.
 \doi{10.1007/s11747-024-01055-4}
+
+Becker, JM., Proksch, D., & Ringle, C.M. (2022) Revisiting Gaussian
+copulas to handle endogenous regressors. \emph{Journal of the Academy of
+Marketing Science}, 50, 46--66.
+\doi{10.1007/s11747-021-00805-y}
+
+Liengaard, B. D., Becker, J.-M., Bennedsen, M., Heiler, P., Taylor, L. N.,
+& Ringle, C. M. (2025). Dealing with regression models' endogeneity by
+means of an adjusted estimator for the Gaussian copula approach.
+\emph{Journal of the Academy of Marketing Science}, 53(1), 279-299
+\doi{10.1007/s11747-024-01055-4}
+
+Breitung, J., Mayer, A., & Wied, D. (2024) Asymptotic properties of endogeneity
+corrections using nonlinear transformations. \emph{Econometrics Journal}, 27,
+362--383
+\doi{10.1093/ectj/utae002}
+
+Silverman, B.W. (1986). Density Estimation for Statistics and Data Analysis
+\doi{10.1201/9781315140919}
 }
+\seealso{
+Other copula-based methods:
+\code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaBMW]{copulaBMW()}},
+\code{\link[=copulaCorrection]{copulaCorrection()}},
+\code{\link[=copulaIMA]{copulaIMA()}}
+}
+\concept{copula-based methods}

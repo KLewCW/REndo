@@ -107,6 +107,12 @@
 #' \emph{Journal of the Academy of Marketing Science}, 53, 279--299.
 #'  \doi{10.1007/s11747-024-01055-4}
 #'
+#' @template template_param_cdf_references
+#'
+#' @eval doc_rendocopulajams_return()
+#'
+#' @family copula-based methods
+#'
 #' @examples
 #'
 #' #------------------------------------------------------------------------
@@ -229,6 +235,9 @@ copulaJAMS <- function(
     cdf = cdf,
     labels.endo = labels.endo,
     labels.exo = labels.exo,
-    labels.pcop = fit$labels.pcop
+    labels.pcop = fit$labels.pcop,
+    P = fit$P,
+    W = fit$W,
+    df.Z = fit$df.Z
   ))
 }

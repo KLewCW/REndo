@@ -11,7 +11,10 @@ doc_rendocopulajams_return_list <- function() {
     res.lm.augmented = "\\item{\\code{res.lm.augmented}}{The fitted augmented regression model, including the control function terms.}",
     labels.endo = "\\item{\\code{labels.endo}}{The term labels of the endogenous regressors.}",
     labels.exo = "\\item{\\code{labels.exo}}{The term labels of the exogenous regressors.}",
-    labels.pcop = "\\item{\\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}"
+    labels.pcop = "\\item{\\code{labels.pcop}}{The term labels of the generated, auxiliary regressors.}",
+    P  = "\\item{\\code{P}}{The matrix of (continuous) endogenous regressors.}",
+    W = "\\item{\\code{W}}{The matrix of continuous exogenous regressors. Only main effects: Discrete (\\code{factor}) regressors and interaction terms are excluded.}",
+    df.Z = "\\item{\\code{df.Z}}{\\code{data.frame} of discrete (\\code{factor}) exogenous regressors used to stratify. \\code{NULL} if there are none.}"
   )
 
   return(c(doc_boots, doc_copulajams))
@@ -39,7 +42,10 @@ new_rendo_copulajams <- function(
   cdf,
   labels.endo,
   labels.exo,
-  labels.pcop
+  labels.pcop,
+  P,
+  W,
+  df.Z
 ) {
   return(.new_rendo_boots_degenerates_removed(
     # Stuff for rendo.boots.degenerates.removed class
@@ -60,6 +66,9 @@ new_rendo_copulajams <- function(
     cdf = cdf,
     labels.endo = labels.endo,
     labels.exo = labels.exo,
-    labels.pcop = labels.pcop
+    labels.pcop = labels.pcop,
+    P = P,
+    W = W,
+    df.Z = df.Z
   ))
 }

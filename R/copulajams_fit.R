@@ -1,6 +1,71 @@
 #' @importFrom Formula as.Formula
 #' @importFrom stats lm model.frame model.matrix terms formula update reformulate
 copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbose) {
+  l.parts <- copulajams_build_model_parts(
+    F.formula = F.formula,
+    data = data,
+    labels.exo = labels.exo,
+    labels.endo = labels.endo
+  )
+
+  P <- l.parts$X.endo
+  W <- l.parts$X.exo.cont
+  df.Z <- l.parts$df.Z
+  labels.exo.factor <- l.parts$labels.exo.factor
+
+  # if (nrow(X.endo) < length(labels.endo)) {
+  #   stop(
+  #     "Bootstrap sample dropped at least one endogenous regressor.",
+  #     "This can happen when a regressor becomes constant in a resample.",
+  #     call. = FALSE
+  #   )
+  # }
+
+  # Checking if there is any factor variables among exogenous regressors
+  # if the factor Z is present, then it requires stratified correction per level (see equation 20 and 21)
+  # if there is no factor Z, variance-covariance correction (eq. 17 to 19)
+  if (is.null(df.Z)) {
+    # case no Z
+    if (verbose) {
+      message(
+        "No discrete (`factor`) exogenous variable(s) present: Estimating on full data."
+      )
+    }
+    cop.terms <- copulajams_correction_continuous(P = P, W = W, cdf = cdf)
+  } else {
+    # case where Z is present
+
+    if (verbose) {
+      message(
+        "Discrete (`factor`) exogenous variable(s) present: ",
+        toString(labels.exo.factor),
+        ". Estimating separately within each subset."
+      )
+    }
+
+    cop.terms <- copulajams_correction_discrete(P = P, W = W, df.Z = df.Z, cdf = cdf)
+  }
+
+  # 2nd stage: OLS ---------------------------------------------------------------------
+
+  res.2nd.stage <- copula_fit_2ndstage(
+    F.formula = F.formula,
+    data = data,
+    cop.terms = cop.terms
+  )
+
+  return(list(
+    res.augmented = res.2nd.stage$res.augmented,
+    labels.pcop = res.2nd.stage$labels.pcop,
+    P = P,
+    W = W,
+    df.Z = df.Z
+  ))
+}
+
+
+# Dont inline in fit but separate method for better testability
+copulajams_build_model_parts <- function(F.formula, data, labels.endo, labels.exo) {
   # Build a single model.frame/matrix from which all parts (W,P,Z) are read from to
   # guarantee they share row and col order
   mf.main <- model.frame(F.formula, lhs = 1, rhs = 1, data = data, na.action = na.fail)
@@ -36,52 +101,11 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbos
     drop = FALSE
   ]
 
-  # message("X.main")
-  # str(X.main)
-  # message("term.labels", toString(term.labels))
-  # message("labels.endo", toString(labels.endo))
-  # message("mm.assign")
-  # str(mm.assign)
-  # message("X.endo")
-  # str(X.endo)
-  # message("labels.exo.cont: ", toString(labels.exo.cont))
-  # message("X.exo.cont")
-  # str(X.exo.cont)
-
-  # if (nrow(X.endo) < length(labels.endo)) {
-  #   stop(
-  #     "Bootstrap sample dropped at least one endogenous regressor.",
-  #     "This can happen when a regressor becomes constant in a resample.",
-  #     call. = FALSE
-  #   )
-  # }
-
-  # Checking if there is any factor variables among exogenous regressors
-  # if the factor Z is present, then it requires stratified correction per level (see equation 20 and 21)
-  # if there is no factor Z, variance-covariance correction (eq. 17 to 19)
+  # return Z already for testability
+  # Z is only used to apply-by-factor: Has to remain factors and not made to dummies
   if (length(labels.exo.factor) == 0) {
-    # case no Z
-    if (verbose) {
-      message(
-        "No discrete (`factor`) exogenous variable(s) present: Estimating on full data."
-      )
-    }
-    cop.terms <- copulajams_correction_continuous(
-      P = X.endo,
-      W = X.exo.cont,
-      cdf = cdf
-    )
+    df.Z <- NULL
   } else {
-    # case where Z is present
-    # Z is only used to apply-by-factor: Has to remain factors and not made to dummies
-
-    if (verbose) {
-      message(
-        "Discrete (`factor`) exogenous variable(s) present: ",
-        toString(labels.exo.factor),
-        ". Estimating separately within each subset."
-      )
-    }
     colnames.exo.factors <- vapply(
       labels.exo.factor,
       FUN = label_to_colname,
@@ -89,29 +113,18 @@ copulajams_fit <- function(F.formula, data, labels.endo, labels.exo, cdf, verbos
     )
     df.Z <- mf.main[, colnames.exo.factors, drop = FALSE]
     colnames(df.Z) <- labels.exo.factor
-
-    cop.terms <- copulajams_correction_discrete(
-      P = X.endo,
-      W = X.exo.cont,
-      df.Z = df.Z,
-      cdf = cdf
-    )
   }
 
-  # 2nd stage: OLS ---------------------------------------------------------------------
-
-  res.2nd.stage <- copula_fit_2ndstage(
-    F.formula = F.formula,
-    data = data,
-    cop.terms = cop.terms
-  )
-
   return(list(
-    res.augmented = res.2nd.stage$res.augmented,
-    labels.pcop = res.2nd.stage$labels.pcop
+    mf.main = mf.main,
+    X.main = X.main,
+    X.endo = X.endo,
+    X.exo.cont = X.exo.cont,
+    df.Z = df.Z,
+    labels.exo.cont = labels.exo.cont,
+    labels.exo.factor = labels.exo.factor
   ))
 }
-
 
 #' @importFrom stats qnorm cov
 copulajams_correction_continuous <- function(P, W, cdf) {
@@ -187,7 +200,6 @@ copulajams_correction_discrete <- function(
       # Sample covariance matrix (1/(n-1))* X'X has rank min (n-1, p).
       #if n <= p, it is rank deficient.
 
-
       fn.warn.skip <- function(not.enough) {
         warning(
           "Skipping: The factor level `",
@@ -203,7 +215,8 @@ copulajams_correction_discrete <- function(
 
       # check num obs before doing expensive data subset
       p.cov <- ncol(P) + ncol(W)
-      if (sum(idx.rows) <= p.cov) { #p.cov = K + L which is the dim of the covariance matrix.
+      if (sum(idx.rows) <= p.cov) {
+        #p.cov = K + L which is the dim of the covariance matrix.
         fn.warn.skip(paste0("observations (need >", p.cov, ")")) #needs to be strictly more than p.cov obs. for non-singular
         next
       }
@@ -293,7 +306,9 @@ copulajams_correction_discrete <- function(
     stop(
       "No valid factor-level subsets found for correction term estimation. ",
       "Check that factor exogenous regressors have sufficient observations ",
-      "per level (>", p.cov, ") and variation in the endogenous regressors.",
+      "per level (>",
+      p.cov,
+      ") and variation in the endogenous regressors.",
       call. = FALSE
     )
   }
