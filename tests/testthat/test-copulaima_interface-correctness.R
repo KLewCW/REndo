@@ -1,4 +1,5 @@
 skip_on_cran()
+set.seed(42)
 
 # Required data ---------------------------------------------------------------------
 data("dataCopIMAContExo")
@@ -13,19 +14,14 @@ fit_copulaIMA_lowboots <- function(
   num.boots = 10,
   verbose = FALSE
 ) {
-  return(withCallingHandlers(
+  return(suppress_lowboots_warning(
     copulaIMA(
       formula = formula,
       data = data,
       cdf = cdf,
       num.boots = num.boots,
       verbose = verbose
-    ),
-    warning = function(w) {
-      if (grepl("recommended to run 1000", conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      }
-    }
+    )
   ))
 }
 
@@ -115,23 +111,6 @@ test_that("Duplicate regressors are handled correctly", {
 })
 
 # Parameter recovery -------------------------------------------------------
-expect_param_recovery <- function(res, true_vals) {
-  coefs <- coef(res)
-  ses <- sqrt(diag(vcov(res)))
-  for (nm in names(true_vals)) {
-    diff <- abs(coefs[nm] - true_vals[nm])
-    expect_true(
-      object = diff < 2 * ses[nm],
-      info = sprintf(
-        "%s: est=%.3f, true=%.3f, 2*SE=%.3f",
-        nm,
-        coefs[nm],
-        true_vals[nm],
-        2 * ses[nm]
-      )
-    )
-  }
-}
 
 copulaIMA_param_recovery <- function(formula, data, true_vals) {
   res <- copulaIMA(
@@ -141,7 +120,7 @@ copulaIMA_param_recovery <- function(formula, data, true_vals) {
     num.boots = 1000,
     verbose = FALSE
   )
-  expect_param_recovery(res = res, true_vals = true_vals)
+  check_param_recovery(res = res, true_vals = true_vals)
 }
 
 test_that("Parameter recovery: dataCopIMAContExo", {
@@ -175,16 +154,5 @@ test_that("structural residuals & fitted values are calculated correctly", {
     formula = y ~ X + P - 1 | continuous(P),
     data = dataCopIMAContExo
   )
-  res.lm <- res$res.lm.augmented
-
-  # Alternative route: Remove cop contribution from augmented fit
-  names.coefs.cop <- c("P_cop")
-  pcop.coefs <- coef(res.lm)[names.coefs.cop]
-  cop.matrix <- model.matrix(res.lm)[, names.coefs.cop, drop = FALSE]
-
-  residuals.alt <- drop(residuals(res.lm) + cop.matrix %*% pcop.coefs)
-  fitted.alt <- drop(fitted(res.lm) - cop.matrix %*% pcop.coefs)
-
-  expect_equal(residuals(res), residuals.alt)
-  expect_equal(fitted.values(res), fitted.alt)
+  check_struct_residuals(res = res, aux.names = "P_cop")
 })
