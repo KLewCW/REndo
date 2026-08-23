@@ -19,8 +19,8 @@ mu <- 10 #true intercept
 # Latent Gaussian dependence structure
 # 4 x 4 matrix, extension of eq. 4.2
 # Corr(P1*, P2*) = 0.3 (correlation between the 2 endo regressors)
-# Corr(P1*, eps*) = 0.5  (endogeneity of P1. Same as Haschka's rho = 0.5)
-# Corr(P2*, eps*) = 0.5  (endogeneity of P2)
+# Corr(P1*, xi*) = 0.5  (endogeneity of P1. Same as Haschka's rho = 0.5)
+# Corr(P2*, xi*) = 0.5  (endogeneity of P2)
 
 Sigma <- matrix(c(1,   0.3, 0.5,
                   0.3, 1,   0.5,
@@ -31,7 +31,7 @@ latent <- MASS::mvrnorm(n = n, mu = c(0, 0, 0), Sigma = Sigma)
 
 P1star <- latent[, 1]
 P2star <- latent[, 2]
-epsstar <- latent[, 3]
+xistar <- latent[, 3]
 
 # Marginal transformations
 # P1 and P2: nonnormal bounded endogenous regressors
@@ -40,11 +40,11 @@ epsstar <- latent[, 3]
 P1 <- pnorm(P1star) + 0.5
 P2 <- pnorm(P2star) + 0.5
 
-eps <- epsstar #normal
+xi <- xistar #normal
 
 # Outcome equation extension from eq. 4.1 to two endogenous regressors with intercept
-# Y_t = mu + alpha1 * P1_t + alpha2 * P2_t + eps_t
-y <- mu + alpha1 * P1 + alpha2 * P2 + eps
+# Y_t = mu + alpha1 * P1_t + alpha2 * P2_t + xi_t
+y <- mu + alpha1 * P1 + alpha2 * P2 + xi
 
 # Final dataset
 dataCopIMAMultiEndo <- data.frame(y  = y, P1 = P1, P2 = P2)
