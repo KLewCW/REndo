@@ -187,7 +187,7 @@ data("dataCopBMW")
 res_bmw <- copulaBMW(
   y ~ X + P | P,
   data      = dataCopBMW,
-  cdf       = "resc.ecdf",
+  cdf       = "ecdf",
   num.boots = 1000
 )
 summary(res_bmw)
@@ -205,7 +205,7 @@ data("dataCopBMWMultiEndo")
 res_bmw_multi <- copulaBMW(
   y ~ X + P1 + P2 | P1 + P2,
   data      = dataCopBMWMultiEndo,
-  cdf       = "resc.ecdf",
+  cdf       = "ecdf",
   num.boots = 1000
 )
 summary(res_bmw_multi)
@@ -237,19 +237,10 @@ endogeneity correction using copulas. NBER Working Paper No. w32231.
 \link[REndo:dataCopBMWMultiEndo]{dataCopBMWMultiEndo}} for detailed
 information about the simulated datasets
 
-<<<<<<< Updated upstream
 Other copula-based methods:
 \code{\link[=copula2sCOPE]{copula2sCOPE()}},
 \code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
 \code{\link[=copulaCorrection]{copulaCorrection()}},
 \code{\link[=copulaIMA]{copulaIMA()}}
-=======
-Other copula-based methods: 
-\code{\link{copula2sCOPE}()},
-\code{\link{copula2sCOPEnp}()},
-\code{\link{copulaCorrection}()},
-\code{\link{copulaIMA}()},
-\code{\link{copulaJAMS}()}
->>>>>>> Stashed changes
 }
 \concept{copula-based methods}
