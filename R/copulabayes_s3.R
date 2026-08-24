@@ -1,6 +1,6 @@
 #' @importFrom coda as.mcmc effectiveSize geweke.diag
 #' @importFrom stats sd quantile
-new_rendo_copula_bayes <- function(
+new_rendo_copulabayes <- function(
   call,
   F.formula,
   chain, #post burnin thinned chain (all columns)

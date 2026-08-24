@@ -232,7 +232,7 @@ copulaBayes <- function(
     )
   }
 
-  chain.full <- copulaBayesMCMC(
+  chain.full <- copulabayes_mcmc(
     y = y,
     z = z,
     x = x,
@@ -284,7 +284,7 @@ copulaBayes <- function(
   fitted.values <- as.vector(alpha.pm + z %*% delta.pm + x %*% beta.pm)
   residuals <- y - fitted.values
 
-  return(new_rendo_copula_bayes(
+  return(new_rendo_copulabayes(
     call = cl,
     F.formula = F.formula,
     chain = chain,

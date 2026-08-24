@@ -1,6 +1,6 @@
 #' @importFrom stats qnorm pnorm qgamma rgamma dnorm dgamma
 #' @importFrom MCMCpack riwish rdirichlet
-copulaBayesMargin <- function(v) {
+copulabayes_margin <- function(v) {
   #building margin structure for one variable
 
   #First step: building per-unique-value margin structure for 1 regressor variable
@@ -25,10 +25,10 @@ copulaBayesMargin <- function(v) {
 # with u_{varpi, i}(lambda_varpi) assigning cumulative probability masses similar to a cdf
 #this uses midpoint CDF rescaled to keep values in (0,1)
 #The qnorm is then applied
-copulaBayesConverter <- function(lambda, mg) {
+copulabayes_converter <- function(lambda, mg) {
   #lambda is the probability masses over
   #unique values (sum to 1) (from eq. 9)
-  #mg is the margin structure from copulaBayesMargin
+  #mg is the margin structure from copulabayes_margin
 
   Fmid <- (cumsum(lambda) - lambda / 2) * (mg$m / (mg$m + 0.01)) #rescaling by m/(m + 0.01 to keep values strictly inside (0,1))
   qnorm(Fmid[mg$grp])
@@ -52,7 +52,7 @@ copulaBayesConverter <- function(lambda, mg) {
 # of the univariate Dir(m_varpi, omega_{varpi} + v_{varpi}) distribution.
 # converting u to Gamma(1,1) through quantile transform
 
-copulaBayesDrawLambda <- function(u.channel, mg) {
+copulabayes_drawlambda <- function(u.channel, mg) {
   #convert probability integral transform uniforms to Gamma(1,1) through quantile transform
   g.obs <- qgamma(u.channel, shape = 1, rate = 1)
 
@@ -71,7 +71,7 @@ copulaBayesDrawLambda <- function(u.channel, mg) {
 #Evaluating log (p (theta | y, z, x)) up to a normalising constant. This is the acceptance ratio
 #numerator/denorminator in the MH step.
 
-copulaBayeslogpost <- function(
+copulabayes_logpost <- function(
   alpha,
   delta,
   beta,
@@ -128,7 +128,7 @@ copulaBayeslogpost <- function(
 #Reparametrising the logposterior for the random walk MH step
 #theta = c(alpha, delta_1,.., delta_K, beta_1,..., beta_L, log(sigma^2))
 #log jacobian log(sigma^2) = log.sig2 converting from log-scale to natural scale
-copulaBayeslogpostparam <- function(
+copulabayes_logpostparam <- function(
   theta,
   Phi.cur,
   xi.z,
@@ -155,7 +155,7 @@ copulaBayeslogpostparam <- function(
   sigma2 <- exp(log.s2)
 
   #Jacobian = delta sigma^2/ delta log(sigma^2)
-  copulaBayeslogpost(
+  copulabayes_logpost(
     alpha,
     delta,
     beta,
@@ -174,12 +174,13 @@ copulaBayeslogpostparam <- function(
 }
 
 #Extracting upper triangle of correlation matrix for chain storage
-copulaBayesMatrixtoVector <- function(Phi) {
+copulabayes_matrix2vector <- function(Phi) {
   Phi[upper.tri(Phi)]
 }
 
 #Reconstructing symmetic correlation matric from upper triangle vector
 copulaBayesVectortoMatrix <- function(vec, d) {
+# TODO: Unused??
   Phi <- diag(d)
   Phi[upper.tri(Phi)] <- vec
   Phi[lower.tri(Phi)] <- t(Phi)[lower.tri(Phi)]

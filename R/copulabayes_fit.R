@@ -18,7 +18,7 @@
 #' @importFrom stats lm residuals var runif rnorm rgamma
 #' @importFrom mvtnorm rmvnorm
 #' @importFrom MCMCpack riwish rdirichlet
-copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
+copulabayes_mcmc <- function(y, z, x, num.iterations, verbose) {
   N <- length(y)
   K <- ncol(z)
   L <- ncol(x)
@@ -28,8 +28,8 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
   #This describe the unique values (UV) of each z_k and x_l and
   #this is fixed for the entire MCMC run.
   #note: observed data never change.
-  mgz.list <- lapply(seq_len(K), function(k) copulaBayesMargin(z[, k]))
-  mgx.list <- lapply(seq_len(L), function(l) copulaBayesMargin(x[, l]))
+  mgz.list <- lapply(seq_len(K), function(k) copulabayes_margin(z[, k]))
+  mgx.list <- lapply(seq_len(L), function(l) copulabayes_margin(x[, l]))
 
   # From appendix D: ols starting values
   # Research paper says starting value can be arbitrary. OLS is used here for conveniency
@@ -64,12 +64,12 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
   # xi_{varpi, i} = Phi^{-1} (u_{varpi, i} (lambda_varpi)) from section 3.1 of Haschka 2025, page 522
   xi.z <- matrix(NA_real_, N, K)
   for (k in seq_len(K)) {
-    xi.z[, k] <- copulaBayesConverter(lambdaz.list[[k]], mgz.list[[k]])
+    xi.z[, k] <- copulabayes_converter(lambdaz.list[[k]], mgz.list[[k]])
   } #converting lambda to xi
 
   xi.x <- matrix(NA_real_, N, L)
   for (l in seq_len(L)) {
-    xi.x[, l] <- copulaBayesConverter(lambdax.list[[l]], mgx.list[[l]])
+    xi.x[, l] <- copulabayes_converter(lambdax.list[[l]], mgx.list[[l]])
   }
 
   # Chain storage: one row per iteration.
@@ -113,7 +113,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
     chain[1L, col.beta] <- beta.cur
   }
   chain[1L, col.sigma2] <- sigma2.cur
-  chain[1L, col.rho] <- copulaBayesMatrixtoVector(Phi.cur)
+  chain[1L, col.rho] <- copulabayes_matrix2vector(Phi.cur)
 
   chain[1L, col.sa] <- 1000
   chain[1L, col.sb.d] <- rep(1000, K)
@@ -161,7 +161,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
     theta.cur <- c(alpha.cur, delta.cur, beta.cur, log(sigma2.cur))
     theta.prop <- theta.cur + rnorm(length(theta.cur), mean = 0, sd = tune)
 
-    logpost.cur <- copulaBayeslogpostparam(
+    logpost.cur <- copulabayes_logpostparam(
       theta.cur,
       Phi.cur,
       xi.z,
@@ -175,7 +175,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
       K,
       L
     )
-    logpost.prop <- copulaBayeslogpostparam(
+    logpost.prop <- copulabayes_logpostparam(
       theta.prop,
       Phi.cur,
       xi.z,
@@ -243,21 +243,21 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
       Phi.cur[cop.dim, K + l] <- 0
     }
 
-    chain[i + 1L, col.rho] <- copulaBayesMatrixtoVector(Phi.cur)
+    chain[i + 1L, col.rho] <- copulabayes_matrix2vector(Phi.cur)
 
     #Step 4: Gibbs for Dirichlet masses lambda (Appendix B W7)
-    #Drawing correlated normals from current phi, then copulaBayesDrawLambda updates
+    #Drawing correlated normals from current phi, then copulabayes_drawlambda updates
     #each variable's mass vector
 
     eps <- mvtnorm::rmvnorm(N, mean = rep(0, cop.dim), sigma = Phi.cur)
 
     for (k in seq_len(K)) {
-      lambdaz.list[[k]] <- copulaBayesDrawLambda(pnorm(eps[, k]), mgz.list[[k]])
-      xi.z[, k] <- copulaBayesConverter(lambdaz.list[[k]], mgz.list[[k]])
+      lambdaz.list[[k]] <- copulabayes_drawlambda(pnorm(eps[, k]), mgz.list[[k]])
+      xi.z[, k] <- copulabayes_converter(lambdaz.list[[k]], mgz.list[[k]])
     }
     for (l in seq_len(L)) {
-      lambdax.list[[l]] <- copulaBayesDrawLambda(pnorm(eps[, K + l]), mgx.list[[l]])
-      xi.x[, l] <- copulaBayesConverter(lambdax.list[[l]], mgx.list[[l]])
+      lambdax.list[[l]] <- copulabayes_drawlambda(pnorm(eps[, K + l]), mgx.list[[l]])
+      xi.x[, l] <- copulabayes_converter(lambdax.list[[l]], mgx.list[[l]])
     }
 
     #Horseshoe hyperprior updates (From equation 5 of Haschka 2025)
