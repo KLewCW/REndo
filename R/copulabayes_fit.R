@@ -1,20 +1,22 @@
-#' @importFrom stats lm residuals var runif rnorm rgamma
-#' @importFrom mvtnorm rmvnorm
-#' @importFrom MCMCpack riwish rdirichlet
-# MCMC sampler of the copula model from Appendix D
 
-#sampler cycles through 4 blocks per iteration (eq.11):
+# MCMC sampler of the copula model from Appendix D
+#
+# sampler cycles through 4 blocks per iteration (eq.11):
 # 1. Metropolis-Hastings algorithm (MH) step for alpha, delta, beta using IWLS proposal from appendix C
 # 2. MH step for sigma^s using Laplace proposal (Appendix C)
 # 3. Gibbs step for correlation matrix W (Appendix A W5, Wishart distribution)
 # 4. Gibbs step for Dirichlet masses lambda (Appendix W7)
-
+#
 #Note: for steps one and 2 :  the MH (random walk) replaces the IWLS and Laplace proposals.
 #From MCMCpack, random walk and Hastings ratio have been used.
-
+#
 #modification done from previous code because was a bit lost:
 # X has now been kept as a N x L matrix (when L =0, it has 0 columns, i.e., X %*% beta = 0 )
-
+#
+#
+#' @importFrom stats lm residuals var runif rnorm rgamma
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom MCMCpack riwish rdirichlet
 copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
   N <- length(y)
   K <- ncol(z)
@@ -93,7 +95,7 @@ copulaBayesMCMC <- function(y, z, x, num.iterations, verbose) {
   col.sb.d <- col.sa + seq_len(K) #'horseshoe' hyperprior variances for delta_1,..., delta_K
 
   col.sb.b <- if (L > 0L) {
-    #'horseshoe' hyperprior variances for  beta_1,..,beta_L
+    # 'horseshoe' hyperprior variances for  beta_1,..,beta_L
     col.sa + K + seq_len(L)
   } else {
     integer(0L)

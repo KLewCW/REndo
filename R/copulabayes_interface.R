@@ -128,8 +128,7 @@
 #'
 #'
 #' @export
-#' @importFrom stats coef model.frame model.matrix model.response
-#'   formula sd quantile
+#' @importFrom stats coef model.frame model.matrix model.response formula sd quantile
 #' @importFrom Formula as.Formula
 copulaBayes <- function(
   formula,
