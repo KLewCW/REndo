@@ -1,30 +1,30 @@
 #' @importFrom coda as.mcmc effectiveSize geweke.diag
 #' @importFrom stats sd quantile
 new_rendo_copula_bayes <- function(
-    call,
-    F.formula,
-    chain, #post burnin thinned chain (all columns)
-    chain.struct,#structural parameter draws: alpha, delta, beta, sigma2
-    chain.rho,#endo-error copula correlation draws: rho_1,...,rho_K
-    post.mean,
-    post.sd,
-    post.lo,
-    post.hi,
-    fitted.values,
-    residuals,
-    names.endo.regs,
-    n.iterations,
-    burnin,
-    thin,
-    n.draws
-   ) {
+  call,
+  F.formula,
+  chain, #post burnin thinned chain (all columns)
+  chain.struct, #structural parameter draws: alpha, delta, beta, sigma2
+  chain.rho, #endo-error copula correlation draws: rho_1,...,rho_K
+  post.mean,
+  post.sd,
+  post.lo,
+  post.hi,
+  fitted.values,
+  residuals,
+  names.endo.regs,
+  n.iterations,
+  burnin,
+  thin,
+  n.draws
+) {
   structure(
-      list(
+    list(
       call = call,
       F.formula = F.formula,
-      chain  = chain,
+      chain = chain,
       chain.struct = chain.struct,
-      chain.rho  = chain.rho,
+      chain.rho = chain.rho,
       post.mean = post.mean,
       post.sd = post.sd,
       post.lo = post.lo,
@@ -35,10 +35,11 @@ new_rendo_copula_bayes <- function(
       n.iterations = n.iterations,
       burnin = burnin,
       thin = thin,
-      n.draws = n.draws),
-      class = "rendo.copula.bayes"
-   )
-  }
+      n.draws = n.draws
+    ),
+    class = "rendo.copula.bayes"
+  )
+}
 
 
 #' @export
@@ -53,16 +54,25 @@ print.rendo.copula.bayes <- function(x, ...) {
   print(round(x$post.mean, 4))
 
   cat(
-    "\n", x$n.draws, " draws retained from ", x$n.iterations,
-    " iterations (burnin = ", x$burnin, ", thin = ", x$thin, ").\n",
-    sep = "")
+    "\n",
+    x$n.draws,
+    " draws retained from ",
+    x$n.iterations,
+    " iterations (burnin = ",
+    x$burnin,
+    ", thin = ",
+    x$thin,
+    ").\n",
+    sep = ""
+  )
   cat("Run summary() for full posterior summaries and convergence diagnostics.\n")
   invisible(x)
-  }
+}
 
 
 #' @export
-summary.rendo.copula.bayes <- function(object, ...) { #summary method: full posterior summaries and convergence diagnostics
+summary.rendo.copula.bayes <- function(object, ...) {
+  #summary method: full posterior summaries and convergence diagnostics
 
   #Structural parameters
   mcmc.struct <- coda::as.mcmc(object$chain.struct)
@@ -73,12 +83,12 @@ summary.rendo.copula.bayes <- function(object, ...) { #summary method: full post
 
   table.struct <- cbind(
     Mean = round(object$post.mean, 4),
-    SD = round(object$post.sd,   4),
-    `2.5%` = round(object$post.lo,   4),
-    `97.5%` = round(object$post.hi,   4),
+    SD = round(object$post.sd, 4),
+    `2.5%` = round(object$post.lo, 4),
+    `97.5%` = round(object$post.hi, 4),
     ESS = ess.struct,
     `Geweke z` = gw.struct
-    )
+  )
 
   #Endo-error copula correlations
   rho.mean <- colMeans(object$chain.rho)
@@ -92,28 +102,28 @@ summary.rendo.copula.bayes <- function(object, ...) { #summary method: full post
 
   table.rho <- cbind(
     Mean = round(rho.mean, 4),
-    SD = round(rho.sd,   4),
-    `2.5%` = round(rho.low,   4),
-    `97.5%` = round(rho.high,   4),
+    SD = round(rho.sd, 4),
+    `2.5%` = round(rho.low, 4),
+    `97.5%` = round(rho.high, 4),
     ESS = ess.rho,
-    `Geweke z` = gw.rho)
+    `Geweke z` = gw.rho
+  )
 
   output <- list(
     call = object$call,
     table.struct = table.struct,
-    table.rho  = table.rho,
+    table.rho = table.rho,
     n.draws = object$n.draws,
     n.iterations = object$n.iterations,
     burnin = object$burnin,
     thin = object$thin
-    )
+  )
   class(output) <- "summary.rendo.copula.bayes"
   output
-  }
+}
 
 #' @export
 print.summary.rendo.copula.bayes <- function(x, ...) {
-
   cat("Bayesian Gaussian Copula Endogeneity Correction\n")
   cat(rep("-", 65), "\n", sep = "")
 
@@ -122,10 +132,15 @@ print.summary.rendo.copula.bayes <- function(x, ...) {
 
   cat(
     "\nMCMC settings:\n",
-    "  Iterations: ", x$n.iterations,
-    "  |  Burn-in: ", x$burnin,
-    "  |  Thinning: ", x$thin,
-    "  |  Draws retained: ", x$n.draws, "\n",
+    "  Iterations: ",
+    x$n.iterations,
+    "  |  Burn-in: ",
+    x$burnin,
+    "  |  Thinning: ",
+    x$thin,
+    "  |  Draws retained: ",
+    x$n.draws,
+    "\n",
     sep = ""
   )
 
@@ -147,38 +162,41 @@ print.summary.rendo.copula.bayes <- function(x, ...) {
   #then this is evidence that the chain has not converged.
 
   invisible(x)
-  }
+}
 
 # plot method
 #' @export
 #' @importFrom coda as.mcmc
 plot.rendo.copula.bayes <- function(x, which = c("structural", "rho", "both"), ...) {
-
-  which <- match.arg(which, choices = c("structural", "rho", "both"), several.ok = FALSE)
+  which <- match.arg(
+    which,
+    choices = c("structural", "rho", "both"),
+    several.ok = FALSE
+  )
 
   if (which %in% c("structural", "both")) {
     cat("Plotting structural parameters (trace + density)...\n")
-    plot(coda::as.mcmc(x$chain.struct),main = "Structural parameters",...)
-    }
+    plot(coda::as.mcmc(x$chain.struct), main = "Structural parameters", ...)
+  }
   if (which %in% c("rho", "both")) {
     cat("Plotting endogeneity correlations (trace + density)...\n")
     plot(coda::as.mcmc(x$chain.rho), main = "Endogeneity (rho)", ...)
-    }
-  invisible(x)
   }
+  invisible(x)
+}
 
 
 #' @export
 coef.rendo.copula.bayes <- function(object, ...) {
   object$post.mean
-  }
+}
 
 #' @export
 residuals.rendo.copula.bayes <- function(object, ...) {
   object$residuals
-  }
+}
 
 #' @export
 fitted.rendo.copula.bayes <- function(object, ...) {
   object$fitted.values
-  }
+}

@@ -132,102 +132,135 @@
 #'   formula sd quantile
 #' @importFrom Formula as.Formula
 copulaBayes <- function(
-    formula,
-    data,
-    num.iterations = 102000,#paper default but for quick testing 12000 iterations with 10 thin ?
-    burnin         = 2000,
-    thin           = 100,
-    verbose        = TRUE
+  formula,
+  data,
+  num.iterations = 102000, #paper default but for quick testing 12000 iterations with 10 thin ?
+  burnin = 2000,
+  thin = 100,
+  verbose = TRUE
 ) {
   cl <- match.call()
-
 
   #check_err_msg(checkinput_copulashared_formula(formula))
   #check_err_msg(checkinput_copulashared_data(data))
   #check_err_msg(checkinput_copulashared_dataVSformula(data = data, formula = formula))
   #check_err_msg(checkinput_copulashared_verbose(verbose))
 
-  if (!is.numeric(num.iterations) || length(num.iterations) != 1 || num.iterations < 1 || num.iterations != round(num.iterations))
+  if (
+    !is.numeric(num.iterations) ||
+      length(num.iterations) != 1 ||
+      num.iterations < 1 ||
+      num.iterations != round(num.iterations)
+  ) {
     stop("num.iterations must be a single positive integer.", call. = FALSE)
+  }
 
-  if (!is.numeric(burnin) || length(burnin) != 1 || burnin < 0 || burnin >= num.iterations)
-    stop("burnin must be a single non-negative integer less than ","num.iterations.", call. = FALSE)
+  if (
+    !is.numeric(burnin) || length(burnin) != 1 || burnin < 0 || burnin >= num.iterations
+  ) {
+    stop(
+      "burnin must be a single non-negative integer less than ",
+      "num.iterations.",
+      call. = FALSE
+    )
+  }
 
-  if (!is.numeric(thin) || length(thin) != 1 || thin < 1 || thin != round(thin))
+  if (!is.numeric(thin) || length(thin) != 1 || thin < 1 || thin != round(thin)) {
     stop("thin must be a single positive integer.", call. = FALSE)
+  }
 
   F.formula <- Formula::as.Formula(formula)
 
   names.endo.regs <- formula_readout_special(
-    F.formula            = F.formula,
-    name.special         = "continuous",
-    from.rhs             = 2,
+    F.formula = F.formula,
+    name.special = "continuous",
+    from.rhs = 2,
     params.as.chars.only = TRUE
   )
 
-  if (length(names.endo.regs) == 0)
+  if (length(names.endo.regs) == 0) {
     stop(
       "No endogenous regressors found. Declare at least one using ",
       "continuous() in the second part of the formula, ",
       "e.g. y ~ X + Z | continuous(Z).",
       call. = FALSE
     )
+  }
 
   f.main <- formula(F.formula, lhs = 1, rhs = 1)
-  mf     <- model.frame(f.main, data = data)
-  y      <- model.response(mf)
+  mf <- model.frame(f.main, data = data)
+  y <- model.response(mf)
 
   X.main <- model.matrix(f.main, data = mf)
   X.main <- X.main[, colnames(X.main) != "(Intercept)", drop = FALSE]
 
   is.endo <- colnames(X.main) %in% names.endo.regs
-  z       <- X.main[, is.endo,  drop = FALSE]   # N x K endogenous
-  x       <- X.main[, !is.endo, drop = FALSE]   # N x L exogenous (N x 0 if L=0)
+  z <- X.main[, is.endo, drop = FALSE] # N x K endogenous
+  x <- X.main[, !is.endo, drop = FALSE] # N x L exogenous (N x 0 if L=0)
 
-  if (is.null(colnames(z))) colnames(z) <- paste0("z", seq_len(ncol(z)))
-  if (is.null(colnames(x))) colnames(x) <- paste0("x", seq_len(ncol(x)))
+  if (is.null(colnames(z))) {
+    colnames(z) <- paste0("z", seq_len(ncol(z)))
+  }
+  if (is.null(colnames(x))) {
+    colnames(x) <- paste0("x", seq_len(ncol(x)))
+  }
 
-  if (ncol(z) < length(names.endo.regs))
+  if (ncol(z) < length(names.endo.regs)) {
     stop(
       "Could not match all declared endogenous regressors in the ",
       "design matrix. Check that continuous() arguments match ",
       "variable names exactly as they appear in the structural model.",
       call. = FALSE
     )
+  }
 
   # MCMC
-  if (verbose)
+  if (verbose) {
     message(
-      "Fitting Bayesian copula model for ", ncol(z), " endogenous and ",
-      ncol(x), " exogenous regressor(s).\n", "Running ", num.iterations,
-      " MCMC iterations ", "(burnin = ", burnin, ", thin = ", thin, ")."
+      "Fitting Bayesian copula model for ",
+      ncol(z),
+      " endogenous and ",
+      ncol(x),
+      " exogenous regressor(s).\n",
+      "Running ",
+      num.iterations,
+      " MCMC iterations ",
+      "(burnin = ",
+      burnin,
+      ", thin = ",
+      thin,
+      ")."
     )
+  }
 
   chain.full <- copulaBayesMCMC(
-    y              = y,
-    z              = z,
-    x              = x,
+    y = y,
+    z = z,
+    x = x,
     num.iterations = num.iterations,
-    verbose        = verbose
+    verbose = verbose
   )
 
   # Burn-in and thinning
-  idx.keep     <- seq(burnin + 2L, num.iterations + 1L, by = thin)
-  chain        <- chain.full[idx.keep, , drop = FALSE]
+  idx.keep <- seq(burnin + 2L, num.iterations + 1L, by = thin)
+  chain <- chain.full[idx.keep, , drop = FALSE]
 
-  col.alpha    <- attr(chain.full, "col.alpha")
-  col.delta    <- attr(chain.full, "col.delta")
-  col.beta     <- attr(chain.full, "col.beta")
-  col.rho      <- attr(chain.full, "col.rho")
-  col.sigma2   <- attr(chain.full, "col.sigma2")
-  K            <- attr(chain.full, "K")
-  L            <- attr(chain.full, "L")
-  cop.dim      <- attr(chain.full, "cop.dim")
+  col.alpha <- attr(chain.full, "col.alpha")
+  col.delta <- attr(chain.full, "col.delta")
+  col.beta <- attr(chain.full, "col.beta")
+  col.rho <- attr(chain.full, "col.rho")
+  col.sigma2 <- attr(chain.full, "col.sigma2")
+  K <- attr(chain.full, "K")
+  L <- attr(chain.full, "L")
+  cop.dim <- attr(chain.full, "cop.dim")
 
-  coef.names   <- c( "(Intercept)", paste0(colnames(z), "_endo"), if (L > 0) paste0(colnames(x), "_exo") else character(0),
+  coef.names <- c(
+    "(Intercept)",
+    paste0(colnames(z), "_endo"),
+    if (L > 0) paste0(colnames(x), "_exo") else character(0),
     "sigma2"
   )
-  structure.cols  <- c(col.alpha, col.delta, col.beta, col.sigma2)
+  structure.cols <- c(col.alpha, col.delta, col.beta, col.sigma2)
 
   chain.struct <- chain[, structure.cols, drop = FALSE]
   colnames(chain.struct) <- coef.names
@@ -235,40 +268,39 @@ copulaBayes <- function(
   #endogenous and error copula correction draws
 
   idx.rho.endo <- (cop.dim - 1L) * (cop.dim - 2L) / 2L + seq_len(K)
-  chain.rho    <- chain[, col.rho[idx.rho.endo], drop = FALSE]
+  chain.rho <- chain[, col.rho[idx.rho.endo], drop = FALSE]
   colnames(chain.rho) <- paste0("rho_", colnames(z))
 
   # Posterior summaries
   post.mean <- colMeans(chain.struct)
-  post.sd   <- apply(chain.struct, 2, sd)
-  post.lo   <- apply(chain.struct, 2, quantile, probs = 0.025)
-  post.hi   <- apply(chain.struct, 2, quantile, probs = 0.975)
+  post.sd <- apply(chain.struct, 2, sd)
+  post.lo <- apply(chain.struct, 2, quantile, probs = 0.025)
+  post.hi <- apply(chain.struct, 2, quantile, probs = 0.975)
 
   # Structural fitted values and residuals
-  alpha.pm      <- post.mean["(Intercept)"]
-  delta.pm      <- post.mean[paste0(colnames(z), "_endo")]
-  beta.pm       <- if (L > 0) post.mean[paste0(colnames(x), "_exo")] else numeric(0)
+  alpha.pm <- post.mean["(Intercept)"]
+  delta.pm <- post.mean[paste0(colnames(z), "_endo")]
+  beta.pm <- if (L > 0) post.mean[paste0(colnames(x), "_exo")] else numeric(0)
 
   fitted.values <- as.vector(alpha.pm + z %*% delta.pm + x %*% beta.pm)
-  residuals     <- y - fitted.values
-
+  residuals <- y - fitted.values
 
   return(new_rendo_copula_bayes(
-    call            = cl,
-    F.formula       = F.formula,
-    chain           = chain,
-    chain.struct    = chain.struct,
+    call = cl,
+    F.formula = F.formula,
+    chain = chain,
+    chain.struct = chain.struct,
     chain.rho = chain.rho,
-    post.mean       = post.mean,
-    post.sd         = post.sd,
-    post.lo         = post.lo,
-    post.hi         = post.hi,
-    fitted.values   = fitted.values,
-    residuals       = residuals,
+    post.mean = post.mean,
+    post.sd = post.sd,
+    post.lo = post.lo,
+    post.hi = post.hi,
+    fitted.values = fitted.values,
+    residuals = residuals,
     names.endo.regs = names.endo.regs,
-    n.iterations    = num.iterations,
-    burnin          = burnin,
-    thin            = thin,
-    n.draws         = nrow(chain)
+    n.iterations = num.iterations,
+    burnin = burnin,
+    thin = thin,
+    n.draws = nrow(chain)
   ))
 }
