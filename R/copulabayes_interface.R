@@ -89,8 +89,8 @@
 #' \subsection{Formula interface}{
 #' Formula follows a two-part notation:
 #'
-#' \performatted{y ~ X + Z | continuous(Z) #one endogenous regressor}
-#' \performatted{y ~ X + Z1 + Z2 | continuous(Z1) + continuous(Z2) #two endogenous regressors}
+#' \preformatted{y ~ X + Z | continuous(Z) #one endogenous regressor}
+#' \preformatted{y ~ X + Z1 + Z2 | continuous(Z1) + continuous(Z2) #two endogenous regressors}
 #' }
 #'
 #'
