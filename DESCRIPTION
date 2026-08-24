@@ -45,7 +45,9 @@ Imports:
     Rcpp (>= 1.0.3), 
     lmtest (>= 0.9-35),
     np (>= 0.60-18),
-    ks (>= 1.10.0)
+    ks (>= 1.10.0),
+    MCMCpack (>= 1.7-1),
+    coda (>= 0.19-4.1)
 Suggests:
     testthat,
     covr,
