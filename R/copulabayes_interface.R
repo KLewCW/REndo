@@ -140,33 +140,15 @@ copulaBayes <- function(
 ) {
   cl <- match.call()
 
-  #check_err_msg(checkinput_copulashared_formula(formula))
-  #check_err_msg(checkinput_copulashared_data(data))
-  #check_err_msg(checkinput_copulashared_dataVSformula(data = data, formula = formula))
-  #check_err_msg(checkinput_copulashared_verbose(verbose))
-
-  if (
-    !is.numeric(num.iterations) ||
-      length(num.iterations) != 1 ||
-      num.iterations < 1 ||
-      num.iterations != round(num.iterations)
-  ) {
-    stop("num.iterations must be a single positive integer.", call. = FALSE)
-  }
-
-  if (
-    !is.numeric(burnin) || length(burnin) != 1 || burnin < 0 || burnin >= num.iterations
-  ) {
-    stop(
-      "burnin must be a single non-negative integer less than ",
-      "num.iterations.",
-      call. = FALSE
-    )
-  }
-
-  if (!is.numeric(thin) || length(thin) != 1 || thin < 1 || thin != round(thin)) {
-    stop("thin must be a single positive integer.", call. = FALSE)
-  }
+  check_err_msg(checkinput_copulashared_data_basics(data))
+  check_err_msg(checkinput_copulashared_formula(formula))
+  # check_err_msg(checkinput_copulabayes_formula_data(formula = formula, data = data))
+  check_err_msg(checkinput_copulabayes_numiterations_burnin_thin(
+    num.iterations = num.iterations,
+    burnin = burnin,
+    thin = thin
+  ))
+  check_err_msg(checkinput_copulashared_verbose(verbose))
 
   F.formula <- Formula::as.Formula(formula)
 
