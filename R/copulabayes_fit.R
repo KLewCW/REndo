@@ -286,5 +286,5 @@ copulabayes_mcmc <- function(y, z, x, num.iterations, verbose) {
   attr(chain, "L") <- L
   attr(chain, "cop.dim") <- cop.dim
 
-  chain
+  return(chain)
 }

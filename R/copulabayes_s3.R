@@ -18,7 +18,7 @@ new_rendo_copulabayes <- function(
   thin,
   n.draws
 ) {
-  structure(
+  return(structure(
     list(
       call = call,
       F.formula = F.formula,
@@ -38,7 +38,7 @@ new_rendo_copulabayes <- function(
       n.draws = n.draws
     ),
     class = "rendo.copula.bayes"
-  )
+  ))
 }
 
 

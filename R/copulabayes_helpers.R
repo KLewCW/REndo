@@ -12,7 +12,7 @@ copulabayes_margin <- function(v) {
   grp <- match(v, uv) # integer index per observation into UV
   m <- length(uv) #number of UV
   cnt <- tabulate(grp, nbins = m) #count of observations per value
-  list(uv = uv, grp = grp, m = m, cnt = cnt)
+  return(list(uv = uv, grp = grp, m = m, cnt = cnt))
 }
 
 
@@ -31,7 +31,7 @@ copulabayes_converter <- function(lambda, mg) {
   #mg is the margin structure from copulabayes_margin
 
   Fmid <- (cumsum(lambda) - lambda / 2) * (mg$m / (mg$m + 0.01)) #rescaling by m/(m + 0.01 to keep values strictly inside (0,1))
-  qnorm(Fmid[mg$grp])
+  return(qnorm(Fmid[mg$grp]))
 }
 
 # Gibbs update for Dirichlet masses (from Appendix B algorithm page 5) Eq. 9 (Haschka 2025)
@@ -63,7 +63,7 @@ copulabayes_drawlambda <- function(u.channel, mg) {
   #Dirichlet(1,...,1) prior: add one Gamma(1,1) pseudo count per cell
   #posterior : Gamma (1 + n_j, 1) per cell and normalising gives Dir(m; 1 + n_1,..., 1 +n_m)
   #posterior concentration = Dir(1,...,1) prior + data contribution
-  as.vector(MCMCpack::rdirichlet(1, 1 + G.data))
+  return(as.vector(MCMCpack::rdirichlet(1, 1 + G.data)))
 }
 
 #Log posterior: equation 4 + priors from equation 5 to 9
@@ -122,7 +122,7 @@ copulabayes_logpost <- function(
     log.b <- 0
   }
 
-  log.c + log.e + log.s + log.a + log.d + log.b
+  return(log.c + log.e + log.s + log.a + log.d + log.b)
 }
 
 #Reparametrising the logposterior for the random walk MH step
@@ -155,7 +155,7 @@ copulabayes_logpostparam <- function(
   sigma2 <- exp(log.s2)
 
   #Jacobian = delta sigma^2/ delta log(sigma^2)
-  copulabayes_logpost(
+  return(copulabayes_logpost(
     alpha,
     delta,
     beta,
@@ -170,12 +170,12 @@ copulabayes_logpostparam <- function(
     z,
     x
   ) +
-    log.s2
+    log.s2)
 }
 
 #Extracting upper triangle of correlation matrix for chain storage
 copulabayes_matrix2vector <- function(Phi) {
-  Phi[upper.tri(Phi)]
+  return(Phi[upper.tri(Phi)])
 }
 
 #Reconstructing symmetic correlation matric from upper triangle vector
@@ -184,5 +184,5 @@ copulaBayesVectortoMatrix <- function(vec, d) {
   Phi <- diag(d)
   Phi[upper.tri(Phi)] <- vec
   Phi[lower.tri(Phi)] <- t(Phi)[lower.tri(Phi)]
-  Phi
+  return(Phi)
 }
