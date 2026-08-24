@@ -80,7 +80,7 @@
 #' diagnostics should be verified before any conclusion.
 #'
 #' ### Identification requirements
-#' Endogenous regressors \eqn{Z} needs to be non-normal. (otherwise the chain will fail to converge)
+#' Endogenous regressors \eqn{Z} needs to be non-normal, otherwise the chain will fail to converge.
 #' Only continuous endogenous regressors are supported.
 #'
 #'
@@ -95,7 +95,7 @@
 #'
 #'
 #' @references
-#' Hashcka, R. E (2025) Bayesian Inference for Joint Estimation Models Using Copulas
+#' Haschka, R. E (2025) Bayesian Inference for Joint Estimation Models Using Copulas
 #' to Handle Endogenous Regressors.
 #' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534
 #' \doi{10.1111/obes.70023}
