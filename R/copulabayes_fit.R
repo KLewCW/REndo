@@ -14,6 +14,7 @@
 # X has now been kept as a N x L matrix (when L =0, it has 0 columns, i.e., X %*% beta = 0 )
 #
 #
+#' @importFrom utils tail
 #' @importFrom stats lm residuals var runif rnorm rgamma
 #' @importFrom mvtnorm rmvnorm
 #' @importFrom MCMCpack riwish rdirichlet

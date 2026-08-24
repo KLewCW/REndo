@@ -526,8 +526,8 @@
 #'   Equations (12) to (16) of Haschka (2025). The data has one endogenous regressor
 #'   \eqn{z_i} and one exogenous \eqn{x_i} variable, both being correlated with each other
 #'   \eqn{\rho_{xz} = 0.3}.
-#' @name dataCopBayes
-#' @usage data("dataCopBayes")
+#' @name dataCopulaBayes
+#' @usage data("dataCopulaBayes")
 #' @format A data frame with 1000 observations on 3 variables:
 #' \describe{
 #'   \item{\code{y}}{a numeric vector representing the dependent

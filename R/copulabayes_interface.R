@@ -26,7 +26,7 @@
 #'
 #'
 #' @details
-#' \strong{Model}{
+#' ## Model
 #'
 #' Consider the following linear regression model
 #' \deqn{Y_i = \alpha + X_i' \beta + Z_i' \delta + \varepsilon_i}
@@ -38,9 +38,9 @@
 #' \eqn{X_i} is an \eqn{(L \times 1)} vector of exogenous regressors
 #' uncorrelated with \eqn{\varepsilon_i},
 #' \eqn{\varepsilon_i \sim N(0, \sigma^2)}.
-#' }
 #'
-#' \strong{Methodology}{
+#'
+#' ## Methodology
 #'
 #' The method jointly samples all unknowns in one step via MCMC
 #' (from Appendix D online, see algorithm 1). Each iteration would go through the
@@ -72,35 +72,34 @@
 #'         \eqn{\lambda_\varpi | v_\varpi \sim \text{Dir}(m_\varpi, \,1 + n_1,\ldots, 1 + n_{m_\varpi})}.
 #'         The marginal CDF is never fixed but re-estimated at every iteration.
 #' }
-#' }
 #'
-#' \subsection{Convergence diagnostics}{
+#' ### Convergence diagnostics
 #' The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
 #' A rate between 20\% and 40\% shows that the proposal scale is well-tuned (the sampler
 #' adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
 #' diagnostics should be verified before any conclusion.
-#' }
 #'
-#' \subsection{Identification requirements}{
+#' ### Identification requirements
 #' Endogenous regressors \eqn{Z} needs to be non-normal. (otherwise the chain will fail to converge)
 #' Only continuous endogenous regressors are supported.
-#' }
 #'
-#' \subsection{Formula interface}{
+#'
+#' ## Formula interface
 #' Formula follows a two-part notation:
 #'
 #' \preformatted{y ~ X + Z | continuous(Z) #one endogenous regressor}
 #' \preformatted{y ~ X + Z1 + Z2 | continuous(Z1) + continuous(Z2) #two endogenous regressors}
-#' }
 #'
 #'
 #' @template template_references_parkgupta2012
+#'
 #'
 #' @references
 #' Hashcka, R. E (2025) Bayesian Inference for Joint Estimation Models Using Copulas
 #' to Handle Endogenous Regressors.
 #' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534
 #' \doi{10.1111/obes.70023}
+#'
 #'
 #' @examples
 #' # Example: Bayesian Gaussian copula endogeneity correction
@@ -126,8 +125,9 @@
 #' plot(res_bayes, which = "both")
 #'
 #'
-#'
+#' @md
 #' @export
+#'
 #' @importFrom stats coef model.frame model.matrix model.response formula sd quantile
 #' @importFrom Formula as.Formula
 copulaBayes <- function(

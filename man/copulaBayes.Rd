@@ -43,7 +43,7 @@ of plug-in estimates for CDFs and correlations which allows precise finite-sampl
 inference without having to rely on asymptotic assumptions or any bootstrap procedure.
 }
 \details{
-\strong{Model}{
+\subsection{Model}{
 
 Consider the following linear regression model
 \deqn{Y_i = \alpha + X_i' \beta + Z_i' \delta + \varepsilon_i}
@@ -57,7 +57,7 @@ uncorrelated with \eqn{\varepsilon_i},
 \eqn{\varepsilon_i \sim N(0, \sigma^2)}.
 }
 
-\strong{Methodology}{
+\subsection{Methodology}{
 
 The method jointly samples all unknowns in one step via MCMC
 (from Appendix D online, see algorithm 1). Each iteration would go through the
@@ -68,42 +68,45 @@ other package, it is slightly different from original paper Haschka (2015) where
 uses IWLS and Laplace. It is no more this but just a random walk MH, should this be changed ???
 
 \enumerate{
-  \item {Regression coefficients} \eqn{(\alpha, \beta, \delta)} with
-       'horseshoe'-type hierarchical shrinkage priors. They are updated by
-        Metropolis-Hastings (MH) algorithm with an iteratively weighted least
-        squares (IWLS) proposal (Appendix C, W11 and W13). The working weight
-        \eqn{M_I = 2/\sigma^2} per observation (W13) gives proposal covariance
-        \eqn{\Sigma_{\text{prop}} = (\sigma^2/2)(X'X)^{-1}}.
-  \item {Error variance} \eqn{\sigma^2 \sim \text{IG}(0.001, 0.001)} (inverse Gamma, Haschka eq. 7).
-        They are updated by Metropolis-Hastings with a Laplace (second-order
-        Taylor) proposal for \eqn{\log \sigma^2} (Appendix C, W12/W14).
-  \item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka 2025, eq. 8).
-        This is updated by Gibbs sampling via the inverse Wishart full conditional (Appendix A, W5):
-        \eqn{W | \cdot \sim W^{-1}(\sum_i \xi_i \xi_i' + I,\, N + K + L + 1)}.
-        Converted to a correlation matrix \eqn{\Sigma} via Cholesky factorisation.
-        Correlations between exogenous regressors and the structural error are
-        set to zero, enforcing exogeneity of \eqn{X}.
-  \item {Marginal distributions} of all regressors modelled nonparametrically via
-        Dirichlet probability masses \eqn{\lambda_\varpi \sim \text{Dir}(1,\ldots,1)} (from Haschka 2025 eq. 9).
-        This is updated by Gibbs sampling (Appendix B, W7):
-        \eqn{\lambda_\varpi | v_\varpi \sim \text{Dir}(m_\varpi, \,1 + n_1,\ldots, 1 + n_{m_\varpi})}.
-        The marginal CDF is never fixed but re-estimated at every iteration.
+\item {Regression coefficients} \eqn{(\alpha, \beta, \delta)} with
+'horseshoe'-type hierarchical shrinkage priors. They are updated by
+Metropolis-Hastings (MH) algorithm with an iteratively weighted least
+squares (IWLS) proposal (Appendix C, W11 and W13). The working weight
+\eqn{M_I = 2/\sigma^2} per observation (W13) gives proposal covariance
+\eqn{\Sigma_{\text{prop}} = (\sigma^2/2)(X'X)^{-1}}.
+\item {Error variance} \eqn{\sigma^2 \sim \text{IG}(0.001, 0.001)} (inverse Gamma, Haschka eq. 7).
+They are updated by Metropolis-Hastings with a Laplace (second-order
+Taylor) proposal for \eqn{\log \sigma^2} (Appendix C, W12/W14).
+\item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka 2025, eq. 8).
+This is updated by Gibbs sampling via the inverse Wishart full conditional (Appendix A, W5):
+\eqn{W | \cdot \sim W^{-1}(\sum_i \xi_i \xi_i' + I,\, N + K + L + 1)}.
+Converted to a correlation matrix \eqn{\Sigma} via Cholesky factorisation.
+Correlations between exogenous regressors and the structural error are
+set to zero, enforcing exogeneity of \eqn{X}.
+\item {Marginal distributions} of all regressors modelled nonparametrically via
+Dirichlet probability masses \eqn{\lambda_\varpi \sim \text{Dir}(1,\ldots,1)} (from Haschka 2025 eq. 9).
+This is updated by Gibbs sampling (Appendix B, W7):
+\eqn{\lambda_\varpi | v_\varpi \sim \text{Dir}(m_\varpi, \,1 + n_1,\ldots, 1 + n_{m_\varpi})}.
+The marginal CDF is never fixed but re-estimated at every iteration.
 }
-}
-
 \subsection{Convergence diagnostics}{
+
 The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
-A rate between 20\% and 40\% shows that the proposal scale is well-tuned (the sampler
+A rate between 20\\% and 40\\% shows that the proposal scale is well-tuned (the sampler
 adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
 diagnostics should be verified before any conclusion.
 }
 
 \subsection{Identification requirements}{
+
 Endogenous regressors \eqn{Z} needs to be non-normal. (otherwise the chain will fail to converge)
 Only continuous endogenous regressors are supported.
 }
 
+}
+
 \subsection{Formula interface}{
+
 Formula follows a two-part notation:
 
 \preformatted{y ~ X + Z | continuous(Z) #one endogenous regressor}
@@ -132,7 +135,6 @@ res_bayes <- copulaBayes(
 )
 summary(res_bayes)
 plot(res_bayes, which = "both")
-
 
 
 }
