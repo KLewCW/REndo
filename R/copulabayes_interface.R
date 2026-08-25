@@ -197,21 +197,10 @@ copulaBayes <- function(
 
   # MCMC
   if (verbose) {
-    message(
-      "Fitting Bayesian copula model for ",
-      ncol(z),
-      " endogenous and ",
-      ncol(x),
-      " exogenous regressor(s).\n",
-      "Running ",
-      num.iterations,
-      " MCMC iterations ",
-      "(burnin = ",
-      burnin,
-      ", thin = ",
-      thin,
-      ")."
-    )
+    # fmt: skip
+    message("Fitting Bayesian copula model for ",ncol(z)," endogenous and ",ncol(x)," exogenous regressor(s).")
+    # fmt: skip
+    message("Running a total of ",num.iterations," MCMC iterations (burnin = ",burnin,", thin = ",thin,").")
   }
 
   chain.full <- copulabayes_mcmc(
