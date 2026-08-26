@@ -40,6 +40,11 @@
 #' \eqn{\varepsilon_i \sim N(0, \sigma^2)}.
 #'
 #'
+#' ## Identification requirements
+#' Endogenous regressors \eqn{Z} needs to be non-normal, otherwise the chain will fail to converge.
+#' Only continuous endogenous regressors are supported.
+#'
+#'
 #' ## Methodology
 #'
 #' The method jointly samples all unknowns in one step via MCMC
@@ -73,15 +78,11 @@
 #'         The marginal CDF is never fixed but re-estimated at every iteration.
 #' }
 #'
-#' ### Convergence diagnostics
+#' ## Convergence diagnostics
 #' The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
 #' A rate between 20\% and 40\% shows that the proposal scale is well-tuned (the sampler
 #' adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
 #' diagnostics should be verified before any conclusion.
-#'
-#' ### Identification requirements
-#' Endogenous regressors \eqn{Z} needs to be non-normal, otherwise the chain will fail to converge.
-#' Only continuous endogenous regressors are supported.
 #'
 #'
 #' ## Formula interface
@@ -141,7 +142,6 @@ copulaBayes <- function(
   cl <- match.call()
 
   check_err_msg(checkinput_copulashared_data_basics(data))
-  check_err_msg(checkinput_copulashared_formula(formula))
   # check_err_msg(checkinput_copulabayes_formula_data(formula = formula, data = data))
   check_err_msg(checkinput_copulabayes_numiterations_burnin_thin(
     num.iterations = num.iterations,
@@ -152,6 +152,10 @@ copulaBayes <- function(
 
   F.formula <- Formula::as.Formula(formula)
 
+  # labels.main <- labels(terms(F.formula, data = data, rhs = 1))
+  # labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+  # labels.exo <- labels.main[!(labels.main %in% labels.endo)]
+
   names.endo.regs <- formula_readout_special(
     F.formula = F.formula,
     name.special = "continuous",
@@ -159,6 +163,7 @@ copulaBayes <- function(
     params.as.chars.only = TRUE
   )
 
+  # if (length(labels.endo) == 0) {
   if (length(names.endo.regs) == 0) {
     stop(
       "No endogenous regressors found. Declare at least one using ",
@@ -171,6 +176,13 @@ copulaBayes <- function(
   f.main <- formula(F.formula, lhs = 1, rhs = 1)
   mf <- model.frame(f.main, data = data)
   y <- model.response(mf)
+
+  # X.endo <- model.matrix(reformulate(labels.endo, response = NULL, intercept = FALSE), data = mf)
+  # X.exo <- model.matrix(reformulate(labels.exo, response = NULL, intercept = FALSE), data = mf)
+  #
+  # z <- X.endo
+  # x <- X.exo
+  # stopifnot(ncol(z) == length(labels.exo))
 
   X.main <- model.matrix(f.main, data = mf)
   X.main <- X.main[, colnames(X.main) != "(Intercept)", drop = FALSE]

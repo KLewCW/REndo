@@ -57,6 +57,12 @@ uncorrelated with \eqn{\varepsilon_i},
 \eqn{\varepsilon_i \sim N(0, \sigma^2)}.
 }
 
+\subsection{Identification requirements}{
+
+Endogenous regressors \eqn{Z} needs to be non-normal, otherwise the chain will fail to converge.
+Only continuous endogenous regressors are supported.
+}
+
 \subsection{Methodology}{
 
 The method jointly samples all unknowns in one step via MCMC
@@ -89,20 +95,14 @@ This is updated by Gibbs sampling (Appendix B, W7):
 \eqn{\lambda_\varpi | v_\varpi \sim \text{Dir}(m_\varpi, \,1 + n_1,\ldots, 1 + n_{m_\varpi})}.
 The marginal CDF is never fixed but re-estimated at every iteration.
 }
+}
+
 \subsection{Convergence diagnostics}{
 
 The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
 A rate between 20\\% and 40\\% shows that the proposal scale is well-tuned (the sampler
 adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
 diagnostics should be verified before any conclusion.
-}
-
-\subsection{Identification requirements}{
-
-Endogenous regressors \eqn{Z} needs to be non-normal, otherwise the chain will fail to converge.
-Only continuous endogenous regressors are supported.
-}
-
 }
 
 \subsection{Formula interface}{
