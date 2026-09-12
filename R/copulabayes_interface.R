@@ -137,9 +137,11 @@ copulaBayes <- function(
   num.iterations = 102000, #paper default but for quick testing 12000 iterations with 10 thin ?
   burnin = 2000,
   thin = 100,
+  method = c("RW", "IWLS"),
   verbose = TRUE
 ) {
   cl <- match.call()
+  method <- match.arg(method)
 
   check_err_msg(checkinput_copulashared_data_basics(data))
   # check_err_msg(checkinput_copulabayes_formula_data(formula = formula, data = data))
@@ -149,6 +151,7 @@ copulaBayes <- function(
     thin = thin
   ))
   check_err_msg(checkinput_copulashared_verbose(verbose))
+  check_err_msg(checkinput_copulabayes_method(method))
 
   F.formula <- Formula::as.Formula(formula)
 
@@ -209,32 +212,35 @@ copulaBayes <- function(
 
   # MCMC
   if (verbose) {
-    # fmt: skip
-    message("Fitting Bayesian copula model for ",ncol(z)," endogenous and ",ncol(x)," exogenous regressor(s).")
-    # fmt: skip
-    message("Running a total of ",num.iterations," MCMC iterations (burnin = ",burnin,", thin = ",thin,").")
+    message( "Fitting Bayesian copula model (",
+      ifelse(method == "RW",
+             "adaptive random walk MH",
+             "IWLS proposal"),
+      ") for ", ncol(z), " endogenous and ", ncol(x), " exogenous regressor(s), n = ", length(y), " observations."
+    )
+    if (method == "IWLS") {
+      message("Note: IWLS proposal may freeze during warm-up (iterations 1-5000). ")
+    }
   }
 
-  chain.full <- copulabayes_mcmc(
-    y = y,
-    z = z,
-    x = x,
-    num.iterations = num.iterations,
-    verbose = verbose
-  )
+  chain.full <- if (method == "RW") {
+    copulabayes_mcmc_rw(y = y, z = z, x = x, num.iterations = num.iterations, verbose = verbose)
+  } else {
+    copulabayes_mcmc_iwls(y = y, z = z, x = x, num.iterations = num.iterations, verbose = verbose)
+  }
 
   # Burn-in and thinning
   idx.keep <- seq(burnin + 2L, num.iterations + 1L, by = thin)
   chain <- chain.full[idx.keep, , drop = FALSE]
 
-  col.alpha <- attr(chain.full, "col.alpha")
-  col.delta <- attr(chain.full, "col.delta")
-  col.beta <- attr(chain.full, "col.beta")
-  col.rho <- attr(chain.full, "col.rho")
-  col.sigma2 <- attr(chain.full, "col.sigma2")
+  col.intercept <- attr(chain.full, "col.intercept")
+  col.coef.endo <- attr(chain.full, "col.coef.endo")
+  col.coef.exo <- attr(chain.full, "col.coef.exo")
+  col.copula.cor <- attr(chain.full, "col.copula.cor")
+  col.error.var <- attr(chain.full, "col.error.var")
   K <- attr(chain.full, "K")
   L <- attr(chain.full, "L")
-  cop.dim <- attr(chain.full, "cop.dim")
+  copula.dim <- attr(chain.full, "copula.dim")
 
   coef.names <- c(
     "(Intercept)",
@@ -242,15 +248,15 @@ copulaBayes <- function(
     if (L > 0) paste0(colnames(x), "_exo") else character(0),
     "sigma2"
   )
-  structure.cols <- c(col.alpha, col.delta, col.beta, col.sigma2)
+  structure.cols <- c(col.intercept, col.coef.endo, col.coef.exo, col.error.var)
 
   chain.struct <- chain[, structure.cols, drop = FALSE]
   colnames(chain.struct) <- coef.names
 
   #endogenous and error copula correction draws
 
-  idx.rho.endo <- (cop.dim - 1L) * (cop.dim - 2L) / 2L + seq_len(K)
-  chain.rho <- chain[, col.rho[idx.rho.endo], drop = FALSE]
+  idx.rho.endo <- (copula.dim - 1L) * (copula.dim - 2L) / 2L + seq_len(K)
+  chain.rho <- chain[, col.copula.cor[idx.rho.endo], drop = FALSE]
   colnames(chain.rho) <- paste0("rho_", colnames(z))
 
   # Posterior summaries
@@ -260,11 +266,12 @@ copulaBayes <- function(
   post.hi <- apply(chain.struct, 2, quantile, probs = 0.975)
 
   # Structural fitted values and residuals
-  alpha.pm <- post.mean["(Intercept)"]
-  delta.pm <- post.mean[paste0(colnames(z), "_endo")]
-  beta.pm <- if (L > 0) post.mean[paste0(colnames(x), "_exo")] else numeric(0)
+  #posterior mean (pm)
+  intercept.pm <- post.mean["(Intercept)"]
+  coef.endo.pm <- post.mean[paste0(colnames(z), "_endo")]
+  coef.exo.pm <- if (L > 0) post.mean[paste0(colnames(x), "_exo")] else numeric(0)
 
-  fitted.values <- as.vector(alpha.pm + z %*% delta.pm + x %*% beta.pm)
+  fitted.values <- as.vector(intercept.pm + z %*% coef.endo.pm + x %*% coef.exo.pm)
   residuals <- y - fitted.values
 
   return(new_rendo_copulabayes(
@@ -283,6 +290,8 @@ copulaBayes <- function(
     n.iterations = num.iterations,
     burnin = burnin,
     thin = thin,
-    n.draws = nrow(chain)
+    n.obs = length(y),
+    n.draws = nrow(chain),
+    method = method
   ))
 }
