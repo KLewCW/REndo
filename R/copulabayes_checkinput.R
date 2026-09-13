@@ -48,8 +48,11 @@ checkinput_copulabayes_formula_data <- function(formula, data) {
     err.msg <- c(err.msg, "At least one endogenous regressor (rhs2) is required.")
   }
   if (length(exo.labels) == 0) {
-    err.msg <- c(err.msg, "At least one exogenous regressor is required.")
-  }
+    #err.msg <- c(err.msg, "At least one exogenous regressor is required.")
+    warning("No exogenous regressors found. Identification is based solely on non-normality of the endogenous regressor(s).")
+  } ##note that paper  does not mention whether exogenous regressors are required explicitly.
+  ##The paper also only epxlores cases when the exogenous regressor is present. But having no exogenous regressors in this case
+  ##should be mathematically valid. I think we should warn the users if this case ?
 
   # Endogenous terms (RHS2) must also be in structural model (RHS1)
   not.in.rhs1 <- endo.labels[!endo.labels %in% rhs1.labels]

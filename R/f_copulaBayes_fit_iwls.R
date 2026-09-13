@@ -8,7 +8,7 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
   K <- ncol(z)
   L <- ncol(x)
 
-  cop.dim <- K + L + 1L
+  copula.dim <- K + L + 1L
 
   ##this part is same as random walk
   margin.endo.list <- lapply(seq_len(K), function(k) copulabayes_margin(z[, k]))
@@ -30,7 +30,7 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
 
   error.var.cur <- var(residuals(mod.ols))
 
-  copula.cor.cur <- diag(cop.dim)
+  copula.cor.cur <- diag(copula.dim)
 
   ## initial Dirichlet masses same as RW
 
@@ -54,7 +54,7 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
 
   # chain storage (same as RW)
 
-  n.copula.cor <- cop.dim * (cop.dim - 1L) / 2L
+  n.copula.cor <- copula.dim * (copula.dim - 1L) / 2L
   n.hyper <- 1L + K + L
   col.intercept <- 1L
   col.coef.endo <- 1L + seq_len(K)
@@ -140,16 +140,16 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
     scores.all.cur <- cbind(scores.endo, scores.exo, scores.error.cur)
 
     #copula inverse A = Phi^{-1} - I  (in score computation)
-    A.cur <- solve(copula.cor.cur) - diag(cop.dim)
+    A.cur <- solve(copula.cor.cur) - diag(copula.dim)
 
     #working weight (W13): M_i = 2 / sigma^2 (scalar)
     working.weight <- 2 / error.var.cur
 
     # Score vector for coefficients (need last element of W11 from Appendix C,
     #which is scalar):
-    # last element is (1/sigma) * (A xi_i)[cop.dim] + e_i / sigma^2
-    # where A = Sigma^{-1} - I and cop.dim = L + K + 1 (index of error dimension)
-    A.d   <- A.cur[cop.dim, ]  # d-th row of A (error row). It is the last row of A = A[L+K+1, :]
+    # last element is (1/sigma) * (A xi_i)[copula.dim] + e_i / sigma^2
+    # where A = Sigma^{-1} - I and copula.dim = L + K + 1 (index of error dimension)
+    A.d   <- A.cur[copula.dim, ]  # d-th row of A (error row). It is the last row of A = A[L+K+1, :]
 
     # the N-vector xi_i'
     nu.vec <- as.vector( scores.all.cur %*% A.d / sqrt(error.var.cur) +
@@ -231,9 +231,9 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
     # For W12 the (L+K+1)-th element = score  for log(sigma^2) per obs
     # For W14 the (L+K+1, L+K+1) element = Hessian for log(sigma^2) per obs
 
-    # Let d = cop.dim = K+L+1 (index of the error dimension in xi)
+    # Let d = copula.dim = K+L+1 (index of the error dimension in xi)
     # A = Sigma^{-1} - I
-    # A[d,:] = last row of A (1 x cop.dim vector)
+    # A[d,:] = last row of A (1 x copula.dim vector)
     # A[d,d] = last diagonal element of A (scalar)
 
     # W12 last element per observation i (derived from log L_i, from W12):
@@ -259,9 +259,9 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
     scores.all.cur <- cbind(scores.endo, scores.exo, scores.error.cur)
 
     # A = Sigma^{-1} - I; extract last row and last diagonal element
-    A.cur <- solve(copula.cor.cur) - diag(cop.dim)
-    A.d.row <- A.cur[cop.dim, ] # (1 x cop.dim): last row of A
-    A.dd  <- A.cur[cop.dim, cop.dim]  # scalar: last diagonal element of A
+    A.cur <- solve(copula.cor.cur) - diag(copula.dim)
+    A.d.row <- A.cur[copula.dim, ] # (1 x copula.dim): last row of A
+    A.dd  <- A.cur[copula.dim, copula.dim]  # scalar: last diagonal element of A
 
     # N-vector: A[d,:] %*% xi_i for each observation i
     A.xi.cur <- as.vector(scores.all.cur %*% A.d.row)
@@ -353,17 +353,17 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
     scores.all <- cbind(scores.endo, scores.exo, scores.error)
 
     # Step 4: Gibbs for copula covariance W (Appendix A W5)
-    W.draw <- MCMCpack::riwish(N + cop.dim, diag(cop.dim) + crossprod(scores.all))
+    W.draw <- MCMCpack::riwish(N + copula.dim, diag(copula.dim) + crossprod(scores.all))
     cor.normaliser <- diag(1 / sqrt(diag(W.draw)))
     copula.cor.cur <- cor.normaliser %*% W.draw %*% cor.normaliser
     for (l in seq_len(L)) {
-      copula.cor.cur[K + l, cop.dim] <- 0
-      copula.cor.cur[cop.dim, K + l] <- 0
+      copula.cor.cur[K + l, copula.dim] <- 0
+      copula.cor.cur[copula.dim, K + l] <- 0
     }
     chain[i + 1L, col.copula.cor] <- copulabayes_matrix2vector(copula.cor.cur)
 
     # Step 5: Gibbs for Dirichlet masses (Appendix B W7)
-    eps.draw <- mvtnorm::rmvnorm(N, mean = rep(0, cop.dim), sigma = copula.cor.cur)
+    eps.draw <- mvtnorm::rmvnorm(N, mean = rep(0, copula.dim), sigma = copula.cor.cur)
     for (k in seq_len(K)) {
       masses.endo.list[[k]] <- copulabayes_drawlambda(
         pnorm(eps.draw[, k]), margin.endo.list[[k]]
@@ -402,6 +402,6 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
   attr(chain, "col.copula.cor") <- col.copula.cor
   attr(chain, "K") <- K
   attr(chain, "L") <- L
-  attr(chain, "cop.dim") <- cop.dim
+  attr(chain, "copula.dim") <- copula.dim
   return(chain)
 }

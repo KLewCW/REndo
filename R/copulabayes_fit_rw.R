@@ -69,7 +69,7 @@ copulabayes_mcmc_rw <- function(y, z, x, num.iterations, verbose) {
 
   scores.exo<- matrix(NA_real_, N, L)
   for (l in seq_len(L)) {
-    scores.exo[, l] <- copulabayes_converter(lambdax.list[[l]], margin.exo.list[[l]])
+    scores.exo[, l] <- copulabayes_converter(masses.exo.list[[l]], margin.exo.list[[l]])
   }
 
   # Chain storage: one row per iteration.
@@ -256,8 +256,8 @@ copulabayes_mcmc_rw <- function(y, z, x, num.iterations, verbose) {
       scores.endo[, k] <- copulabayes_converter(masses.endo.list[[k]], margin.endo.list[[k]])
     }
     for (l in seq_len(L)) {
-      lambdax.list[[l]] <- copulabayes_drawlambda(pnorm(copula.eps.draw[, K + l]), margin.exo.list[[l]])
-      scores.exo[, l] <- copulabayes_converter(lambdax.list[[l]], margin.exo.list[[l]])
+      masses.exo.list[[l]] <- copulabayes_drawlambda(pnorm(copula.eps.draw[, K + l]), margin.exo.list[[l]])
+      scores.exo[, l] <- copulabayes_converter(masses.exo.list[[l]], margin.exo.list[[l]])
     }
 
     #Horseshoe hyperprior updates (From equation 5 of Haschka 2025)

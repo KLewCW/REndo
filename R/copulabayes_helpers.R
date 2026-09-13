@@ -64,7 +64,7 @@ copulabayes_drawlambda <- function(u.channel, mg) {
   #Dirichlet(1,...,1) prior: add one Gamma(1,1) pseudo count per cell
   #posterior : Gamma (1 + n_j, 1) per cell and normalising gives Dir(m; 1 + n_1,..., 1 +n_m)
   #posterior concentration = Dir(1,...,1) prior + data contribution
-  return(as.vector(mCmCpack::rdirichlet(1, 1 + gamma.sum.per.val)))
+  return(as.vector(MCMCpack::rdirichlet(1, 1 + gamma.sum.per.val)))
 }
 
 #Log posterior: equation 4 + priors from equation 5 to 9
@@ -106,7 +106,7 @@ copulabayes_logpost <- function(
     0.5 * sum(apply(scores.all, 1, function(xi) as.numeric(t(xi) %*% A %*% xi)))
 
   #normal structural error log density
-  log.error.density <- sum(dnorm(e, mean = 0, sd = sqrt(error.var), log = TRUE))
+  log.error.density <- sum(dnorm(resid, mean = 0, sd = sqrt(error.var), log = TRUE))
 
   #Inverse gamma (0.001, 0.001) prior on error.var from eq.7
   # log f_IG(x; a,b) = log f_G(1/x; a,b) - 2 log(x)
@@ -152,10 +152,10 @@ copulabayes_logpostparam <- function(
     coef.exo <- numeric(0L)
   }
 
-  log.prior.sigma22 <- theta[1L + K + L + 1L]
-  error.var <- exp(log.prior.sigma22)
+  log.error.var <- theta[1L + K + L + 1L]
+  error.var <- exp(log.error.var )
 
-  #Jacobian = coef.endo sigma^2/ coef.endo log(sigma^2)
+  # Jacobian: d(sigma^2)/d(log sigma^2) = sigma^2
   return(copulabayes_logpost(
     intercept,
     coef.endo,
@@ -171,7 +171,7 @@ copulabayes_logpostparam <- function(
     z,
     x
   ) +
-    log.prior.sigma22)
+    log.error.var)
 }
 
 #Extracting upper triangle of correlation matrix for chain storage
@@ -205,15 +205,15 @@ scores.all <- pmin(pmax(cbind(scores.endo, scores.exo, scores.error), -8), 8)
 
 copula.dim <- K + L + 1L
 A <- solve(copula.cor) - diag(copula.dim)
-log.copulaopula <- -0.5 * log(det(copula.cor)) - 0.5 * sum(apply(scores.all, 1, function(xi) as.numeric(t(xi) %*% A %*% xi)))
-log.error.densityrror <- sum(dnorm(resid, mean = 0, sd = sqrt(error.var), log = TRUE))
+log.copula <- -0.5 * log(det(copula.cor)) - 0.5 * sum(apply(scores.all, 1, function(xi) as.numeric(t(xi) %*% A %*% xi)))
+log.error.density <- sum(dnorm(resid, mean = 0, sd = sqrt(error.var), log = TRUE))
 log.prior <- dnorm(coef.vec[1L], mean = 0, sd = sqrt(var.intercept), log = TRUE) +
   sum(dnorm(coef.vec[seq(2L, 1L + K)], mean = 0, sd = sqrt(var.coef.endo), log = TRUE))
 
 if (L > 0L) {
   log.prior <- log.prior + sum(dnorm(coef.vec[seq(2L + K, 1L + K + L)], mean = 0, sd = sqrt(var.coef.exo), log = TRUE))
 }
-return(log.copulaopula + log.error.densityrror + log.prior)
+return(log.copula + log.error.density + log.prior)
 }
 
 # Log-posterior n for sigma^2 (in step 2 IWLS)
@@ -231,11 +231,11 @@ copulabayes_logpost_sigma2 <- function(
   scores.error  <- pmin(pmax(qnorm(pnorm(as.vector(resid) / sqrt(error.var))), -8), 8)
   scores.all <- pmin(pmax(cbind(scores.endo, scores.exo, scores.error), -8), 8)
   A <- solve(copula.cor) - diag(copula.dim)
-  log.copulaopula <- -0.5 * log(det(copula.cor)) -
+  log.copula <- -0.5 * log(det(copula.cor)) -
     0.5 * sum(apply(scores.all, 1, function(xi) as.numeric(t(xi) %*% A %*% xi)))
-  log.error.densityrror <- sum(dnorm(resid, mean = 0, sd = sqrt(error.var), log = TRUE))
+  log.error.density <- sum(dnorm(resid, mean = 0, sd = sqrt(error.var), log = TRUE))
   # IG(0.001, 0.001) prior on sigma^2
   log.prior <- dgamma(1 / error.var, shape = 0.001, rate = 0.001, log = TRUE) - 2 * log(error.var)
-  return(log.copulaopula + log.error.densityrror + log.prior)
+  return(log.copula + log.error.density + log.prior)
 }
 

@@ -155,10 +155,6 @@ copulaBayes <- function(
 
   F.formula <- Formula::as.Formula(formula)
 
-  # labels.main <- labels(terms(F.formula, data = data, rhs = 1))
-  # labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
-  # labels.exo <- labels.main[!(labels.main %in% labels.endo)]
-
   names.endo.regs <- formula_readout_special(
     F.formula = F.formula,
     name.special = "continuous",
@@ -166,7 +162,6 @@ copulaBayes <- function(
     params.as.chars.only = TRUE
   )
 
-  # if (length(labels.endo) == 0) {
   if (length(names.endo.regs) == 0) {
     stop(
       "No endogenous regressors found. Declare at least one using ",
@@ -180,12 +175,6 @@ copulaBayes <- function(
   mf <- model.frame(f.main, data = data)
   y <- model.response(mf)
 
-  # X.endo <- model.matrix(reformulate(labels.endo, response = NULL, intercept = FALSE), data = mf)
-  # X.exo <- model.matrix(reformulate(labels.exo, response = NULL, intercept = FALSE), data = mf)
-  #
-  # z <- X.endo
-  # x <- X.exo
-  # stopifnot(ncol(z) == length(labels.exo))
 
   X.main <- model.matrix(f.main, data = mf)
   X.main <- X.main[, colnames(X.main) != "(Intercept)", drop = FALSE]

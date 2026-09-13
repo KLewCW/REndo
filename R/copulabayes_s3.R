@@ -13,10 +13,12 @@ new_rendo_copulabayes <- function(
   fitted.values,
   residuals,
   names.endo.regs,
+  n.obs,
   n.iterations,
   burnin,
   thin,
-  n.draws
+  n.draws,
+  method
 ) {
   return(structure(
     list(
@@ -32,10 +34,12 @@ new_rendo_copulabayes <- function(
       fitted.values = fitted.values,
       residuals = residuals,
       names.endo.regs = names.endo.regs,
+      n.obs = n.obs,
       n.iterations = n.iterations,
       burnin = burnin,
       thin = thin,
-      n.draws = n.draws
+      n.draws = n.draws,
+      method = method
     ),
     class = "rendo.copula.bayes"
   ))
@@ -49,6 +53,13 @@ print.rendo.copula.bayes <- function(x, ...) {
 
   cat("\nCall:\n")
   print(x$call)
+
+  cat("\nSampler:", if (x$method == "RW")
+    "Adaptive random walk MH"
+    else "IWLS", "\n")
+
+  cat("Endogenous regressor(s):", paste(x$names.endo.regs, collapse = ", "), "\n")
+  cat("Observations:", x$n.obs, "\n")
 
   cat("\nPosterior means (structural parameters):\n")
   print(round(x$post.mean, 4))
@@ -168,22 +179,52 @@ print.summary.rendo.copula.bayes <- function(x, ...) {
 #' @export
 #' @importFrom coda as.mcmc
 plot.rendo.copula.bayes <- function(x, which = c("structural", "rho", "both"), ...) {
-  which <- match.arg(
-    which,
-    choices = c("structural", "rho", "both"),
-    several.ok = FALSE
-  )
+  which <- match.arg(which)
+
+  clean.param.names <- function(nms) {
+    nms <- gsub("_endo$", " (endogenous)", nms)
+    nms <- gsub("_exo$",  " (exogenous)",  nms)
+    nms <- gsub("^sigma2$", "sigma^2 (error variance)", nms)
+    return(nms)
+  }
+
+  clean.rho.names <- function(nms) {
+    nms <- gsub("^rho_", "rho: endogeneity of ", nms)
+    return(nms)
+  }
 
   if (which %in% c("structural", "both")) {
-    cat("Plotting structural parameters (trace + density)...\n")
-    plot(coda::as.mcmc(x$chain.struct), main = "Structural parameters", ...)
+    chain.plot <- x$chain.struct
+    colnames(chain.plot) <- clean.param.names(colnames(chain.plot))
+
+    main.title <- paste0(
+      "Structural parameters",
+      "\nSampler: ",
+      if (!is.null(x$method)) x$method else "RW",
+      "  |  Draws retained: ", x$n.draws,
+      "  |  Burn-in: ", x$burnin,
+      "  |  Thinning: ", x$thin
+    )
+
+    plot(coda::as.mcmc(chain.plot), main  = main.title, ask   = FALSE, ...)
   }
+
   if (which %in% c("rho", "both")) {
-    cat("Plotting endogeneity correlations (trace + density)...\n")
-    plot(coda::as.mcmc(x$chain.rho), main = "Endogeneity (rho)", ...)
+    chain.rho.plot <- x$chain.rho
+    colnames(chain.rho.plot) <- clean.rho.names(colnames(chain.rho.plot))
+
+    main.rho <- paste0(
+      "Endogeneity strength",
+      "\nrho > 0: OLS overestimates  |  rho < 0: OLS underestimates",
+      "\nCredible interval excluding 0 confirms endogeneity"
+    )
+
+    plot( coda::as.mcmc(chain.rho.plot), main  = main.rho, ask   = FALSE, ...)
   }
+
   invisible(x)
 }
+
 
 
 #' @export
