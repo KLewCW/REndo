@@ -56,15 +56,15 @@
 #' uses IWLS and Laplace. It is no more this but just a random walk MH, should this be changed ???
 #'
 #' \enumerate{
-#'   \item {Regression coefficients} \eqn{(\alpha, \beta, \delta)} with
-#'        'horseshoe'-type hierarchical shrinkage priors. They are updated by
-#'         Metropolis-Hastings (MH) algorithm with an iteratively weighted least
-#'         squares (IWLS) proposal (Appendix C, W11 and W13). The working weight
-#'         \eqn{M_I = 2/\sigma^2} per observation (W13) gives proposal covariance
-#'         \eqn{\Sigma_{\text{prop}} = (\sigma^2/2)(X'X)^{-1}}.
-#'   \item {Error variance} \eqn{\sigma^2 \sim \text{IG}(0.001, 0.001)} (inverse Gamma, Haschka eq. 7).
-#'         They are updated by Metropolis-Hastings with a Laplace (second-order
-#'         Taylor) proposal for \eqn{\log \sigma^2} (Appendix C, W12/W14).
+#'   \item {Regression coefficients and error variance} (\code{method = "RW"}):
+#'         updated jointly by adaptive random walk MH on the vector
+#'         \eqn{(\alpha, \delta, \beta, \log\sigma^2)}.
+#'         The proposal scale is adapted every 50 iterations via
+#'         Robbins-Monro scaling to target an acceptance rate of 20--40\%
+#'         (Roberts and Rosenthal 2009).
+#'         (\code{method = "IWLS"}): regression coefficients updated by
+#'         IWLS (Appendix C, W11/W13); error variance updated by Laplace proposal
+#'         for \eqn{\log\sigma^2} (Appendix C, W12/W14).
 #'   \item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka 2025, eq. 8).
 #'         This is updated by Gibbs sampling via the inverse Wishart full conditional (Appendix A, W5):
 #'         \eqn{W | \cdot \sim W^{-1}(\sum_i \xi_i \xi_i' + I,\, N + K + L + 1)}.
@@ -84,6 +84,90 @@
 #' adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
 #' diagnostics should be verified before any conclusion.
 #'
+#' ##Starting values
+#'
+#' Starting values are chosen as follows (from Appendix D of Haschka 2025;
+#' the paper states that starting values can be arbitrary):
+#' \itemize{
+#'   \item \eqn{(\alpha, \delta, \beta)}: OLS estimates from regressing
+#'         \code{y} on all regressors.
+#'   \item \eqn{\sigma^2}: sample variance of OLS residuals.
+#'   \item Copula matrix \eqn{\Sigma}: identity matrix (no correlation
+#'         assumed a priori).
+#'   \item Dirichlet masses \eqn{\lambda_\varpi}: drawn from
+#'         \eqn{\text{Dir}(1,\ldots,1)} (uniform over all possible
+#'         discrete distributions on the observed values).
+#'   \item Horseshoe hyperprior variances \eqn{(s_\alpha, s_\delta, s_\beta)}:
+#'         initialised at 1000.
+#' }
+#'
+#' ##Prior distributions
+#'
+#' \itemize{
+#'   \item \strong{Regression coefficients} (horseshoe shrinkage,
+#'         Haschka 2026, eq.\ 5--6):
+#'         \eqn{\alpha \mid s_\alpha \sim N(0, s_\alpha)},
+#'         \eqn{\delta_k \mid s_k \sim N(0, s_k)},
+#'         \eqn{\beta_l \mid s_l \sim N(0, s_l)},
+#'         where each variance \eqn{s} has a half-Cauchy hyperprior
+#'   \item \strong{Error variance} (Haschka 2026, eq.\ 7):
+#'         \eqn{\sigma^2 \sim \text{IG}(0.001, 0.001)}, a nearly flat
+#'         prior on the positive real line.
+#'   \item \strong{Copula covariance matrix} (Haschka 2026, eq.\ 8):
+#'         \eqn{W \sim W^{-1}(I, K+L+1)}, prior centred at the identity
+#'         matrix. No correlation assumed a priori.
+#'   \item \strong{Marginal distributions} (Haschka 2026, eq.\ 9):
+#'         \eqn{\lambda_\varpi \sim \text{Dir}(1,\ldots,1)}, uniform
+#'         over all possible discrete distributions on the observed values.
+#' }
+#'
+#' ## Plots
+#'
+#' The \code{plot()} method produces trace plots and posterior density
+#' plots side by side for each parameter, using the \pkg{coda} package.
+#' The \code{which} argument controls which set of parameters to display:
+#'
+#' \describe{
+#'   \item{\code{which = "structural"} (default)}{
+#'     Shows trace and posterior density for the structural parameters:
+#'     the intercept \eqn{\alpha}, the endogenous regressor coefficients
+#'     \eqn{\delta_1,\ldots,\delta_K}, the exogenous regressor coefficients
+#'     \eqn{\beta_1,\ldots,\beta_L} (if any), and the error variance
+#'     \eqn{\sigma^2}.
+#'   }
+#'   \item{\code{which = "rho"}}{
+#'     Shows trace and posterior density for the endogeneity strength
+#'     parameters \eqn{\rho_1,\ldots,\rho_K}: the copula correlations
+#'     between each endogenous regressor and the structural error.
+#'     A positive \eqn{\rho_k} means OLS overestimates \eqn{\delta_k};
+#'     A negative \eqn{\rho_k} means OLS underestimates \eqn{\delta_k}.
+#'   }
+#'   \item{\code{which = "both"}}{
+#'     Shows plots for structural parameters followed by endogeneity
+#'     correlations.
+#'   }
+#' }
+#'
+#' \strong{How to read the plots:}
+#' \describe{
+#'  \item{Trace plot (left panel)}{
+#'     Shows the sampled value of the parameter at each retained draw.
+#'     A well-converged chain looks like a stationary horizontal fuzzy band
+#'     with no visible trend, no drift, and no long flat stretches.
+#'     A visible upward or downward trend means the chain may not have reached
+#'     its stationary point yet. One solution could be to increase \code{burnin}.
+#'     Long flat stretches where the chain does not move mean the proposal
+#'     is poorly tuned or the model is not identified. Check the acceptance
+#'     rate and verify that the distribution of the endogenous regressor(s) (need to be non-normal)
+#'   }
+#'   \item{Posterior density (right panel)}{
+#'     Shows the kernel density estimate of the marginal posterior
+#'     distribution of the parameter. A symmetric, single-peaked (unimodal) density
+#'     signals a well-identified parameter and a highly concentrated posterior.
+#'     A flat or bimodal density suggests non-identification or poor mixing.
+#'     Check ESS and Geweke diagnostics from \code{summary()}.
+#'   }
+#' }
 #'
 #' ## Formula interface
 #' Formula follows a two-part notation:
@@ -96,10 +180,13 @@
 #'
 #'
 #' @references
-#' Haschka, R. E (2025) Bayesian Inference for Joint Estimation Models Using Copulas
+#' Haschka, R. E (2026) Bayesian Inference for Joint Estimation Models Using Copulas
 #' to Handle Endogenous Regressors.
 #' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534
 #' \doi{10.1111/obes.70023}
+#'
+#' Roberts, G. O. and Rosenthal J. S. (2009) Examples of adaptive MCMC.
+#' \emph{Journal of Computational and Graphical Statistics} 18(2), 349--367
 #'
 #'
 #' @examples
