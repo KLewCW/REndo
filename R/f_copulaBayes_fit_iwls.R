@@ -10,37 +10,36 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
 
   copula.dim <- K + L + 1L
 
+  # Full design matrix including intercept
+  X.design <- cbind(1, z, x)   # N x (1+K+L)
+  p <- ncol(X.design)
+
+  #column indices into copula matrix (except error dimension)
+  col.indices <- seq_len(copula.dim - 1L)
+
   ##this part is same as random walk
   margin.endo.list <- lapply(seq_len(K), function(k) copulabayes_margin(z[, k]))
   margin.exo.list <- lapply(seq_len(L), function(l) copulabayes_margin(x[,l]))
 
-  #ols starting values same as RW
+  #ols starting values
 
-  dat.ols <- data.frame(y = y, z = z, x = x)
-  mod.ols <- lm(y ~ ., data = dat.ols)
-  coef.ols <- coef(mod.ols)
-  intercept.cur <- coef.ols["(Intercept)"]
-  coef.endo.cur <- coef.ols[1L + seq_len(K)]
+  mod.ols <- lm(y ~ X.design - 1) # minus 1 because X.design already includes the intercept
+  intercept.cur <- coef(mod.ols)[1L]
+  coef.endo.cur <- coef(mod.ols)[1L + seq_len(K)]
 
-  if (L > 0L) {
-    coef.exo.cur <- coef.ols[1L + K + seq_len(L)]
-  } else {
-    coef.exo.cur <- numeric(0L)
+  if(L > 0L){
+    coef.exo.cur <-  coef(mod.ols)[1L + K + seq_len(L)]
+  } else{
+    numeric(0L)
   }
-
-  error.var.cur <- var(residuals(mod.ols))
-
+  coef.cur.vec   <- c(intercept.cur, coef.endo.cur, coef.exo.cur)
+  error.var.cur  <- var(residuals(mod.ols))
   copula.cor.cur <- diag(copula.dim)
 
-  ## initial Dirichlet masses same as RW
+  ## initial Dirichlet masses and normal scores
 
-  masses.endo.list <- lapply(margin.endo.list, function(mg){
-    as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m)))
-  })
-
-  masses.exo.list <- lapply(margin.exo.list, function(mg){
-    as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m)))
-  })
+  masses.endo.list <- lapply(margin.endo.list, function(mg) {g <- rgamma(mg$n.unique, 1); g / sum(g)})
+  masses.exo.list <- lapply(margin.exo.list, function(mg) {g <- rgamma(mg$n.unique, 1); g / sum(g)})
 
   scores.endo <- matrix(NA_real_, N, K)
   for(k in seq_len(K)){
@@ -90,19 +89,16 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
   chain[1L, col.var.delta] <- rep(1000, K)
   if (L > 0L) chain[1L, col.var.beta] <- rep(1000, L)
 
+
+  #Omega represent prior for endo block of W (K X K identity)
+
+  Omega.cur <- diag(K)
+
   n.mh.accepted.coef <- 0L  # accepted proposals for coefficients
   n.mh.accepted.sigma <- 0L  # accepted proposals for sigma^2
 
-  #IWLS
-
-  #X.design = [ 1 z x]
-  # (N X ( 1 + K + L)) full design matrix
-
-  X.design <- cbind(1, z, x)
-
   #MCMC loop
 
-  # ── MCMC loop ─────────────────────────────────────────────────────────────
   for (i in seq_len(num.iterations)) {
 
     if (verbose && i %% 500L == 0L) {
@@ -135,38 +131,46 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
 
 
     #current residuals and normal scores
-    resid.cur  <- y - X.design %*% c(intercept.cur, coef.endo.cur, coef.exo.cur)
+    coef.cur.vec <- c(intercept.cur, coef.endo.cur, coef.exo.cur)
+    resid.cur  <- y - X.design %*% coef.cur.vec
     scores.error.cur <- pmin(pmax( qnorm(pnorm(as.vector(resid.cur) / sqrt(error.var.cur))), -8), 8)
     scores.all.cur <- cbind(scores.endo, scores.exo, scores.error.cur)
 
-    #copula inverse A = Phi^{-1} - I  (in score computation)
-    A.cur <- solve(copula.cor.cur) - diag(copula.dim)
+    # A = Sigma^{-1} -I
+    Sinv <- chol2inv(chol(copula.cor.cur))
+    A <- Sinv - diag(copula.dim)
 
-    #working weight (W13): M_i = 2 / sigma^2 (scalar)
-    working.weight <- 2 / error.var.cur
+    #Copula score contribution (fixed during coefficient update)
+    #q_i = A[1:d-1, d]' * xi [ 1: d-1,i] for each obs. i
 
-    # Score vector for coefficients (need last element of W11 from Appendix C,
-    #which is scalar):
-    # last element is (1/sigma) * (A xi_i)[copula.dim] + e_i / sigma^2
-    # where A = Sigma^{-1} - I and copula.dim = L + K + 1 (index of error dimension)
-    A.d   <- A.cur[copula.dim, ]  # d-th row of A (error row). It is the last row of A = A[L+K+1, :]
+    q <- as.vector(scores.all.cur[, col.indices, drop = FALSE] %*% A[col.indices, copula.dim])
+    aee <- A[copula.dim, copula.dim] #scalar A[d,d] including the error dimension
 
-    # the N-vector xi_i'
-    nu.vec <- as.vector( scores.all.cur %*% A.d / sqrt(error.var.cur) +
-        as.vector(resid.cur) / error.var.cur)
+    #First block: IWLS for regression coeff (Haschka 2026, Appendix C. W11 and W13)
+    #Working weights = Sinv[d,d]/sigma^2
+    # Proposal covariance is Sigma_prop = (Sinv[d,d]/s2 * X'X)^{-1}
+    # Proposal meanis mu = cf + Sigma_prop * X' * nu
 
-    #IWLS proposal covariance (W13)
-    Sigma.prop.coef <- solve(t(X.design) %*% (working.weight * X.design))
+    e.cur  <- as.vector(resid.cur)
+    sg.cur <- sqrt(error.var.cur)
 
-    #IWLS proposal mean (W11)
-    coef.cur.vec <- c(intercept.cur, coef.endo.cur, coef.exo.cur)
-    mu.prop.coef <- coef.cur.vec + Sigma.prop.coef %*% t(X.design) %*% nu.vec
+    #Score per observation (last element of W11)
+    nu.cur <- (q + aee * e.cur / sg.cur) / sg.cur + e.cur / error.var.cur
 
-    # Draw proposal
-    coef.prop.vec <- as.vector(mvtnorm::rmvnorm(1, mean = mu.prop.coef, sigma = Sigma.prop.coef))
+    # Proposal covariance through inverse Cholesky
+    working.weight <- Sinv[copula.dim, copula.dim] / error.var.cur
+    R.prop <- chol(chol2inv(chol(working.weight * crossprod(X.design)))) # upper Cholesky of Sigma_prop
 
-    # Evaluating the log-posterior at current and proposed
-    var.sb.cur <- c(var.alpha.cur, var.delta.cur, var.beta.cur)
+    # Proposal mean
+    mu.fwd <- coef.cur.vec + as.vector(crossprod(R.prop, R.prop %*% crossprod(X.design, nu.cur)))
+
+    # Draw proposal using Cholesky
+    coef.prop.vec <- as.vector(mu.fwd + crossprod(R.prop, rnorm(p)))
+
+    # Reverse proposal mean (at the proposed coefficient values)
+    e.prop  <- as.vector(y - X.design %*% coef.prop.vec)
+    nu.prop <- (q + aee * e.prop / sg.cur) / sg.cur + e.prop / error.var.cur
+    mu.rev  <- coef.prop.vec + as.vector(crossprod(R.prop, R.prop %*% crossprod(X.design, nu.prop)))
 
     logpost.coef.cur  <- copulabayes_logpost_coef(
       coef.cur.vec,  error.var.cur, copula.cor.cur,
@@ -178,31 +182,12 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
       scores.endo, scores.exo, var.alpha.cur, var.delta.cur, var.beta.cur,
       y, z, x, K, L)
 
-    # Log proposal densities (needed for Hastings ratio with asymmetric proposal)
-    log.q.prop.given.cur <- mvtnorm::dmvnorm(
-      coef.prop.vec, mean = mu.prop.coef, sigma = Sigma.prop.coef, log = TRUE)
+    # Log proposal densities using Cholesky log
+    log.q.fwd <- copulabayes_dmvn_chol(coef.prop.vec, mu.fwd, R.prop)
+    log.q.rev <- copulabayes_dmvn_chol(coef.cur.vec,  mu.rev, R.prop)
 
-    # recomputing the proposal mean at the proposed point (for reverse proposal)
-    resid.prop   <- y - X.design %*% coef.prop.vec
-
-    scores.e.prop <- pmin(pmax(qnorm(pnorm(as.vector(resid.prop) / sqrt(error.var.cur))), -8), 8)
-
-    scores.all.prop <- cbind(scores.endo, scores.exo, scores.e.prop)
-
-    nu.vec.rev <- as.vector( scores.all.prop %*% A.d / sqrt(error.var.cur) +
-        as.vector(resid.prop) / error.var.cur
-    )
-
-    mu.rev.coef <- coef.prop.vec + Sigma.prop.coef %*% t(X.design) %*% nu.vec.rev
-
-    log.q.cur.given.prop <- mvtnorm::dmvnorm(
-      coef.cur.vec, mean = mu.rev.coef, sigma = Sigma.prop.coef, log = TRUE)
-
-
-    # Metropolis-Hastings acceptance ratio (asymmetric proposal)
-    log.mh.coef <- (logpost.coef.prop + log.q.cur.given.prop) -
-      (logpost.coef.cur  + log.q.prop.given.cur)
-
+    # Metropolis-Hastings acceptance ratio
+    log.mh.coef <- (lp.coef.prop + log.q.rev) - (lp.coef.cur + log.q.fwd)
     if (!is.finite(log.mh.coef)) log.mh.coef <- -Inf
 
     if (log(runif(1L)) < log.mh.coef) {
@@ -212,15 +197,14 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
 
     intercept.cur <- coef.cur.vec[1L]
     coef.endo.cur <- coef.cur.vec[seq(2L, 1L + K)]
+    coef.exo.cur <- if (L > 0L) coef.cur.vec[seq(2L + K, 1L + K + L)] else numeric(0L)
 
-    if (L > 0L){
-      coef.exo.cur <- coef.cur.vec[seq(2L + K, 1L + K + L)]
-    } else{
-      coef.exo.cur <-numeric(0L)
-    }
+    chain[i + 1L, col.intercept]  <- intercept.cur
+    chain[i + 1L, col.coef.endo]  <- coef.endo.cur
+    if (L > 0L) chain[i + 1L, col.coef.exo] <- coef.exo.cur
 
-    # Step 3: Laplace proposal for log(sigma^2)
-    # Haschka (2025) Appendix C, W12 (first derivative) and W14 (second derivative)
+    # Block 2: Laplace proposal for log(sigma^2)
+    # Haschka (2026) Appendix C, W12 (first derivative) and W14 (second derivative)
 
     # The Laplace proposal uses a second-order Taylor expansion of the
     # log-posterior around log(sigma^2).
@@ -231,11 +215,6 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
     # For W12 the (L+K+1)-th element = score  for log(sigma^2) per obs
     # For W14 the (L+K+1, L+K+1) element = Hessian for log(sigma^2) per obs
 
-    # Let d = copula.dim = K+L+1 (index of the error dimension in xi)
-    # A = Sigma^{-1} - I
-    # A[d,:] = last row of A (1 x copula.dim vector)
-    # A[d,d] = last diagonal element of A (scalar)
-
     # W12 last element per observation i (derived from log L_i, from W12):
     #   s_i = (e_i / (2*sigma)) * (A[d,:] %*% xi_i) - 1/2 + e_i^2 / (2*sigma^2)
 
@@ -244,95 +223,62 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
 
     # Note: the paper gives d log L_i (likelihood only).
     # prior contributions are added separately (IG(0.001, 0.001) on sigma^2).
-    # Prior score d log p / d log(sigma^2) = -1.001 + 0.001/sigma^2
-    # Prior Hessian d^2 log p / d(log sigma^2)^2  = -0.001/sigma^2
+
 
     log.sigma2.cur <- log(error.var.cur)
-    sigma.cur <- sqrt(error.var.cur)
 
-    # Current residuals
-    resid.cur <- y - X.design %*% c(intercept.cur, coef.endo.cur, coef.exo.cur)
-    resid.vec <- as.vector(resid.cur)
+    #recalculating the residuals with updated coefficients
+    e.cur  <- as.vector(y - X.design %*% coef.cur.vec)
+    xe.cur <- e.cur / sqrt(error.var.cur)   # standardised residuals = xi_e
+    qxe <- sum(q * xe.cur)
+    q2  <- sum(xe.cur^2)
 
-    # Current normal score of the structural error
-    scores.error.cur <- pmin(pmax(qnorm(pnorm(resid.vec / sigma.cur)), -8), 8)
-    scores.all.cur <- cbind(scores.endo, scores.exo, scores.error.cur)
+    # last element of W12 + prior contribution
+    # Prior: IG(0.001, 0.001) → contributes -a + b/sigma^2 after Jacobian
+    score.sigma <- 0.5 * qxe + 0.5 * (aee + 1) * q2 - 0.5 * length(e.cur) - 0.001 + 0.001 / error.var.cur
 
-    # A = Sigma^{-1} - I; extract last row and last diagonal element
-    A.cur <- solve(copula.cor.cur) - diag(copula.dim)
-    A.d.row <- A.cur[copula.dim, ] # (1 x copula.dim): last row of A
-    A.dd  <- A.cur[copula.dim, copula.dim]  # scalar: last diagonal element of A
+    # (W14, last diagonal element) + prior contribution
+    hessian.sigma <- -0.25 * qxe - 0.5 * (aee + 1) * q2 - 0.001 / error.var.cur
 
-    # N-vector: A[d,:] %*% xi_i for each observation i
-    A.xi.cur <- as.vector(scores.all.cur %*% A.d.row)
-
-    #score (W12: summed over obs + prior)
-    score.obs.cur <- (resid.vec / (2 * sigma.cur)) * A.xi.cur - 0.5 +resid.vec^2 / (2 * error.var.cur)
-
-    score.sigma <- sum(score.obs.cur) + (-1.001 + 0.001 / error.var.cur) # IG(0.001,0.001) prior
-
-    #Hessian (W14: summed over obs + prior)
-    hessian.obs.cur <- -(resid.vec / (4 * sigma.cur)) * A.xi.cur - A.dd * resid.vec^2 / (4 * error.var.cur) - resid.vec^2 / (2 * error.var.cur)
-    hessian.sigma <- sum(hessian.obs.cur) + (-0.001 / error.var.cur) # IG(0.001,0.001) prior
-
-    # Laplace proposal mean and variance
-    # Proposal log(sigma^2)_proposed ~ N(mu.prop, prop.var)
-    # mu.prop = log.sigma2.cur - score / hessian (Newton step)
-    # prop.var = -1 / hessian (must be positive)
-
-    if (hessian.sigma >= 0 || !is.finite(hessian.sigma)) {
-      # Hessian not negative definite, Laplace approximation invalid here
-      # Fall back to small random walk centered at current value
-      sigma2.prop.sd  <- 0.1
-      log.sigma2.prop.mean <- log.sigma2.cur
+    # Laplace proposal variance: -1/Hessian (must be positive)
+    if (hessian.sigma < -1e-12) {
+      sigma.prop.var <- -1 / hessian.sigma
     } else {
-      sigma2.prop.sd <- sqrt(-1 / hessian.sigma)
-      log.sigma2.prop.mean <- log.sigma2.cur - score.sigma / hessian.sigma
+      sigma.prop.var <- 1.0   # fallback if Hessian not negative definite
     }
-
-    log.sigma2.prop <- rnorm(1, mean = log.sigma2.prop.mean, sd = sigma2.prop.sd)
+    log.sigma2.prop.mean <- log.sigma2.cur + sigma.prop.var * score.sigma
+    log.sigma2.prop <- rnorm(1, log.sigma2.prop.mean, sqrt(sigma.prop.var))
     sigma2.prop <- exp(log.sigma2.prop)
-    sigma.prop <- sqrt(sigma2.prop)
 
-    # Reverse proposal (requirements: Laplace proposal is asymmetric)
-    # At the proposed value, re calculate W12 and W14 to find the reverse proposal mean
-    scores.error.prop <- pmin(pmax(qnorm(pnorm(resid.vec / sigma.prop)), -8), 8)
-    scores.all.prop <- cbind(scores.endo, scores.exo, scores.error.prop)
-    A.xi.prop   <- as.vector(scores.all.prop %*% A.d.row)
+    # Reverse proposal (at proposed sigma^2)
+    xe.prop <- e.cur / sqrt(sigma2.prop)
+    qxe.rev <- sum(q * xe.prop)
+    q2.rev  <- sum(xe.prop^2)
+    score.sigma.rev   <- 0.5 * qxe.rev + 0.5 * (aee + 1) * q2.rev - 0.5 * length(e.cur) - 0.001 + 0.001 / sigma2.prop
+    hessian.sigma.rev <- -0.25 * qxe.rev - 0.5 * (aee + 1) * q2.rev -0.001 / sigma2.prop
 
-    score.obs.rev   <- (resid.vec / (2 * sigma.prop)) * A.xi.prop - 0.5 + resid.vec^2 / (2 * sigma2.prop)
-    score.sigma.rev <- sum(score.obs.rev) + (-1.001 + 0.001 / sigma2.prop)
-
-    hessian.obs.rev <- -(resid.vec / (4 * sigma.prop)) * A.xi.prop - A.dd * resid.vec^2 / (4 * sigma2.prop) - resid.vec^2 / (2 * sigma2.prop)
-    hessian.sigma.rev <- sum(hessian.obs.rev) + (-0.001 / sigma2.prop)
-
-    if (hessian.sigma.rev >= 0 || !is.finite(hessian.sigma.rev)) {
-      sigma2.rev.sd <- 0.1
-      log.sigma2.rev.mean  <- log.sigma2.prop
+    sigma.rev.var <- if (hessian.sigma.rev < -1e-12) {
+      -1 / hessian.sigma.rev
     } else {
-      sigma2.rev.sd <- sqrt(-1 / hessian.sigma.rev)
-      log.sigma2.rev.mean <- log.sigma2.prop - score.sigma.rev / hessian.sigma.rev
+      sigma.prop.var
     }
+    log.sigma2.rev.mean <- log.sigma2.prop + sigma.rev.var * score.sigma.rev
 
-    # MH acceptance step
-    # Log-posterior at current and proposed sigma^2
-    # Jacobian: d sigma^2 / d log(sigma^2) = sigma^2
-    # log p(log sigma^2) = log p(sigma^2) + log(sigma^2)
-    lp.sigma.cur  <- copulabayes_logpost_sigma2( error.var.cur, copula.cor.cur, scores.endo, scores.exo,
-                                                 resid.cur, y, z, x, K, L) + log.sigma2.cur
+    # MH ratio for log(sigma^2)
+    # Log-posterior evaluated at sigma^2 directly
+    lp.sigma.cur  <- copulabayes_logpost_sigma2(
+      error.var.cur, copula.cor.cur, scores.endo, scores.exo,e.cur, y, z, x, K, L
+    )
 
-    lp.sigma.prop <- copulabayes_logpost_sigma2(sigma2.prop, copula.cor.cur, scores.endo, scores.exo,
-                                                resid.cur, y, z, x, K, L) + log.sigma2.prop
+    lp.sigma.prop <- copulabayes_logpost_sigma2(
+      sigma2.prop, copula.cor.cur, scores.endo, scores.exo,e.cur, y, z, x, K, L
+    )
 
-    # Log proposal densities (both directions needed for asymmetric proposal)
-    log.q.prop.given.cur <- dnorm(log.sigma2.prop, mean = log.sigma2.prop.mean,
-                                  sd   = sigma2.prop.sd, log = TRUE)
-
-    log.q.cur.given.prop <- dnorm(log.sigma2.cur, mean = log.sigma2.rev.mean,
-                                  sd   = sigma2.rev.sd,  log = TRUE)
-
-    # MH ratio: [p(prop) * q(cur|prop)] / [p(cur) * q(prop|cur)]
-    log.mh.sigma <- (lp.sigma.prop + log.q.cur.given.prop) - (lp.sigma.cur  + log.q.prop.given.cur)
+    # Jacobian: d(sigma^2)/d(log sigma^2) = sigma^2 (add log.sigma2.prop - log.sigma2.cur)
+    log.mh.sigma <- (lp.sigma.prop - lp.sigma.cur) +
+      dnorm(log.sigma2.cur, log.sigma2.rev.mean,sqrt(sigma.rev.var), log = TRUE)
+    - dnorm(log.sigma2.prop, log.sigma2.prop.mean, sqrt(sigma.prop.var), log = TRUE)
+    + (log.sigma2.prop - log.sigma2.cur)   #Jacobian
 
     if (!is.finite(log.mh.sigma)) log.mh.sigma <- -Inf
 
@@ -340,59 +286,39 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
       error.var.cur <- sigma2.prop
       n.mh.accepted.sigma <- n.mh.accepted.sigma + 1L
     }
+    chain[i + 1L, col.error.var] <- error.var.cur
 
-    chain[i + 1L, col.intercept] <- intercept.cur
-    chain[i + 1L, col.coef.endo] <- coef.endo.cur
-    if (L > 0L) chain[i + 1L, col.coef.exo] <- coef.exo.cur
-    chain[i + 1L, col.error.var]  <- error.var.cur
+    # Block 3: Gibbs for copula covariance W (Appendix A W5)
+    # Recomputing xi_e with updated coefficients and sigma^2
 
-    # Same as RW
-    resid.cur <- y - X.design %*% c(intercept.cur, coef.endo.cur, coef.exo.cur)
+    xi.e <- as.vector( y - X.design %*% coef.cur.vec) / sqrt(error.var.cur)
 
-    scores.error <- pmin(pmax(qnorm(pnorm(as.vector(resid.cur) / sqrt(error.var.cur))), -8), 8)
-    scores.all <- cbind(scores.endo, scores.exo, scores.error)
-
-    # Step 4: Gibbs for copula covariance W (Appendix A W5)
-    W.draw <- MCMCpack::riwish(N + copula.dim, diag(copula.dim) + crossprod(scores.all))
-    cor.normaliser <- diag(1 / sqrt(diag(W.draw)))
-    copula.cor.cur <- cor.normaliser %*% W.draw %*% cor.normaliser
-    for (l in seq_len(L)) {
-      copula.cor.cur[K + l, copula.dim] <- 0
-      copula.cor.cur[copula.dim, K + l] <- 0
-    }
+    dw.result <- copulabayes_draw_W(scores.endo, scores.exo, xi.e, Omega.cur, K, L)
+    copula.cor.cur <- dw.result$Sigma
+    Omega.cur <- dw.result$Omega
     chain[i + 1L, col.copula.cor] <- copulabayes_matrix2vector(copula.cor.cur)
 
-    # Step 5: Gibbs for Dirichlet masses (Appendix B W7)
-    eps.draw <- mvtnorm::rmvnorm(N, mean = rep(0, copula.dim), sigma = copula.cor.cur)
+    # Block 4: Gibbs for Dirichlet masses (Appendix B W7)
+    #using Cholesky
+
+    Rs <- chol(copula.cor.cur)
+    U.mat <- pnorm(matrix(rnorm(N * copula.dim), N, copula.dim) %*% Rs)
     for (k in seq_len(K)) {
-      masses.endo.list[[k]] <- copulabayes_drawlambda(
-        pnorm(eps.draw[, k]), margin.endo.list[[k]]
-      )
-      scores.endo[, k] <- copulabayes_converter(
-        masses.endo.list[[k]], margin.endo.list[[k]]
-      )
+      masses.endo.list[[k]] <- copulabayes_drawlambda(U.mat[, k], margin.endo.list[[k]])
+      scores.endo[, k]  <- copulabayes_converter(masses.endo.list[[k]], margin.endo.list[[k]])
     }
     for (l in seq_len(L)) {
-      masses.exo.list[[l]] <- copulabayes_drawlambda(
-        pnorm(eps.draw[, K + l]), margin.exo.list[[l]]
-      )
-      scores.exo[, l] <- copulabayes_converter(
-        masses.exo.list[[l]], margin.exo.list[[l]]
-      )
+      masses.exo.list[[l]] <- copulabayes_drawlambda(U.mat[, K + l], margin.exo.list[[l]])
+      scores.exo[, l] <- copulabayes_converter(masses.exo.list[[l]], margin.exo.list[[l]])
     }
 
-    # Horseshoe hyperprior updates (eq. 5-6 from main paper)
-    chain[i + 1L, col.var.alpha] <- 1 /rgamma(1L, shape = 0.501, rate = (intercept.cur^2 + 0.002) / 2)
-
-    for (k in seq_len(K)) {
+    # Horseshoe hyperprior updates
+    chain[i + 1L, col.var.alpha] <- 1 / rgamma(1L, shape = 0.501, rate = (intercept.cur^2 + 0.002) / 2)
+    for (k in seq_len(K))
       chain[i + 1L, col.var.delta[k]] <- 1 / rgamma(1L, shape = 0.501, rate = (coef.endo.cur[k]^2 + 0.002) / 2)
-    }
-
-    if (L > 0L) {
-      for (l in seq_len(L)) {
-        chain[i + 1L, col.var.beta[l]] <- 1 /rgamma(1L, shape = 0.501, rate = (coef.exo.cur[l]^2 + 0.002) / 2)
-      }
-    }
+    if (L > 0L)
+      for (l in seq_len(L))
+        chain[i + 1L, col.var.beta[l]] <- 1 / rgamma(1L, shape = 0.501, rate = (coef.exo.cur[l]^2 + 0.002) / 2)
   }
 
   attr(chain, "col.intercept") <- col.intercept

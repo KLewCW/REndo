@@ -238,7 +238,7 @@ copulaBayes <- function(
     thin = thin
   ))
   check_err_msg(checkinput_copulashared_verbose(verbose))
-  check_err_msg(checkinput_copulabayes_method(method))
+  #check_err_msg(checkinput_copulabayes_method(method))
 
   F.formula <- Formula::as.Formula(formula)
 

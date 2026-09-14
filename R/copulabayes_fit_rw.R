@@ -54,10 +54,10 @@ copulabayes_mcmc_rw <- function(y, z, x, num.iterations, verbose) {
 
   #initial lambda from Dir(1,...,1) are drawn
   masses.endo.list <- lapply(margin.endo.list, function(mg) {
-    as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m)))
+    as.vector(MCMCpack::rdirichlet(1, rep(1, mg$n.unique)))
   })
   masses.exo.list<- lapply(margin.exo.list, function(mg) {
-    as.vector(MCMCpack::rdirichlet(1, rep(1, mg$m)))
+    as.vector(MCMCpack::rdirichlet(1, rep(1, mg$n.unique)))
   })
 
   #initial normal scores from the starting lambda

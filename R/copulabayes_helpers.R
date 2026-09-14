@@ -239,3 +239,109 @@ copulabayes_logpost_sigma2 <- function(
   return(log.copula + log.error.density + log.prior)
 }
 
+# Cholesky-based log MVN density
+copulabayes_dmvn_chol <- function(x, mu, R) { # R is the UPPER Cholesky factor of the covariance matrix
+  z <- backsolve(R, x - mu, transpose = TRUE) -0.5 * length(x) * log(2 * pi) - sum(log(diag(R))) - 0.5 * sum(z * z)
+  # R^{-T} (x - mu)
+}
+
+# Hierarchical W update — enforces exogeneity by construction
+# (putting  W into blocks with structural zeros built in)
+
+copulabayes_draw_W <- function(scores.endo, scores.exo, scores.err,
+                               Omega.cur, K, L) {
+  N <- length(scores.err)
+
+  # Xt = [xi_x | xi_e] the variables xi_z is regressed on
+  # Dimensions: N x (L+1) when L > 0, or N x 1 when L = 0
+  Xt <- if (L > 0L) cbind(scores.exo, scores.err) else matrix(scores.err, N, 1L)
+
+  XtX <- crossprod(Xt) # (L+1) x (L+1): X'X. The cross-product of the predictor matrix
+  ZtX <- crossprod(scores.endo, Xt) # K x (L+1): Z'X (cross-product of endo scores with predictors)
+
+  # Prior hyperparameters
+  # Sigma_xx prior: IW(nu.exo.cov, Psi.exo.cov) equation 8 from Haschka 2026
+  nu.exo.cov <- L + 2L
+  Psi.exo.cov <- diag(max(L, 1L))
+
+  # Omega prior IW(nu.resid.cov, Psi.resid.cov)
+  nu.resid.cov <- K + 2L
+  Psi.resid.cov <- diag(K)
+
+  # se2 prior IG(a.err.var, b.err.var)
+  a.err.var <- 0.001
+  b.err.var <- 0.001
+
+  # C prior: MN(C.prior.mean, Omega, C.prior.cov)
+  C.prior.mean <- matrix(0, K, L + 1L)
+  C.prior.cov <- diag(L + 1L)
+  C.prior.cov.inv <- chol2inv(chol(C.prior.cov))
+
+  # Step 1: Draw Sigma_xx: marginal covariance of exogenous regressors
+  # Full conditional: Sigma_xx | xi_x ~ IW(nu.exo.cov + N, Psi.exo.cov + xi_x'xi_x)
+  # Sigma_xx is the (L x L) covariance block of W corresponding to xi_x.
+  # When L = 0, there are no exogenous regressors and this step is skipped.
+  exo.cov.draw <- if (L > 0L) {
+    MCMCpack::riwish(nu.exo.cov + N, Psi.exo.cov + crossprod(scores.exo))
+  } else {
+    NULL
+  }
+  # Step 2: Draw se2: marginal variance of the standardised error xi_e
+  # Full conditional: se2 | xi_e ~ IG(a.err.var + N/2, b.err.var + xi_e'xi_e/2)
+  # se2 is the scalar (1,1) block of W corresponding to xi_e.
+  # se2 is the variance of xi_e in the COPULA
+  err.var.draw <- 1 / rgamma(1L, shape = a.err.var + N / 2, rate  = b.err.var + sum(scores.err^2) / 2
+  )
+
+  # Step 3: Draw C = [B_x | b_e] regression coefficients of xi_z
+  C.post.cov <- chol2inv(chol(C.prior.cov.inv + XtX)) #posterior covariance of regression coeff matrix C
+  C.post.cov  <- (C.post.cov + t(C.post.cov)) / 2   # enforce symmetry
+  C.post.mean <- (C.prior.mean %*% C.prior.cov.inv + ZtX) %*% C.post.cov #posterior mean of reg coeff C
+
+  # Draw C using matrix normal: C = C.post.mean + chol(Omega)' * Z * chol(C.post.cov)
+  # where Z ~ N(0, I_{K x (L+1)})
+  R.Omega <- t(chol(Omega.cur)) # lower Cholesky of Omega
+  R.post.cov  <- chol(C.post.cov)  # upper Cholesky of C.post.cov
+  C.draw <- C.post.mean + R.Omega %*% matrix(rnorm(K * (L + 1L)), K, L + 1L) %*% R.post.cov
+
+  B_x <- C.draw[, seq_len(L), drop = FALSE]  # K x L: xi_z on xi_x regression
+  b_e <- C.draw[, L + 1L, drop = FALSE] # K x 1: xi_z on xi_e regression
+
+  # Step 4: Draw Omega: Residual covariance of xi_z after projection
+  # Omega is the K x K covariance of eps = xi_z - C * [xi_x | xi_e]'
+  projection.resid <- scores.endo - Xt %*% t(C.draw)   # N x K
+  Omega.new <-  MCMCpack::riwish(nu.resid.cov + N,Psi.resid.cov + crossprod(projection.resid))
+
+  # Reconstructing W from components
+  W_zz <- Omega.new + err.var.draw * tcrossprod(b_e)
+  if (L > 0L) W_zz <- W_zz + B_x %*% exo.cov.draw %*% t(B_x)
+
+  # W_ze (K x 1): endogenous-error  = se2 * b_e
+  # This captures endog Cov(xi_z, xi_e)
+  W_ze <- err.var.draw * b_e
+
+  # assembling full (K+L+1) x (K+L+1) W
+  W <- if (L > 0L) {
+    W_zx <- B_x %*% exo.cov.draw
+    rbind(
+      cbind(W_zz, W_zx,W_ze),
+      cbind(t(W_zx),exo.cov.draw,matrix(0, L, 1L)),
+      cbind(t(W_ze),matrix(0, 1L, L), err.var.draw)
+    )
+  } else {
+    rbind(
+      cbind(W_zz, W_ze),
+      cbind(t(W_ze), err.var.draw)
+    )
+  }
+
+  # Convert W to a correlation matrix by dividing by marginal SDs
+  marginal.sd <- sqrt(diag(W))
+  Sigma <- W / outer(marginal.sd, marginal.sd)
+
+  return(list(
+    Sigma = Sigma,# (K+L+1) x (K+L+1) copula correlation matrix
+    Omega = Omega.new  # K x K updated residual cov (Omega.cur)
+  ))
+}
+
