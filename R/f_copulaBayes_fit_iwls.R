@@ -187,7 +187,7 @@ copulabayes_mcmc_iwls <- function(y,z,x,num.iterations,verbose){
     log.q.rev <- copulabayes_dmvn_chol(coef.cur.vec,  mu.rev, R.prop)
 
     # Metropolis-Hastings acceptance ratio
-    log.mh.coef <- (lp.coef.prop + log.q.rev) - (lp.coef.cur + log.q.fwd)
+    log.mh.coef <- (logpost.coef.prop + log.q.rev) - (logpost.coef.cur + log.q.fwd)
     if (!is.finite(log.mh.coef)) log.mh.coef <- -Inf
 
     if (log(runif(1L)) < log.mh.coef) {
