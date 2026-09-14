@@ -241,7 +241,8 @@ copulabayes_logpost_sigma2 <- function(
 
 # Cholesky-based log MVN density
 copulabayes_dmvn_chol <- function(x, mu, R) { # R is the UPPER Cholesky factor of the covariance matrix
-  z <- backsolve(R, x - mu, transpose = TRUE) -0.5 * length(x) * log(2 * pi) - sum(log(diag(R))) - 0.5 * sum(z * z)
+  z <- backsolve(R, x - mu, transpose = TRUE)
+  -0.5 * length(x) * log(2 * pi) - sum(log(diag(R))) - 0.5 * sum(z * z)
   # R^{-T} (x - mu)
 }
 
