@@ -181,6 +181,9 @@ print.summary.rendo.copula.bayes <- function(x, ...) {
 plot.rendo.copula.bayes <- function(x, which = c("structural", "rho", "both"), ...) {
   which <- match.arg(which)
 
+  old.par <- par(no.readonly = TRUE)
+  on.exit(par(old.par), add = TRUE)
+
   clean.param.names <- function(nms) {
     nms <- gsub("_endo$", " (endogenous)", nms)
     nms <- gsub("_exo$",  " (exogenous)",  nms)
@@ -189,38 +192,54 @@ plot.rendo.copula.bayes <- function(x, which = c("structural", "rho", "both"), .
   }
 
   clean.rho.names <- function(nms) {
-    nms <- gsub("^rho_", "rho: endogeneity of ", nms)
-    return(nms)
+    gsub("^rho_", "rho: endogeneity of ", nms)
   }
 
-  if (which %in% c("structural", "both")) {
-    chain.plot <- x$chain.struct
-    colnames(chain.plot) <- clean.param.names(colnames(chain.plot))
+  plot_mcmc_label <- function(chain.mat, display.names, section.label){
+    n.params <- ncol(chain.mat)
 
-    main.title <- paste0(
-      "Structural parameters",
-      "\nSampler: ",
-      if (!is.null(x$method)) x$method else "RW",
-      "  |  Draws retained: ", x$n.draws,
-      "  |  Burn-in: ", x$burnin,
-      "  |  Thinning: ", x$thin
-    )
+    info.line <- paste0("Sampler:", x$method, "| Draws retained:", x$n.draws,
+                        " | Burnin:", x$burnin, "| Thin:", x$thin)
 
-    plot(coda::as.mcmc(chain.plot), main  = main.title, ask   = FALSE, ...)
+    par(mfrow = c(n.params, 2),
+        mar = c(4, 4, 3, 1),
+        oma = c(0, 0, 3, 0))
+
+    mcmc.obj <- coda::as.mcmc(chain.mat)
+
+    for (p in seq_len(n.params)){
+      pname <- display.names[p]
+
+      #left panel: the trace plot
+      coda::traceplot(mcmc.obj[, p],main  = paste0("Trace: ", pname),
+                      ylab  = pname, xlab  = "Retained draw", col   = "steelblue", ...)
+
+      #right panel: density plot
+
+      coda::densplot(mcmc.obj[, p], main  = paste0("Posterior: ", pname),
+                     xlab  = pname,col   = "steelblue", ... )
+
+      #title
+      mtext( text  = paste0(section.label, "\n", info.line), outer = TRUE,
+             cex   = 0.85, font  = 2, line  = 1)
+    }
   }
 
-  if (which %in% c("rho", "both")) {
-    chain.rho.plot <- x$chain.rho
-    colnames(chain.rho.plot) <- clean.rho.names(colnames(chain.rho.plot))
+    if (which %in% c("structural", "both")) {
+      chain.plot  <- x$chain.struct
+      param.names <- clean.param.names(colnames(chain.plot))
+      plot_mcmc_label(chain.plot, param.names, "Structural parameters")
+    }
 
-    main.rho <- paste0(
-      "Endogeneity strength",
-      "\nrho > 0: OLS overestimates  |  rho < 0: OLS underestimates",
-      "\nCredible interval excluding 0 confirms endogeneity"
-    )
-
-    plot( coda::as.mcmc(chain.rho.plot), main  = main.rho, ask   = FALSE, ...)
-  }
+    if (which %in% c("rho", "both")) {
+      chain.rho.plot <- x$chain.rho
+      rho.names <- clean.rho.names(colnames(chain.rho.plot))
+      plot_mcmc_label( chain.rho.plot, rho.names,
+        paste0( "Endogeneity strength (rho)", "\nrho > 0: OLS overestimates  |  rho < 0: OLS underestimates",
+          "\nCredible interval excluding 0 confirms endogeneity"
+        )
+      )
+    }
 
   invisible(x)
 }

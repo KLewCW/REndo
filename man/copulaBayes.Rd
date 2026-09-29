@@ -10,7 +10,7 @@ copulaBayes(
   num.iterations = 102000,
   burnin = 2000,
   thin = 100,
-  method = c("RW", "IWLS"),
+  method = c("IWLS", "RW"),
   verbose = TRUE
 )
 }
@@ -32,6 +32,20 @@ for inference.}
 \item{thin}{a positive integer giving the thinning interval. Only keep the \code{thin} th draw after burn-in.
 Default is 100 (for an iteration of 102000 and burning of 2000 in order to have 1000 posterior draws).
 Thinning is used to reduce autocorrelation between consecutive draws.}
+
+\item{method}{a character string which specify the Metropolis-Hastings (MH) for the regression coefficients
+and error variance
+
+\describe{
+\item{\code{"RW"}}{Adaptive random walk Metropolis-Hastings.
+All parameters \eqn{(\alpha, \delta, \beta, \log\sigma^2)} are
+proposed jointly from a multivariate normal centered at the current values.
+The proposal scale is adapted every 50 iterations via Robbins-Monro scaling
+to target an acceptance rate of 20--40\\% \citep{RobertsRosenthal2009}.}
+\item{\code{"IWLS"}}{Iteratively weighted least squares proposal from \citet{Haschka2026},
+where coefficients are proposed using the IWLS information matrix and the error variance
+is proposed using a Laplace approximation to the log-posterior of \eqn{\log\sigma^2}.}
+}}
 
 \item{verbose}{Show details about the running of the function.}
 }
@@ -70,20 +84,9 @@ The method jointly samples all unknowns in one step via MCMC
 (from Appendix D online, see algorithm 1). Each iteration would go through the
 following steps:
 
-##note: for the regression coeff and error var, since I tried to modify it and use
-other package, it is slightly different from original paper Haschka (2015) where he
-uses IWLS and Laplace. It is no more this but just a random walk MH, should this be changed ???
-
 \enumerate{
-\item {Regression coefficients and error variance} (\code{method = "RW"}):
-updated jointly by adaptive random walk MH on the vector
-\eqn{(\alpha, \delta, \beta, \log\sigma^2)}.
-The proposal scale is adapted every 50 iterations via
-Robbins-Monro scaling to target an acceptance rate of 20--40\\%
-(Roberts and Rosenthal 2009).
-(\code{method = "IWLS"}): regression coefficients updated by
-IWLS (Appendix C, W11/W13); error variance updated by Laplace proposal
-for \eqn{\log\sigma^2} (Appendix C, W12/W14).
+\item {Regression coefficients and error variance}: \eqn{(\alpha, \boldsymbol{\delta}, \boldsymbol{\beta}, \sigma^2)}
+updated by Metropolis-Hastings. The proposal depends on \code{method}
 \item {Copula correlation matrix} \eqn{W \sim W^{-1}(I, K+L+1)} ( Haschka 2025, eq. 8).
 This is updated by Gibbs sampling via the inverse Wishart full conditional (Appendix A, W5):
 \eqn{W | \cdot \sim W^{-1}(\sum_i \xi_i \xi_i' + I,\, N + K + L + 1)}.
@@ -98,7 +101,7 @@ The marginal CDF is never fixed but re-estimated at every iteration.
 }
 }
 
-\subsection{Convergence diagnostics}{
+\subsection{Convergence diagnostics for the RW method}{
 
 The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
 A rate between 20\\% and 40\\% shows that the proposal scale is well-tuned (the sampler
@@ -201,7 +204,7 @@ Formula follows a two-part notation:
 }
 }
 \examples{
-# Example: Bayesian Gaussian copula endogeneity correction
+# Example 1: Bayesian Gaussian copula endogeneity correction
 # based on Section 4.1, eq. (12) to (16)
 # N = 1000
 # True parameters are: alpha=2, beta=6 (x), delta=-4 (z), sigma^2 =5
@@ -222,6 +225,25 @@ res_bayes <- copulaBayes(
 )
 summary(res_bayes)
 plot(res_bayes, which = "both")
+
+#' # Example 2: Multiple endogenous and exogenous regressors
+# extension of example 1
+# True parameters: alpha=1, delta1= -2 (z1), delta2=1.5 (z2), beta1=0.5 (x1), beta2=-1 (x2), sigma^2=3
+# z1 ~ lognormal(0,1), z2 ~ Gamma(2,1): both non-normal
+# Endogeneity strengths: rho_z1e=0.6, rho_z2e=0.5
+#------------------------------------------------------------------------
+#' data("dataCopulaBayesMulti")
+res_bayes_multi <- copulaBayes(
+  y ~ x1 + x2 + z1 + z2 | continuous(z1) + continuous(z2),
+  data           = dataCopulaBayesMulti,
+  num.iterations = 12000,
+  burnin         = 2000,
+  thin           = 10,
+  method         = "IWLS",
+  verbose        = TRUE
+)
+summary(res_bayes_multi)
+plot(res_bayes_multi, which = "both")
 
 
 }
