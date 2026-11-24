@@ -6,18 +6,18 @@
 \title{Simulated Dataset for copulaBayes - Multiple Endogenous and Exogenous Regressors}
 \format{
 A data frame with 2000 observations on 5 variables:
-\describe{
-  \item{\code{y}}{a numeric vector representing the dependent variable.}
-  \item{\code{z1}}{a numeric endogenous vector following a lognormal(0,1) distribution.
-  Correlated with the structural error (\eqn{\rho_{z_1 e} = 0.6}) and with \code{x1}
-    (\eqn{\rho_{x_1 z_1} = 0.2}).}
-  \item{\code{z2}}{a numeric endogenous vector following a Gamma(2,1) distribution.
-  Correlated with the structural error (\eqn{\rho_{z_2 e} = 0.5}) and with \code{x2}
-    (\eqn{\rho_{x_2 z_2} = 0.2}).}
-  \item{\code{x1}}{a numeric exogenous vector following a \eqn{N(0,1)} distribution. Correlated with \code{z1}
-    (\eqn{\rho_{x_1 z_1} = 0.2}).}
-  \item{\code{x2}}{a numeric exogenous vector following a \eqn{N(0,1)} distribution.
-  Correlated with \code{z2} (\eqn{\rho_{x_2 z_2} = 0.2}).}
+\itemize{
+\item \code{y}: a numeric vector representing the dependent variable.
+\item \code{z1}: a numeric endogenous vector following a lognormal(0,1) distribution.
+Correlated with the structural error (\eqn{\rho_{z_1 e} = 0.6}) and with \code{x1}
+(\eqn{\rho_{x_1 z_1} = 0.2}).
+\item \code{z2}: a numeric endogenous vector following a Gamma(2,1) distribution.
+Correlated with the structural error (\eqn{\rho_{z_2 e} = 0.5}) and with \code{x2}
+(\eqn{\rho_{x_2 z_2} = 0.2}).
+\item \code{x1}: a numeric exogenous vector following a \eqn{N(0,1)} distribution. Correlated with \code{z1}
+(\eqn{\rho_{x_1 z_1} = 0.2}).
+\item \code{x2}: a numeric exogenous vector following a \eqn{N(0,1)} distribution.
+Correlated with \code{z2} (\eqn{\rho_{x_2 z_2} = 0.2}).
 }
 }
 \usage{
@@ -25,9 +25,9 @@ data("dataCopBayesMulti")
 }
 \description{
 A dataset simulated as an extension to \code{dataCopBayes}
- with \eqn{K = 2} endogenous and \eqn{L = 2} exogenous regressors.
- The dataset is generated to show that the method supports different marginal distributions
- for different endogenous regressors simultaneously.
+with \eqn{K = 2} endogenous and \eqn{L = 2} exogenous regressors.
+The dataset is generated to show that the method supports different marginal distributions
+for different endogenous regressors simultaneously.
 }
 \references{
 Haschka, R. E. (2025) Bayesian Inference for Joint Estimation Models
@@ -36,7 +36,10 @@ Using Copulas to Handle Endogenous Regressors.
 \doi{10.1111/obes.70023}
 }
 \seealso{
-\code{\link{dataCopBayes}} for the single-endogenous
-  regressor version following the paper DGP exactly.
+\link{dataCopBayes} for the single-endogenous
+regressor version following the paper DGP exactly.
+}
+\author{
+Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@gmail.com}
 }
 \keyword{datasets}
