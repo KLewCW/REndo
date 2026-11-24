@@ -237,7 +237,7 @@
 #' @md
 #' @export
 #'
-#' @importFrom stats coef model.frame model.matrix model.response formula sd quantile terms
+#' @importFrom stats coef model.frame model.matrix model.response formula sd quantile terms na.fail
 #' @importFrom Formula as.Formula
 copulaBayes <- function(
   formula,
@@ -298,7 +298,7 @@ copulaBayes <- function(
   names.endo.regs <- labels.endo
 
   f.main <- formula(F.formula, lhs = 1, rhs = 1)
-  mf <- model.frame(f.main, data = data)
+  mf <- model.frame(f.main, data = data, na.action = na.fail)
   y <- model.response(mf)
 
 
