@@ -17,7 +17,7 @@ copulaBayes(
 \arguments{
 \item{formula}{A symbolic description of the model to be fitted. See the "Details" section for the exact notation.}
 
-\item{data}{A data.frame containing the data of all parts specified in the formula parameter.}
+\item{data}{A data.frame containing the data of all parts specified in the formula parameter. Endogenous and exogenous regressors must be \code{numeric}.}
 
 \item{num.iterations}{a positive integer giving the total number of MCMC iterations.
 From Haschka (2025), it is suggested to use 102000 as number of iterations, with a burnin of 2000
@@ -41,8 +41,8 @@ and error variance
 All parameters \eqn{(\alpha, \delta, \beta, \log\sigma^2)} are
 proposed jointly from a multivariate normal centered at the current values.
 The proposal scale is adapted every 50 iterations via Robbins-Monro scaling
-to target an acceptance rate of 20--40\\% \citep{RobertsRosenthal2009}.}
-\item{\code{"IWLS"}}{Iteratively weighted least squares proposal from \citet{Haschka2026},
+to target an acceptance rate of 20--40\\% (Roberts and Rosenthal, 2009).}
+\item{\code{"IWLS"}}{Iteratively weighted least squares proposal from Haschka (2026),
 where coefficients are proposed using the IWLS information matrix and the error variance
 is proposed using a Laplace approximation to the log-posterior of \eqn{\log\sigma^2}.}
 }}
@@ -204,6 +204,7 @@ Formula follows a two-part notation:
 }
 }
 \examples{
+\donttest{
 # Example 1: Bayesian Gaussian copula endogeneity correction
 # based on Section 4.1, eq. (12) to (16)
 # N = 1000
@@ -226,13 +227,13 @@ res_bayes <- copulaBayes(
 summary(res_bayes)
 plot(res_bayes, which = "both")
 
-#' # Example 2: Multiple endogenous and exogenous regressors
+# Example 2: Multiple endogenous and exogenous regressors
 # extension of example 1
 # True parameters: alpha=1, delta1= -2 (z1), delta2=1.5 (z2), beta1=0.5 (x1), beta2=-1 (x2), sigma^2=3
 # z1 ~ lognormal(0,1), z2 ~ Gamma(2,1): both non-normal
 # Endogeneity strengths: rho_z1e=0.6, rho_z2e=0.5
 #------------------------------------------------------------------------
-#' data("dataCopBayesMulti")
+data("dataCopBayesMulti")
 res_bayes_multi <- copulaBayes(
   y ~ x1 + x2 + z1 + z2 | continuous(z1) + continuous(z2),
   data           = dataCopBayesMulti,
@@ -244,7 +245,7 @@ res_bayes_multi <- copulaBayes(
 )
 summary(res_bayes_multi)
 plot(res_bayes_multi, which = "both")
-
+}
 
 }
 \references{
@@ -260,3 +261,16 @@ Using Copulas to Handle Endogenous Regressors.
 Roberts, G. O. and Rosenthal J. S. (2009) Examples of adaptive MCMC.
 \emph{Journal of Computational and Graphical Statistics} 18(2), 349--367
 }
+\seealso{
+\code{\link[REndo:dataCopBayes]{dataCopBayes},
+\link[REndo:dataCopBayesMulti]{dataCopBayesMulti}} for detailed
+information about the simulated datasets
+
+Other copula-based methods:
+\code{\link[=copula2sCOPE]{copula2sCOPE()}},
+\code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaBMW]{copulaBMW()}},
+\code{\link[=copulaCorrection]{copulaCorrection()}},
+\code{\link[=copulaIMA]{copulaIMA()}}
+}
+\concept{copula-based methods}

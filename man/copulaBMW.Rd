@@ -246,6 +246,7 @@ information about the simulated datasets
 Other copula-based methods:
 \code{\link[=copula2sCOPE]{copula2sCOPE()}},
 \code{\link[=copula2sCOPEnp]{copula2sCOPEnp()}},
+\code{\link[=copulaBayes]{copulaBayes()}},
 \code{\link[=copulaCorrection]{copulaCorrection()}},
 \code{\link[=copulaIMA]{copulaIMA()}}
 }
