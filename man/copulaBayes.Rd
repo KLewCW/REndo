@@ -199,8 +199,8 @@ Check ESS and Geweke diagnostics from \code{summary()}.
 
 Formula follows a two-part notation:
 
-\preformatted{y ~ X + Z | continuous(Z) #one endogenous regressor}
-\preformatted{y ~ X + Z1 + Z2 | continuous(Z1) + continuous(Z2) #two endogenous regressors}
+\preformatted{y ~ X + Z | Z #one endogenous regressor}
+\preformatted{y ~ X + Z1 + Z2 | Z1 + Z2 #two endogenous regressors}
 }
 }
 \examples{
@@ -217,7 +217,7 @@ Formula follows a two-part notation:
 #------------------------------------------------------------------------
 data("dataCopBayes")
 res_bayes <- copulaBayes(
-  y ~ x + z | continuous(z),
+  y ~ x + z | z,
   data           = dataCopBayes,
   num.iterations = 12000,
   burnin         = 2000,
@@ -235,7 +235,7 @@ plot(res_bayes, which = "both")
 #------------------------------------------------------------------------
 data("dataCopBayesMulti")
 res_bayes_multi <- copulaBayes(
-  y ~ x1 + x2 + z1 + z2 | continuous(z1) + continuous(z2),
+  y ~ x1 + x2 + z1 + z2 | z1 + z2,
   data           = dataCopBayesMulti,
   num.iterations = 12000,
   burnin         = 2000,
