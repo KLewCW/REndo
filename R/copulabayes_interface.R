@@ -295,21 +295,7 @@ copulaBayes <- function(
     )
   }
 
-  names.endo.regs <- formula_readout_special(
-    F.formula = F.formula,
-    name.special = "continuous",
-    from.rhs = 2,
-    params.as.chars.only = TRUE
-  )
-
-  if (length(names.endo.regs) == 0) {
-    stop(
-      "No endogenous regressors found. Declare at least one using ",
-      "continuous() in the second part of the formula, ",
-      "e.g. y ~ X + Z | continuous(Z).",
-      call. = FALSE
-    )
-  }
+  names.endo.regs <- labels.endo
 
   f.main <- formula(F.formula, lhs = 1, rhs = 1)
   mf <- model.frame(f.main, data = data)
