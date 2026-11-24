@@ -237,7 +237,7 @@
 #' @md
 #' @export
 #'
-#' @importFrom stats coef model.frame model.matrix model.response formula sd quantile
+#' @importFrom stats coef model.frame model.matrix model.response formula sd quantile terms
 #' @importFrom Formula as.Formula
 copulaBayes <- function(
   formula,
@@ -252,7 +252,24 @@ copulaBayes <- function(
 
   allowed.methods <- c("IWLS", "RW")
   check_err_msg(checkinput_copula2stage_data_basics(data))
-  # check_err_msg(checkinput_copulabayes_formula_data(formula = formula, data = data))
+
+
+  # Structure: y ~ X + P | P
+  # - >= 1 endogenous regressor
+  # - exo: optional (not required)
+  # - all regressors (endo & exo) and responses: numeric
+  # - Interactions: Block (because uncertain whether really allowed, eg interaction with endo var)
+  check_err_msg(checkinput_copula2stage_formula_data(
+    formula = formula,
+    data = data,
+    min.num.exo = 0,
+    allow.interactions = FALSE,
+    allow.constant.regressors = FALSE,
+    warn.low.card.endo = TRUE,
+    allowed.classes.endo = "numeric",
+    allowed.classes.exo = "numeric"
+  ))
+
   check_err_msg(checkinput_copulabayes_numiterations_burnin_thin(
     num.iterations = num.iterations,
     burnin = burnin,
@@ -264,6 +281,19 @@ copulaBayes <- function(
   method <- match.arg(method, choices = allowed.methods)
 
   F.formula <- Formula::as.Formula(formula)
+  labels.main <- labels(terms(F.formula, data = data, rhs = 1))
+  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+  labels.exo <- labels.main[!(labels.main %in% labels.endo)]
+
+  ##note that paper  does not mention whether exogenous regressors are required explicitly.
+  ##The paper also only epxlores cases when the exogenous regressor is present. But having no exogenous regressors in this case
+  ##should be mathematically valid. I think we should warn the users if this case ?
+  if (length(labels.exo) == 0) {
+    warning(
+      "No exogenous regressors found. Identification is based solely on non-normality of the endogenous regressor(s).",
+      call. = FALSE
+    )
+  }
 
   names.endo.regs <- formula_readout_special(
     F.formula = F.formula,
