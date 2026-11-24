@@ -181,12 +181,9 @@
 #' @template template_references_parkgupta2012
 #'
 #'
-#' @references
-#' Haschka, R. E (2026) Bayesian Inference for Joint Estimation Models Using Copulas
-#' to Handle Endogenous Regressors.
-#' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534
-#' \doi{10.1111/obes.70023}
+#' @template template_references_haschka2025bayes
 #'
+#' @references
 #' Roberts, G. O. and Rosenthal J. S. (2009) Examples of adaptive MCMC.
 #' \emph{Journal of Computational and Graphical Statistics} 18(2), 349--367
 #'

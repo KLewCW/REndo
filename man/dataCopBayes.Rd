@@ -26,6 +26,12 @@ Equations (12) to (16) of Haschka (2025). The data has one endogenous regressor
 \eqn{z_i} and one exogenous \eqn{x_i} variable, both being correlated with each other
 \eqn{\rho_{xz} = 0.3}.
 }
+\references{
+Haschka, R. E. (2025) Bayesian Inference for Joint Estimation Models
+Using Copulas to Handle Endogenous Regressors.
+\emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534.
+\doi{10.1111/obes.70023}
+}
 \author{
 Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@gmail.com}
 }

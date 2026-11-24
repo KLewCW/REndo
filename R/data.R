@@ -540,6 +540,7 @@
 #'     Correlated with `z` (\eqn{\rho_{xz} = 0.3}) but uncorrelated with the structural
 #'     error (\eqn{\rho_{xe} = 0}).
 #'
+#' @template template_references_haschka2025bayes
 #' @template template_author_kimberlylew
 #' @md
 "dataCopBayes"
@@ -564,11 +565,7 @@
 #' - `x2`: a numeric exogenous vector following a \eqn{N(0,1)} distribution.
 #'   Correlated with `z2` (\eqn{\rho_{x_2 z_2} = 0.2}).
 #'
-#' @references
-#' Haschka, R. E. (2025) Bayesian Inference for Joint Estimation Models
-#' Using Copulas to Handle Endogenous Regressors.
-#' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534.
-#' \doi{10.1111/obes.70023}
+#' @template template_references_haschka2025bayes
 #' @seealso [dataCopBayes] for the single-endogenous
 #'   regressor version following the paper DGP exactly.
 #' @template template_author_kimberlylew
