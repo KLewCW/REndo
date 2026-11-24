@@ -135,3 +135,22 @@ checkinput_copulabayes_numiterations_burnin_thin <- function(
 
   return(c())
 }
+
+
+checkinput_copulabayes_method <- function(method, allowed.methods) {
+  # Default value of the param is the full vector of allowed values (match.arg() then
+  # selects the first)
+  if (identical(method, allowed.methods)) {
+    return(c())
+  }
+
+  if (!is.character(method) || length(method) != 1) {
+    return("Parameter 'method' must be a single character string.")
+  }
+
+  if (!(method %in% allowed.methods)) {
+    return(paste0("Parameter 'method' must be one of: ", toString(allowed.methods), "."))
+  }
+
+  return(c())
+}

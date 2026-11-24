@@ -249,8 +249,8 @@ copulaBayes <- function(
   verbose = TRUE
 ) {
   cl <- match.call()
-  method <- match.arg(method)
 
+  allowed.methods <- c("IWLS", "RW")
   check_err_msg(checkinput_copula2stage_data_basics(data))
   # check_err_msg(checkinput_copulabayes_formula_data(formula = formula, data = data))
   check_err_msg(checkinput_copulabayes_numiterations_burnin_thin(
@@ -259,7 +259,9 @@ copulaBayes <- function(
     thin = thin
   ))
   check_err_msg(checkinput_copula2stage_verbose(verbose))
-  #check_err_msg(checkinput_copulabayes_method(method))
+  check_err_msg(checkinput_copulabayes_method(method = method, allowed.methods = allowed.methods))
+
+  method <- match.arg(method, choices = allowed.methods)
 
   F.formula <- Formula::as.Formula(formula)
 
