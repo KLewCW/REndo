@@ -214,10 +214,10 @@ Formula follows a two-part notation:
 # There is only one endogenous regressor(z_i) and one exogenous regressor (x_i) correlated
 #with each other
 #------------------------------------------------------------------------
-data("dataCopulaBayes")
+data("dataCopBayes")
 res_bayes <- copulaBayes(
   y ~ x + z | continuous(z),
-  data           = dataCopulaBayes,
+  data           = dataCopBayes,
   num.iterations = 12000,
   burnin         = 2000,
   thin           = 10,
@@ -232,10 +232,10 @@ plot(res_bayes, which = "both")
 # z1 ~ lognormal(0,1), z2 ~ Gamma(2,1): both non-normal
 # Endogeneity strengths: rho_z1e=0.6, rho_z2e=0.5
 #------------------------------------------------------------------------
-#' data("dataCopulaBayesMulti")
+#' data("dataCopBayesMulti")
 res_bayes_multi <- copulaBayes(
   y ~ x1 + x2 + z1 + z2 | continuous(z1) + continuous(z2),
-  data           = dataCopulaBayesMulti,
+  data           = dataCopBayesMulti,
   num.iterations = 12000,
   burnin         = 2000,
   thin           = 10,

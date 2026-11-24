@@ -57,11 +57,11 @@ z <- qlnorm(pnorm(xi_z)) #nonnormal for identification (page 520 as per chapter 
 
 y <- alpha + beta * x + delta * z + e
 
-dataCopulaBayes <- data.frame(y =y, z=z, x=x)
-usethis::use_data(dataCopulaBayes, overwrite = TRUE)
+dataCopBayes <- data.frame(y =y, z=z, x=x)
+usethis::use_data(dataCopBayes, overwrite = TRUE)
 
-## code to prepare `dataCopulaBayesMulti` dataset
-## Extension of dataCopulaBayes to multiple endogenous and exogenous regressors
+## code to prepare `dataCopBayesMulti` dataset
+## Extension of dataCopBayes to multiple endogenous and exogenous regressors
 ## K=2 endogenous, L=2 exogenous
 ##
 ## DGP is an extension of  Haschka (2026) Section 4.1
@@ -122,7 +122,7 @@ z2 <- qgamma(pnorm(xi_z2), shape = 2, rate = 1)
 y <- alpha + beta1*x1 + beta2*x2 + delta1*z1 + delta2*z2 + e
 
 
-dataCopulaBayesMulti <- data.frame(y = y, z1 = z1, z2 = z2, x1 = x1, x2 = x2)
-usethis::use_data(dataCopulaBayesMulti, overwrite = TRUE)
+dataCopBayesMulti <- data.frame(y = y, z1 = z1, z2 = z2, x1 = x1, x2 = x2)
+usethis::use_data(dataCopBayesMulti, overwrite = TRUE)
 
 

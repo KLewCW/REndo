@@ -528,8 +528,8 @@
 #'   Equations (12) to (16) of Haschka (2025). The data has one endogenous regressor
 #'   \eqn{z_i} and one exogenous \eqn{x_i} variable, both being correlated with each other
 #'   \eqn{\rho_{xz} = 0.3}.
-#' @name dataCopulaBayes
-#' @usage data("dataCopulaBayes")
+#' @name dataCopBayes
+#' @usage data("dataCopBayes")
 #' @format A data frame with 1000 observations on 3 variables:
 #' \describe{
 #'   \item{\code{y}}{a numeric vector representing the dependent
@@ -543,15 +543,15 @@
 #' }
 #' @docType data
 #' @author Kimberly-Anne Lew Chuk Wai \email{kimberlylew12@@gmail.com}
-"dataCopulaBayes"
+"dataCopBayes"
 
 #' @title Simulated Dataset for copulaBayes - Multiple Endogenous and Exogenous Regressors
-#' @description A dataset simulated as an extension to \code{dataCopulaBayes}
+#' @description A dataset simulated as an extension to \code{dataCopBayes}
 #'  with \eqn{K = 2} endogenous and \eqn{L = 2} exogenous regressors.
 #'  The dataset is generated to show that the method supports different marginal distributions
 #'  for different endogenous regressors simultaneously.
-#' @name dataCopulaBayesMulti
-#' @usage data("dataCopulaBayesMulti")
+#' @name dataCopBayesMulti
+#' @usage data("dataCopBayesMulti")
 #' @format A data frame with 2000 observations on 5 variables:
 #' \describe{
 #'   \item{\code{y}}{a numeric vector representing the dependent variable.}
@@ -571,6 +571,6 @@
 #' Using Copulas to Handle Endogenous Regressors.
 #' \emph{Oxford Bulletin of Economics and Statistics} 88(3), 519--534.
 #' \doi{10.1111/obes.70023}
-#' @seealso \code{\link{dataCopulaBayes}} for the single-endogenous
+#' @seealso \code{\link{dataCopBayes}} for the single-endogenous
 #'   regressor version following the paper DGP exactly.
-"dataCopulaBayesMulti"
+"dataCopBayesMulti"
