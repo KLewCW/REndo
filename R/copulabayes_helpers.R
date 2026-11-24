@@ -180,7 +180,7 @@ copulabayes_matrix2vector <- function(copula.cor) {
 }
 
 #Reconstructing symmetic correlation matric from upper triangle vector
-copulaBayesVectortomatrix <- function(vec, copula.dim) {
+copulabayes_vector2matrix <- function(vec, copula.dim) {
 # TODO: Unused??
   copula.cor <- diag(copula.dim)
   copula.cor[upper.tri(copula.cor)] <- vec
