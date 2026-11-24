@@ -35,16 +35,15 @@ Thinning is used to reduce autocorrelation between consecutive draws.}
 
 \item{method}{a character string which specify the Metropolis-Hastings (MH) for the regression coefficients
 and error variance
-
-\describe{
-\item{\code{"RW"}}{Adaptive random walk Metropolis-Hastings.
+\itemize{
+\item \code{"RW"}: Adaptive random walk Metropolis-Hastings.
 All parameters \eqn{(\alpha, \delta, \beta, \log\sigma^2)} are
 proposed jointly from a multivariate normal centered at the current values.
 The proposal scale is adapted every 50 iterations via Robbins-Monro scaling
-to target an acceptance rate of 20--40\\% (Roberts and Rosenthal, 2009).}
-\item{\code{"IWLS"}}{Iteratively weighted least squares proposal from Haschka (2026),
+to target an acceptance rate of 20--40\% (Roberts and Rosenthal, 2009).
+\item \code{"IWLS"}: Iteratively weighted least squares proposal from Haschka (2026),
 where coefficients are proposed using the IWLS information matrix and the error variance
-is proposed using a Laplace approximation to the log-posterior of \eqn{\log\sigma^2}.}
+is proposed using a Laplace approximation to the log-posterior of \eqn{\log\sigma^2}.
 }}
 
 \item{verbose}{Show details about the running of the function.}
@@ -104,7 +103,7 @@ The marginal CDF is never fixed but re-estimated at every iteration.
 \subsection{Convergence diagnostics for the RW method}{
 
 The acceptance rate is printed every 500 iterations when \code{verbose = TRUE}.
-A rate between 20\\% and 40\\% shows that the proposal scale is well-tuned (the sampler
+A rate between 20\% and 40\% shows that the proposal scale is well-tuned (the sampler
 adapts automatically every 50 iterations via Robbins-Monro scaling). This convergence
 diagnostics should be verified before any conclusion.
 
