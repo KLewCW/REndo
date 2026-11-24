@@ -251,14 +251,14 @@ copulaBayes <- function(
   cl <- match.call()
   method <- match.arg(method)
 
-  check_err_msg(checkinput_copulashared_data_basics(data))
+  check_err_msg(checkinput_copula2stage_data_basics(data))
   # check_err_msg(checkinput_copulabayes_formula_data(formula = formula, data = data))
   check_err_msg(checkinput_copulabayes_numiterations_burnin_thin(
     num.iterations = num.iterations,
     burnin = burnin,
     thin = thin
   ))
-  check_err_msg(checkinput_copulashared_verbose(verbose))
+  check_err_msg(checkinput_copula2stage_verbose(verbose))
   #check_err_msg(checkinput_copulabayes_method(method))
 
   F.formula <- Formula::as.Formula(formula)
