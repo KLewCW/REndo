@@ -297,33 +297,13 @@ copulaBayes <- function(
 
   names.endo.regs <- labels.endo
 
-  f.main <- formula(F.formula, lhs = 1, rhs = 1)
-  mf <- model.frame(f.main, data = data, na.action = na.fail)
-  y <- model.response(mf)
-
-
-  X.main <- model.matrix(f.main, data = mf)
-  X.main <- X.main[, colnames(X.main) != "(Intercept)", drop = FALSE]
-
-  is.endo <- colnames(X.main) %in% names.endo.regs
-  z <- X.main[, is.endo, drop = FALSE] # N x K endogenous
-  x <- X.main[, !is.endo, drop = FALSE] # N x L exogenous (N x 0 if L=0)
-
-  if (is.null(colnames(z))) {
-    colnames(z) <- paste0("z", seq_len(ncol(z)))
-  }
-  if (is.null(colnames(x))) {
-    colnames(x) <- paste0("x", seq_len(ncol(x)))
-  }
-
-  if (ncol(z) < length(names.endo.regs)) {
-    stop(
-      "Could not match all declared endogenous regressors in the ",
-      "design matrix. Check that continuous() arguments match ",
-      "variable names exactly as they appear in the structural model.",
-      call. = FALSE
-    )
-  }
+  l.parts <- copulabayes_build_model_parts(
+    F.formula = F.formula,
+    data = data
+  )
+  y <- l.parts$y
+  z <- l.parts$z
+  x <- l.parts$x
 
   # MCMC
   if (verbose) {

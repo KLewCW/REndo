@@ -346,3 +346,68 @@ copulabayes_draw_W <- function(scores.endo, scores.exo, scores.err,
   ))
 }
 
+
+# Generates all model data parts in single method for testability:
+# - y: Response (y)
+# - z: endogenous regressors
+# - x: exogenous regressors
+#
+# - Single model.frame: All parts share the same rows
+# - na.fail: Not dropping any row
+# - split frame by the term that generated it ("assign"): Robust against
+#   edge-cases (transformations, backticks, spaces, etc) because terms() normalizes the
+#   labels of rhs1 and rhs2 the same way
+# - No intercept in any part
+#
+#' @importFrom stats model.frame model.matrix model.response terms formula na.fail
+copulabayes_build_model_parts <- function(F.formula, data) {
+  mf.main <- model.frame(
+    formula(F.formula, lhs = 1, rhs = 1),
+    data = data,
+    na.action = na.fail
+  )
+  tr.main <- terms(mf.main)
+  X.main <- model.matrix(tr.main, data = mf.main)
+
+  labels.main <- labels(tr.main)
+  labels.endo <- labels(terms(F.formula, data = data, rhs = 2))
+
+  # All endo terms are in the structural model
+  stopifnot(all(labels.endo %in% labels.main))
+
+  # For each column: Index of the term that generated it
+  mm.assign <- attr(X.main, "assign")
+  # match(): position of endo in all terms (labels.main)
+  is.endo <- mm.assign %in% match(labels.endo, table = labels.main)
+  is.exo <- mm.assign != 0 & !is.endo # index=0 is intercept, skip!
+
+  z <- X.main[, is.endo, drop = FALSE] # N x K endogenous
+  x <- X.main[, is.exo, drop = FALSE] # N x L exogenous (N x 0 if no exo)
+
+  # 1 col per endo (because only numbers and no factors etc which would be expanded)
+  stopifnot(ncol(z) == length(labels.endo))
+
+  y <- model.response(mf.main)
+
+  # Docu only: Explicitly state contract of returned parts (downstream usage)
+  # Hold by construction and should never trigger
+  stopifnot(
+    # No intercept in any part
+    !any(mm.assign[is.endo | is.exo] == 0),
+    # All parts have the same rows
+    nrow(z) == length(y),
+    nrow(x) == length(y),
+    # Every main term is in exactly one part
+    !any(is.endo & is.exo), # no overlap of selection masks
+    setequal(mm.assign[is.endo | is.exo], seq_along(labels.main)),
+    # Named cols
+    !is.null(colnames(z)),
+    !is.null(colnames(x))
+  )
+
+  return(list(
+    y = y,
+    z = z,
+    x = x
+  ))
+}
